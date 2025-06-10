@@ -212,7 +212,7 @@ class AdkarAlmuslam extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             title: const Text(
-              "Coming Soon",
+              "قريبا",
               style: TextStyle(color: Colors.white),
               textAlign: TextAlign.center,
             ),
@@ -225,7 +225,10 @@ class AdkarAlmuslam extends StatelessWidget {
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("حسناً"),
+                  child: const Text(
+                    "حسناً",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],
