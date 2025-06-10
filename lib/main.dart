@@ -33,6 +33,36 @@ void callbackDispatcher() {
       await dbHelper.resetAllDhikrCountsToInitial(
         DatabaseHelper.adkarSalatTableName,
       );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarAfterSalatTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarHomeTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarAlnomTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarAladanTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarAlmasjidTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarAlastygadTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarAlwswiTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarAlkhlaTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adkarEatTableName,
+      );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper.adayahForDeadTableName,
+      );
       print("Adkar counters reset to initial counts in background!");
     }
     return Future.value(true); // must return true to indicate success.

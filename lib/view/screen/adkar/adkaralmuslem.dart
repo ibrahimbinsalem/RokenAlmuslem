@@ -65,7 +65,9 @@ class AdkarAlmuslam extends StatelessWidget {
                   title: "أذكار بعد الصلاة",
                   icon: Icons.mosque,
                   color: Colors.green,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.afterpray);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار الصلاة",
@@ -79,49 +81,65 @@ class AdkarAlmuslam extends StatelessWidget {
                   title: "أذكار النوم",
                   icon: Icons.bedtime,
                   color: Colors.indigo,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.sleep);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار الآذان",
                   icon: Icons.mic,
                   color: Colors.teal,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.aladan);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار المسجد",
                   icon: Icons.account_balance,
                   color: Colors.brown,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.almsjed);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار الإستيقاظ",
                   icon: Icons.wallet,
                   color: Colors.lightBlue,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.alastygad);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار المنزل",
                   icon: Icons.home,
                   color: Colors.orange,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.almanzel);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار الوضوء",
                   icon: Icons.water_drop,
                   color: Colors.cyan,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.washing);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار الخلاء",
                   icon: Icons.wc,
                   color: Colors.pink,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.alkhla);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار الطعام",
                   icon: Icons.restaurant,
                   color: Colors.red,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.eat);
+                  },
                 ),
                 _buildAdkarCard(
                   title: "أذكار أخرى",
@@ -135,7 +153,9 @@ class AdkarAlmuslam extends StatelessWidget {
                   title: "أدعية للميّت",
                   icon: Icons.heart_broken,
                   color: Colors.deepOrange,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.fordead);
+                  },
                 ),
               ]),
             ),

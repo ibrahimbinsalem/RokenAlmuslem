@@ -10,4 +10,14 @@ class AppRoute {
   static const String alsbah = "/alsbah";
   static const String almsa = "/almsa";
   static const String pray = "/pray";
+  static const String afterpray = "/afterpray";
+  static const String sleep = "/sleep";
+  static const String aladan = "/aladan";
+  static const String almsjed = "/almsjed";
+  static const String alastygad = "/alastygad";
+  static const String almanzel = "/almanzel";
+  static const String washing = "/washing";
+  static const String alkhla = "/alkhla";
+  static const String eat = "/eat";
+  static const String fordead = "/fordead";
 }

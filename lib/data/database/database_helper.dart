@@ -8,21 +8,29 @@ import 'dart:io';
 class DatabaseHelper {
   static Database? _database;
   static const String dbName = 'adkar_database.db';
-  static const int dbVersion = 2; // **تم تحديث إصدار قاعدة البيانات إلى 2**
+  static const int dbVersion = 12; // **INCREMENTED DATABASE VERSION**
 
-  // أسماء الجداول الثابتة لكل فئة أذكار
+  // Existing table names
   static const String morningAdkarTableName = 'MorningAdkar';
   static const String eveningAdkarTableName = 'EveningAdkar';
-  static const String adkarSalatTableName = 'AdkarSalat'; // **اسم الجدول الجديد لأذكار الصلاة**
+  static const String adkarSalatTableName = 'AdkarSalat';
+  static const String adkarAfterSalatTableName = 'AdkarAfterSalat';
+  static const String adkarAlnomTableName = 'AdkarAlnom';
+  static const String adkarAladanTableName = 'AdkarAladan';
+  static const String adkarAlmasjidTableName = 'AdkarAlmasjid';
+  static const String adkarAlastygadTableName = 'AdkarAlastygad';
+  static const String adkarHomeTableName = 'AdkarHome';
+  static const String adkarAlwswiTableName = 'AdkarAlwswi';
+  static const String adkarAlkhlaTableName = 'AdkarAlkhla';
+  static const String adkarEatTableName = 'AdkarEat';
+  static const String adayahForDeadTableName = 'AdayahForDead'; // **NEW TABLE NAME**
 
-  // Getter للوصول إلى قاعدة البيانات (Singleton pattern)
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
 
-  // تهيئة قاعدة البيانات وفتحها
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, dbName);
@@ -30,13 +38,12 @@ class DatabaseHelper {
       path,
       version: dbVersion,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade, // سيتم استدعاؤها إذا قمنا بترقية الإصدار لاحقًا
+      onUpgrade: _onUpgrade,
     );
   }
 
-  // إنشاء الجداول لأول مرة عند تهيئة قاعدة البيانات
   Future _onCreate(Database db, int version) async {
-    // إنشاء جدول أذكار الصباح
+    // Existing tables (unchanged for brevity, assume they are already here)
     await db.execute('''
       CREATE TABLE $morningAdkarTableName (
         id INTEGER PRIMARY KEY,
@@ -50,7 +57,6 @@ class DatabaseHelper {
     ''');
     print('Database table "$morningAdkarTableName" created.');
 
-    // إنشاء جدول أذكار المساء
     await db.execute('''
       CREATE TABLE $eveningAdkarTableName (
         id INTEGER PRIMARY KEY,
@@ -64,7 +70,6 @@ class DatabaseHelper {
     ''');
     print('Database table "$eveningAdkarTableName" created.');
 
-    // **إنشاء جدول أذكار الصلاة الجديد**
     await db.execute('''
       CREATE TABLE $adkarSalatTableName (
         id INTEGER PRIMARY KEY,
@@ -77,48 +82,179 @@ class DatabaseHelper {
       )
     ''');
     print('Database table "$adkarSalatTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarAfterSalatTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarAfterSalatTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarAlnomTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarAlnomTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarAladanTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarAladanTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarAlmasjidTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarAlmasjidTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarAlastygadTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarAlastygadTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarHomeTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarHomeTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarAlwswiTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarAlwswiTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarAlkhlaTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarAlkhlaTableName" created.');
+
+    await db.execute('''
+      CREATE TABLE $adkarEatTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adkarEatTableName" created.');
+
+    // **NEW TABLE FOR ADAYAH FOR DEAD**
+    await db.execute('''
+      CREATE TABLE $adayahForDeadTableName (
+        id INTEGER PRIMARY KEY,
+        start TEXT,
+        name TEXT NOT NULL,
+        ayah TEXT,
+        meaning TEXT,
+        initialCount INTEGER NOT NULL,
+        currentCount INTEGER NOT NULL
+      )
+    ''');
+    print('Database table "$adayahForDeadTableName" created.');
   }
 
-  // ترقية قاعدة البيانات (إذا قمت بتغيير هيكل الجدول في المستقبل)
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     print('Database upgrading from version $oldVersion to $newVersion');
-    // إذا كان الإصدار القديم أقل من الإصدار الجديد، قم بتطبيق التغييرات.
-    // في هذا السيناريو، نقوم بإسقاط جميع الجداول ثم إعادة إنشائها.
-    // هذا مفيد في مرحلة التطوير لإعادة تعيين هيكل قاعدة البيانات بسهولة.
-    // في بيئة الإنتاج، قد تحتاج إلى منطق ترحيل أكثر دقة (مثل ALTER TABLE).
     if (oldVersion < newVersion) {
+      // Drop all existing tables (for simplicity in development)
       await db.execute("DROP TABLE IF EXISTS $morningAdkarTableName;");
       await db.execute("DROP TABLE IF EXISTS $eveningAdkarTableName;");
-      await db.execute("DROP TABLE IF EXISTS $adkarSalatTableName;"); // **حذف جدول أذكار الصلاة عند الترقية**
-      await _onCreate(db, newVersion); // ثم إعادة إنشاء الجداول بالهيكل الجديد
+      await db.execute("DROP TABLE IF EXISTS $adkarSalatTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarAfterSalatTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarAlnomTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarAladanTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarAlmasjidTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarAlastygadTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarHomeTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarAlwswiTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarAlkhlaTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adkarEatTableName;");
+      await db.execute("DROP TABLE IF EXISTS $adayahForDeadTableName;"); // **DROP NEW TABLE ON UPGRADE**
+      await _onCreate(db, newVersion); // Recreate all tables
     }
   }
 
-  // --- دوال عامة للاستخدام مع أي جدول أذكار ---
-
-  // إدخال ذكر جديد في الجدول المحدد
+  // General functions for any dhikr table (unchanged)
   Future<int> insertDhikr(String tableName, Map<String, dynamic> dhikr) async {
     final db = await database;
     return await db.insert(
       tableName,
       dhikr,
-      // إذا كان هناك تعارض في الـ ID، استبدل السجل القديم بالجديد
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  // جلب جميع الأذكار من الجدول المحدد
   Future<List<Map<String, dynamic>>> getAllDhikr(String tableName) async {
     final db = await database;
     return await db.query(
       tableName,
-      orderBy: 'id ASC', // لضمان ترتيب ثابت
+      orderBy: 'id ASC',
     );
   }
 
-  // تحديث عداد ذكر معين في الجدول المحدد
-  Future<int> updateDhikrCount(
-      String tableName, int id, int newCount) async {
+  Future<int> updateDhikrCount(String tableName, int id, int newCount) async {
     final db = await database;
     return await db.update(
       tableName,
@@ -128,12 +264,11 @@ class DatabaseHelper {
     );
   }
 
-  // إعادة تعيين عداد ذكر محدد إلى قيمته الأولية في الجدول المحدد
   Future<void> resetDhikrCountToInitial(String tableName, int id) async {
     final db = await database;
     final List<Map<String, dynamic>> result = await db.query(
       tableName,
-      columns: ['initialCount'], // نحتاج فقط القيمة الأولية
+      columns: ['initialCount'],
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -149,7 +284,6 @@ class DatabaseHelper {
     }
   }
 
-  // إعادة تعيين جميع عدادات الأذكار إلى قيمها الأولية في الجدول المحدد
   Future<void> resetAllDhikrCountsToInitial(String tableName) async {
     final db = await database;
     final List<Map<String, dynamic>> adkarToReset = await db.query(tableName);
@@ -169,13 +303,12 @@ class DatabaseHelper {
     print('All dhikr counts for table "$tableName" reset to initial counts in DB.');
   }
 
-  // دالة لحذف ملف قاعدة البيانات بالكامل (لأغراض الاختبار أو إعادة الضبط)
   Future<void> deleteDatabaseFile() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, dbName);
     if (await databaseFactory.databaseExists(path)) {
       await deleteDatabase(path);
-      _database = null; // إعادة تعيين الـ instance بعد الحذف
+      _database = null;
       print('Database file deleted.');
     }
   }
