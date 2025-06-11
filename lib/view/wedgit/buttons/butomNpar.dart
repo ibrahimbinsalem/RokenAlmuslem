@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/mainscreencontroller.dart';
 import 'package:rokenalmuslem/core/constant/color.dart';
-import 'package:rokenalmuslem/view/screen/wedgit/buttons/custom_tetx.dart';
+import 'package:rokenalmuslem/view/wedgit/buttons/custom_tetx.dart';
 
 class CosmicNavBar extends StatelessWidget {
   const CosmicNavBar({super.key});

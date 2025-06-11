@@ -16,6 +16,9 @@ import 'package:rokenalmuslem/view/screen/adkar/pray.dart';
 import 'package:rokenalmuslem/view/screen/adkar/sleep.dart';
 import 'package:rokenalmuslem/view/screen/adkar/washing.dart';
 import 'package:rokenalmuslem/view/screen/home/mainscreen.dart';
+import 'package:rokenalmuslem/view/screen/more/asmaallah.dart';
+import 'package:rokenalmuslem/view/screen/more/msbaha.dart';
+import 'package:rokenalmuslem/view/screen/more/qablah.dart';
 import 'package:rokenalmuslem/view/screen/onbording/onbording.dart';
 
 List<GetPage<dynamic>>? routes = [
@@ -42,4 +45,9 @@ List<GetPage<dynamic>>? routes = [
   GetPage(name: AppRoute.alkhla, page: () => AdkarAlkhlaView()),
   GetPage(name: AppRoute.eat, page: () => AdkarEatView()),
   GetPage(name: AppRoute.fordead, page: () => AdayahForDeadView()),
+
+  // More :
+  GetPage(name: AppRoute.asmaAllah, page: () => AsmaAllahView()),
+  GetPage(name: AppRoute.msbaha, page: () => TasbeehView()),
+  // GetPage(name: AppRoute.qiblah, page: () => QiblaPage()),
 ];

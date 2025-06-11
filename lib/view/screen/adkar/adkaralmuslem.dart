@@ -71,7 +71,7 @@ class AdkarAlmuslam extends StatelessWidget {
                 ),
                 _buildAdkarCard(
                   title: "أذكار الصلاة",
-                  icon: Icons.party_mode,
+                  icon: Icons.man,
                   color: Colors.blue,
                   onTap: () {
                     Get.toNamed(AppRoute.pray);
@@ -103,7 +103,7 @@ class AdkarAlmuslam extends StatelessWidget {
                 ),
                 _buildAdkarCard(
                   title: "أذكار الإستيقاظ",
-                  icon: Icons.wallet,
+                  icon: Icons.alarm,
                   color: Colors.lightBlue,
                   onTap: () {
                     Get.toNamed(AppRoute.alastygad);
@@ -127,7 +127,7 @@ class AdkarAlmuslam extends StatelessWidget {
                 ),
                 _buildAdkarCard(
                   title: "أذكار الخلاء",
-                  icon: Icons.wc,
+                  icon: Icons.meeting_room_rounded,
                   color: Colors.pink,
                   onTap: () {
                     Get.toNamed(AppRoute.alkhla);

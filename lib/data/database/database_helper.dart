@@ -8,7 +8,7 @@ import 'dart:io';
 class DatabaseHelper {
   static Database? _database;
   static const String dbName = 'adkar_database.db';
-  static const int dbVersion = 12; // **INCREMENTED DATABASE VERSION**
+  static const int dbVersion = 13; // **INCREMENTED DATABASE VERSION**
 
   // Existing table names
   static const String morningAdkarTableName = 'MorningAdkar';
@@ -23,7 +23,8 @@ class DatabaseHelper {
   static const String adkarAlwswiTableName = 'AdkarAlwswi';
   static const String adkarAlkhlaTableName = 'AdkarAlkhla';
   static const String adkarEatTableName = 'AdkarEat';
-  static const String adayahForDeadTableName = 'AdayahForDead'; // **NEW TABLE NAME**
+  static const String adayahForDeadTableName = 'AdayahForDead';
+  static const String asmaAllahTableName = 'AsmaAllah'; // **NEW TABLE NAME**
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -200,7 +201,6 @@ class DatabaseHelper {
     ''');
     print('Database table "$adkarEatTableName" created.');
 
-    // **NEW TABLE FOR ADAYAH FOR DEAD**
     await db.execute('''
       CREATE TABLE $adayahForDeadTableName (
         id INTEGER PRIMARY KEY,
@@ -213,6 +213,16 @@ class DatabaseHelper {
       )
     ''');
     print('Database table "$adayahForDeadTableName" created.');
+
+    // **NEW TABLE FOR ASMA ALLAH**
+    await db.execute('''
+      CREATE TABLE $asmaAllahTableName (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        dis TEXT NOT NULL
+      )
+    ''');
+    print('Database table "$asmaAllahTableName" created.');
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -231,7 +241,10 @@ class DatabaseHelper {
       await db.execute("DROP TABLE IF EXISTS $adkarAlwswiTableName;");
       await db.execute("DROP TABLE IF EXISTS $adkarAlkhlaTableName;");
       await db.execute("DROP TABLE IF EXISTS $adkarEatTableName;");
-      await db.execute("DROP TABLE IF EXISTS $adayahForDeadTableName;"); // **DROP NEW TABLE ON UPGRADE**
+      await db.execute("DROP TABLE IF EXISTS $adayahForDeadTableName;");
+      await db.execute(
+        "DROP TABLE IF EXISTS $asmaAllahTableName;",
+      ); // **DROP NEW TABLE ON UPGRADE**
       await _onCreate(db, newVersion); // Recreate all tables
     }
   }
@@ -248,10 +261,7 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getAllDhikr(String tableName) async {
     final db = await database;
-    return await db.query(
-      tableName,
-      orderBy: 'id ASC',
-    );
+    return await db.query(tableName, orderBy: 'id ASC');
   }
 
   Future<int> updateDhikrCount(String tableName, int id, int newCount) async {
@@ -280,7 +290,9 @@ class DatabaseHelper {
         where: 'id = ?',
         whereArgs: [id],
       );
-      print('Dhikr with ID $id count reset to its initial value in $tableName.');
+      print(
+        'Dhikr with ID $id count reset to its initial value in $tableName.',
+      );
     }
   }
 
@@ -300,7 +312,9 @@ class DatabaseHelper {
         );
       }
     });
-    print('All dhikr counts for table "$tableName" reset to initial counts in DB.');
+    print(
+      'All dhikr counts for table "$tableName" reset to initial counts in DB.',
+    );
   }
 
   Future<void> deleteDatabaseFile() async {
@@ -311,5 +325,20 @@ class DatabaseHelper {
       _database = null;
       print('Database file deleted.');
     }
+  }
+
+  // **NEW: Insert Asma Allah functions**
+  Future<int> insertAsmaAllah(Map<String, dynamic> asmaAllah) async {
+    final db = await database;
+    return await db.insert(
+      asmaAllahTableName,
+      asmaAllah,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getAllAsmaAllah() async {
+    final db = await database;
+    return await db.query(asmaAllahTableName, orderBy: 'id ASC');
   }
 }

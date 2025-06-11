@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:rokenalmuslem/controller/mainscreencontroller.dart';
 import 'package:rokenalmuslem/core/constant/color.dart';
-import 'package:rokenalmuslem/view/screen/wedgit/buttons/butomNpar.dart';
-import 'package:rokenalmuslem/view/screen/wedgit/buttons/floatacctionbutom.dart';
+import 'package:rokenalmuslem/view/wedgit/buttons/butomNpar.dart';
+import 'package:rokenalmuslem/view/wedgit/buttons/floatacctionbutom.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});

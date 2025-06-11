@@ -20,4 +20,9 @@ class AppRoute {
   static const String alkhla = "/alkhla";
   static const String eat = "/eat";
   static const String fordead = "/fordead";
+
+  // More :
+  static const String asmaAllah = "/asmaAllah";
+  static const String msbaha = "/msbaha";
+  static const String qiblah = "/qiblah";
 }

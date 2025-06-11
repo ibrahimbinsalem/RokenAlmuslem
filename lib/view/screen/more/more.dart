@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:rokenalmuslem/core/constant/routes.dart';
 
 class MorePage extends StatelessWidget {
   const MorePage({super.key});
@@ -64,19 +66,25 @@ class MorePage extends StatelessWidget {
                   title: "أسماء الله الحسنى",
                   image: "assets/images/اسماء الله.png",
                   color: Colors.deepPurple,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.asmaAllah);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "حلقات الذكر",
                   image: "assets/images/حلقات ذكر .png",
                   color: Colors.blue,
-                  onTap: () {},
+                  onTap: () {
+                    _showComingSoonDialog(context);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "المسبحة الإلكترونية",
                   image: "assets/images/الكترونية.png",
                   color: Colors.green,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.msbaha);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "أذكار المسلم",
@@ -88,7 +96,9 @@ class MorePage extends StatelessWidget {
                   title: "اتجاه القبلة",
                   image: "assets/images/القبله.png",
                   color: Colors.orange,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.qiblah);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "بيت الاستغفار",
@@ -211,6 +221,40 @@ class MorePage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showComingSoonDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1E1E1E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              "قريبا",
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            content: const Text(
+              "سيتم إضافة هذه الميزات قريباً بإذن الله",
+              style: TextStyle(color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "حسناً",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }

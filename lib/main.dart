@@ -20,10 +20,16 @@ void callbackDispatcher() {
     print("Background task executing: $taskName");
 
     // Initialize DatabaseHelper here because it is a separate environment from the main app environment.
+    // Ensure that all necessary initializations for DatabaseHelper are done here.
+    // For instance, if your DatabaseHelper relies on specific paths or contexts,
+    // they should be handled in a way that is compatible with a background isolate.
     final dbHelper = DatabaseHelper();
+    // You might need to call dbHelper.database to ensure it's initialized.
+    // await dbHelper.database; // uncomment if direct database access is needed for setup in background
 
     if (taskName == "resetAdkarCountersTask") {
       // Call the function that resets the counters in the database.
+      // Ensure the table names are correct and match your DatabaseHelper constants.
       await dbHelper.resetAllDhikrCountsToInitial(
         DatabaseHelper.morningAdkarTableName,
       );
@@ -63,6 +69,10 @@ void callbackDispatcher() {
       await dbHelper.resetAllDhikrCountsToInitial(
         DatabaseHelper.adayahForDeadTableName,
       );
+      await dbHelper.resetAllDhikrCountsToInitial(
+        DatabaseHelper
+            .asmaAllahTableName, // Don't forget AsmaAllah if it has counts (though it typically doesn't)
+      );
       print("Adkar counters reset to initial counts in background!");
     }
     return Future.value(true); // must return true to indicate success.
@@ -93,13 +103,21 @@ void main() async {
     "resetAdkarCountersTask", // task name that will be sent to callbackDispatcher
     initialDelay: const Duration(
       seconds: 30,
-    ), // for testing, set it to 30 seconds, in production you can modify it
+    ), // For testing, set it to 30 seconds. In production, you can modify it.
     frequency: const Duration(
       hours: 24,
-    ), // time interval between each execution (24 hours)
+    ), // Time interval between each execution (e.g., 24 hours).
     existingWorkPolicy:
         ExistingWorkPolicy
-            .replace, // replace any previous task with the same name
+            .replace, // Replace any previous task with the same name.
+    // If you need more control over constraints (e.g., requires network, device idle), you can add them here:
+    // constraints: Constraints(
+    //   networkType: NetworkType.notRequired,
+    //   requiresBatteryNotLow: true,
+    //   requiresCharging: false,
+    //   requiresDeviceIdle: false,
+    //   requiresStorageNotLow: false,
+    // ),
   );
 
   // Check if the onboarding screen has been shown before
