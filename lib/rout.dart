@@ -49,5 +49,5 @@ List<GetPage<dynamic>>? routes = [
   // More :
   GetPage(name: AppRoute.asmaAllah, page: () => AsmaAllahView()),
   GetPage(name: AppRoute.msbaha, page: () => TasbeehView()),
-  // GetPage(name: AppRoute.qiblah, page: () => QiblaPage()),
+  GetPage(name: AppRoute.qiblah, page: () => QiblaView()),
 ];
