@@ -8,9 +8,15 @@ import 'dart:math' as math;
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
 import 'package:rokenalmuslem/controller/more/masbahacontroller.dart';
+// استيراد خدمة الإشعارات ومعرفات الإشعارات ووقت الإشعارات
+import 'package:rokenalmuslem/core/services/localnotification.dart';
+import 'package:rokenalmuslem/core/class/app_setting_mg.dart'; // مسار AppSettingsController
 
 class TasbeehView extends StatelessWidget {
   final TasbeehController controller = Get.put(TasbeehController());
+  // الوصول إلى مثيل NotificationService
+  final NotificationService _notificationService =
+      Get.find<NotificationService>();
 
   TasbeehView({Key? key}) : super(key: key);
 
@@ -40,7 +46,7 @@ class TasbeehView extends StatelessWidget {
         title: FadeInDown(
           delay: const Duration(milliseconds: 200),
           child: const Text(
-            "تسبيح النجوم", // اسم جديد
+            "المسبحة", // اسم جديد
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -73,6 +79,164 @@ class TasbeehView extends StatelessWidget {
               icon: const Icon(Icons.settings, color: Colors.white, size: 30),
               onPressed: () => controller.showTargetCountDialog(context),
               tooltip: 'تغيير الهدف',
+            ),
+          ),
+          // زر "تذكير التسبيح" المحسّن مع اختيار الوقت
+          FadeInRight(
+            delay: const Duration(milliseconds: 800), // تأخير بسيط لظهور متدرج
+            child: Container(
+              margin: const EdgeInsets.symmetric(
+                vertical: 8.0,
+                horizontal: 4.0,
+              ),
+              decoration: BoxDecoration(
+                color:
+                    Get.theme.colorScheme.secondary, // لون خلفية الزر (الأخضر)
+                borderRadius: BorderRadius.circular(12), // حواف مدورة
+                boxShadow: [
+                  BoxShadow(
+                    color: Get.theme.colorScheme.secondary.withOpacity(0.4),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2), // ظل خفيف
+                  ),
+                ],
+              ),
+              child: Material(
+                color:
+                    Colors
+                        .transparent, // لجعل Material transparent لعرض BoxDecoration
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () async {
+                    // جعل onTap async
+                    // عرض منتقي الوقت للسماح للمستخدم باختيار وقت التنبيه
+                    final TimeOfDay? pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: const TimeOfDay(
+                        hour: 21,
+                        minute: 0,
+                      ), // وقت افتراضي (9:00 مساءً)
+                      builder: (BuildContext context, Widget? child) {
+                        return Theme(
+                          data: Get.theme.copyWith(
+                            colorScheme: Get.theme.colorScheme.copyWith(
+                              primary:
+                                  Get
+                                      .theme
+                                      .colorScheme
+                                      .primary, // لون الثيم الأساسي
+                              onPrimary:
+                                  Get
+                                      .theme
+                                      .colorScheme
+                                      .onPrimary, // لون النص على الأساسي
+                              surface:
+                                  Get
+                                      .theme
+                                      .colorScheme
+                                      .surface, // لون الخلفية في منتقي الوقت
+                              onSurface:
+                                  Get
+                                      .theme
+                                      .colorScheme
+                                      .onSurface, // لون النص على الخلفية
+                            ),
+                            textButtonTheme: TextButtonThemeData(
+                              style: TextButton.styleFrom(
+                                foregroundColor:
+                                    Get
+                                        .theme
+                                        .colorScheme
+                                        .primary, // لون أزرار النص
+                              ),
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+
+                    if (pickedTime != null) {
+                      // جدولة إشعار تذكير التسبيح بالوقت الذي اختاره المستخدم
+                      _notificationService.scheduleDailyReminder(
+                        id:
+                            AppSettingsController
+                                .tasbeehReminderId, // استخدام ID مخصص للتسبيح
+                        title: 'تذكير: وقت التسبيح',
+                        body: 'لا تنسَ التسبيح وذكر الله في هذا الوقت.',
+                        time: TimeOfDay(
+                          hour: pickedTime.hour,
+                          minute: pickedTime.minute,
+                        ), // استخدام الوقت المختار
+                        payload: 'tasbeeh_reminder',
+                      );
+                      Get.snackbar(
+                        'تم تفعيل التذكير',
+                        'ستتلقى تذكيرًا يوميًا للتسبيح في الساعة ${pickedTime.format(context)}.', // عرض الوقت المختار
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor:
+                            Get
+                                .theme
+                                .colorScheme
+                                .secondary, // لون خلفية السناك بار (الأخضر)
+                        colorText:
+                            Get
+                                .theme
+                                .colorScheme
+                                .onSecondary, // لون النص في السناك بار (الأبيض)
+                        borderRadius: 10,
+                        margin: const EdgeInsets.all(16),
+                      );
+                    } else {
+                      // إذا لم يتم اختيار وقت (المستخدم ألغى)، يمكن إظهار رسالة أو عدم فعل شيء
+                      Get.snackbar(
+                        'إلغاء التفعيل',
+                        'لم يتم تحديد وقت لتذكير التسبيح.',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.orange,
+                        colorText: Colors.white,
+                        borderRadius: 10,
+                        margin: const EdgeInsets.all(16),
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min, // للحفاظ على الصف مدمجًا
+                      children: [
+                        Icon(
+                          Icons
+                              .touch_app_outlined, // أيقونة مناسبة لـ "تسبيح" أو "عداد"
+                          color:
+                              Get
+                                  .theme
+                                  .colorScheme
+                                  .onSecondary, // لون الأيقونة (أبيض)
+                          size: 20,
+                        ),
+                        const SizedBox(
+                          width: 6,
+                        ), // مسافة صغيرة بين الأيقونة والنص
+                        Text(
+                          'تذكير التسبيح', // نص واضح للزر
+                          style: TextStyle(
+                            color: Get.theme.colorScheme.onSecondary,
+                            fontFamily: 'Tajawal',
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ],

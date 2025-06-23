@@ -1,11 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-<uses-permission android:name="android.permission.INTERNET" /> <uses-feature android:name="android.hardware.sensor.compass" android:required="false"/>
-<uses-feature android:name="android.hardware.location.gps" android:required="false"/>
-<uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- الأذونات المتعلقة بالموقع والإنترنت -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- الأذونات المطلوبة للإشعارات والمنبهات -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/> <!-- مطلوب لأجهزة Android 13+ -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/> <!-- لإعادة جدولة الإشعارات بعد إعادة التشغيل -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/> <!-- للحفاظ على الجهاز مستيقظًا لفترة قصيرة للإشعارات -->
+    <!-- جديد: هذا الإذن ضروري لجدولة المنبهات الدقيقة على Android 12 وما فوق -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
+
     <application
-        android:label="rokenalmuslem"
+        android:label="ركن المسلم"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -35,6 +44,20 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- جديد: المستقبلات (Receivers) الضرورية لـ flutter_local_notifications -->
+        <!-- هذا المستقبل يعالج الإشعارات المجدولة -->
+        <receiver android:exported="true" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <!-- هذا المستقبل يعالج إعادة جدولة الإشعارات بعد إعادة تشغيل الجهاز -->
+        <receiver android:exported="true" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

@@ -63,6 +63,22 @@ class MorePage extends StatelessWidget {
               ),
               delegate: SliverChildListDelegate([
                 _buildFeatureCard(
+                  title: "مواقيت الصلاه",
+                  image: "assets/images/praytime.png",
+                  color: Colors.deepPurple,
+                  onTap: () {
+                    Get.toNamed(AppRoute.prytime);
+                  },
+                ),
+                // _buildFeatureCard(
+                //   title: "قرآن",
+                //   image: "assets/images/praytime.png",
+                //   color: Colors.deepPurple,
+                //   onTap: () {
+                //     Get.toNamed(AppRoute.quran);
+                //   },
+                // ),
+                _buildFeatureCard(
                   title: "أسماء الله الحسنى",
                   image: "assets/images/اسماء الله.png",
                   color: Colors.deepPurple,
@@ -110,61 +126,73 @@ class MorePage extends StatelessWidget {
                   title: "فضل الدعاء",
                   image: "assets/images/استغفار.png",
                   color: Colors.indigo,
-                  onTap: () {},
-                ),
-                _buildFeatureCard(
-                  title: "الاشعارات",
-                  image: "assets/images/masseg icon.png",
-                  color: Colors.pink,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.fadelalduaa);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "الرقية الشرعية",
                   image: "assets/images/الرقية الشرعية .png",
                   color: Colors.red,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.alrugi);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "الأدعية القرآنية",
                   image: "assets/images/ادعية قرانية .png",
                   color: Colors.teal,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.aduqyQuran);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "أدعية نبوية",
                   image: "assets/images/ادعية نبوية .png",
                   color: Colors.brown,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.aduqyNabuia);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "أدعية الأنبياء",
                   image: "assets/images/ادعية الانبياء.png",
                   color: Colors.cyan,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.adaytalanbya);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "الأربعين النووية",
                   image: "assets/images/الاربعون النووية .png",
                   color: Colors.deepOrange,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.alarboun);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "فضل الذكر",
                   image: "assets/images/رمضان .png",
                   color: Colors.lime,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.fadelaldaker);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "الحج والعمرة",
                   image: "assets/images/الحج والعمره .png",
                   color: Colors.purple,
-                  onTap: () {},
+                  onTap: () {
+                    _showComingSoonDialog(context);
+                  },
                 ),
                 _buildFeatureCard(
                   title: "الإعدادات",
                   image: "assets/images/اعدادات.png",
                   color: Colors.grey,
-                  onTap: () {},
+                  onTap: () {
+                    Get.toNamed(AppRoute.setting);
+                  },
                 ),
               ]),
             ),
@@ -190,7 +218,7 @@ class MorePage extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: color.withOpacity(0.3), width: 1),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
           ),
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -199,11 +227,14 @@ class MorePage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
-                  border: Border.all(color: color.withOpacity(0.3), width: 2),
+                  border: Border.all(
+                    color: color.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
                 ),
-                child: Image.asset(image, width: 40, height: 40, color: color),
+                child: Image.asset(image, width: 40, height: 40),
               ),
               const SizedBox(height: 12),
               Text(

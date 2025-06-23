@@ -25,4 +25,20 @@ class AppRoute {
   static const String asmaAllah = "/asmaAllah";
   static const String msbaha = "/msbaha";
   static const String qiblah = "/qiblah";
+  static const String fadelalduaa = "/fadelalduaa";
+  static const String alrugi = "/alrugi";
+  static const String aduqyQuran = "/aduqyQuran";
+  static const String aduqyNabuia = "/aduqyNabuia";
+  static const String adaytalanbya = "/adaytalanbya";
+  static const String alarboun = "/alarboun";
+  static const String fadelaldaker = "/fadelaldaker";
+  static const String setting = "/setting";
+  static const String prytime = "/prytime";
+
+
+// Quran :
+  static const String quran = "/quran";
+  static const String surahDetail = "/surahDetail";
+
+
 }

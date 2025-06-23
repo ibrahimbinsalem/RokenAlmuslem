@@ -16,10 +16,21 @@ import 'package:rokenalmuslem/view/screen/adkar/pray.dart';
 import 'package:rokenalmuslem/view/screen/adkar/sleep.dart';
 import 'package:rokenalmuslem/view/screen/adkar/washing.dart';
 import 'package:rokenalmuslem/view/screen/home/mainscreen.dart';
+import 'package:rokenalmuslem/view/screen/more/adayanabuaya.dart';
+import 'package:rokenalmuslem/view/screen/more/adayaquran.dart';
+import 'package:rokenalmuslem/view/screen/more/adayatalanbya.dart';
+import 'package:rokenalmuslem/view/screen/more/alarboun.dart';
+import 'package:rokenalmuslem/view/screen/more/alrugi.dart';
 import 'package:rokenalmuslem/view/screen/more/asmaallah.dart';
+import 'package:rokenalmuslem/view/screen/more/fadelaldaker.dart';
+import 'package:rokenalmuslem/view/screen/more/fadelalduaa.dart';
 import 'package:rokenalmuslem/view/screen/more/msbaha.dart';
+import 'package:rokenalmuslem/view/screen/more/praytime.dart';
 import 'package:rokenalmuslem/view/screen/more/qablah.dart';
+import 'package:rokenalmuslem/view/screen/more/setting.dart';
 import 'package:rokenalmuslem/view/screen/onbording/onbording.dart';
+import 'package:rokenalmuslem/view/screen/quran/detail_screen.dart';
+import 'package:rokenalmuslem/view/screen/quran/home_screen.dart';
 
 List<GetPage<dynamic>>? routes = [
   // Authe
@@ -50,4 +61,15 @@ List<GetPage<dynamic>>? routes = [
   GetPage(name: AppRoute.asmaAllah, page: () => AsmaAllahView()),
   GetPage(name: AppRoute.msbaha, page: () => TasbeehView()),
   GetPage(name: AppRoute.qiblah, page: () => QiblaView()),
+  GetPage(name: AppRoute.fadelalduaa, page: () => FadelAlDuaaPage()),
+  GetPage(name: AppRoute.alrugi, page: () => AlrugiView()),
+  GetPage(name: AppRoute.aduqyQuran, page: () => AdayaQuraniyaView()),
+  GetPage(name: AppRoute.aduqyNabuia, page: () => AdayahNabuiaView()),
+  GetPage(name: AppRoute.adaytalanbya, page: () => AdayaAlanbiaView()),
+  GetPage(name: AppRoute.alarboun, page: () => FortyHadithView()),
+  GetPage(name: AppRoute.fadelaldaker, page: () => FadelAlDkerView()),
+  GetPage(name: AppRoute.setting, page: () => SettingsPage()),
+  GetPage(name: AppRoute.prytime, page: () => PrayerTimesView()),
+  GetPage(name: AppRoute.quran, page: () => SurahListPage()),
+  // GetPage(name: AppRoute.surahDetail, page: () => SurahDetailPage(surah:)),
 ];

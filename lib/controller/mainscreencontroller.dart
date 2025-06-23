@@ -16,7 +16,7 @@ class MainScreenControllerImp extends MainScreenController {
 
   List<Widget> listpage = [
     HomePage(),
-    NotificationsScreen(),
+    NotificationsView(),
     AdkarAlmuslam(),
     MorePage(),
   ];

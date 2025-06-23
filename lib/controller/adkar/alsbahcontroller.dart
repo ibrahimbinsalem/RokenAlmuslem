@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:rokenalmuslem/data/database/database_helper.dart'; // تأكد من المسار الصحيح
 
 class AdkarSabahController extends GetxController {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   final RxList<Map<String, dynamic>> items = <Map<String, dynamic>>[].obs;
 

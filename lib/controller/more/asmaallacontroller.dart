@@ -5,7 +5,7 @@ import 'package:flutter/material.dart'; // Needed for Get.bottomSheet
 import 'package:rokenalmuslem/data/database/database_helper.dart'; // Adjust path as needed
 
 class AsmaAllahController extends GetxController {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   // RxList to hold the Asma Allah items
   final RxList<Map<String, dynamic>> items = <Map<String, dynamic>>[].obs;

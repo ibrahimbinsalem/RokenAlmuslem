@@ -1,8 +1,10 @@
-// view/screen/adkar_almsa_page.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 // تأكد من المسار الصحيح للكنترولر
 import 'package:rokenalmuslem/controller/adkar/almsacontroller.dart';
+// استيراد خدمة الإشعارات ومعرفات الإشعارات ووقت الإشعارات
+import 'package:rokenalmuslem/core/services/localnotification.dart';
+import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
 
 // ويدجت FadeIn (يمكنك وضعها في ملف منفصل مثل utilities/widgets.dart لتجنب التكرار)
 class FadeIn extends StatefulWidget {
@@ -56,6 +58,9 @@ class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
 class AdkarAlmsaPage extends StatelessWidget {
   // تهيئة الكنترولر وتخزينه في GetX
   final AdkarAlmsaController controller = Get.put(AdkarAlmsaController());
+  // الوصول إلى مثيل NotificationService
+  final NotificationService _notificationService =
+      Get.find<NotificationService>();
 
   AdkarAlmsaPage({super.key});
 
@@ -99,6 +104,156 @@ class AdkarAlmsaPage extends StatelessWidget {
             onPressed: controller.resetAllCounters, // استدعاء من الكنترولر
             tooltip: 'إعادة تعيين جميع العدادات',
             color: Colors.white,
+          ),
+          // جديد: زر "تذكير المساء" المحسّن مع منتقي الوقت
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+            decoration: BoxDecoration(
+              color: Get.theme.colorScheme.secondary, // لون خلفية الزر
+              borderRadius: BorderRadius.circular(12), // حواف مدورة
+              boxShadow: [
+                BoxShadow(
+                  color: Get.theme.colorScheme.secondary.withOpacity(0.4),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2), // ظل خفيف
+                ),
+              ],
+            ),
+            child: Material(
+              color:
+                  Colors
+                      .transparent, // لجعل Material transparent لعرض BoxDecoration
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  // عرض منتقي الوقت للسماح للمستخدم باختيار وقت التنبيه
+                  final TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: const TimeOfDay(
+                      hour: 18,
+                      minute: 0,
+                    ), // وقت افتراضي (6:00 مساءً)
+                    builder: (BuildContext context, Widget? child) {
+                      return Theme(
+                        data: Get.theme.copyWith(
+                          colorScheme: Get.theme.colorScheme.copyWith(
+                            primary:
+                                Get
+                                    .theme
+                                    .colorScheme
+                                    .primary, // لون الثيم الأساسي
+                            onPrimary:
+                                Get
+                                    .theme
+                                    .colorScheme
+                                    .onPrimary, // لون النص على الأساسي
+                            surface:
+                                Get
+                                    .theme
+                                    .colorScheme
+                                    .surface, // لون الخلفية في منتقي الوقت
+                            onSurface:
+                                Get
+                                    .theme
+                                    .colorScheme
+                                    .onSurface, // لون النص على الخلفية
+                          ),
+                          textButtonTheme: TextButtonThemeData(
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  Get
+                                      .theme
+                                      .colorScheme
+                                      .primary, // لون أزرار النص
+                            ),
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+
+                  if (pickedTime != null) {
+                    // جدولة إشعار أذكار المساء بالوقت الذي اختاره المستخدم
+                    _notificationService.scheduleDailyReminder(
+                      id:
+                          AppSettingsController
+                              .eveningAzkarId, // استخدام ID مخصص لأذكار المساء
+                      title: 'تذكير: أذكار المساء',
+                      body: 'حصّن نفسك بذكر الله، حان وقت أذكار المساء.',
+                      time: TimeOfDay(
+                        hour: pickedTime.hour,
+                        minute: pickedTime.minute,
+                      ), // استخدام الوقت المختار
+                      payload: 'evening_azkar_reminder',
+                    );
+                    Get.snackbar(
+                      'تم تفعيل التذكير',
+                      'ستتلقى تذكيرًا يوميًا لأذكار المساء في الساعة ${pickedTime.format(context)}.', // عرض الوقت المختار
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor:
+                          Get
+                              .theme
+                              .colorScheme
+                              .secondary, // لون خلفية السناك بار (الأخضر)
+                      colorText:
+                          Get
+                              .theme
+                              .colorScheme
+                              .onSecondary, // لون النص في السناك بار (الأبيض)
+                      borderRadius: 10,
+                      margin: const EdgeInsets.all(16),
+                    );
+                  } else {
+                    // إذا لم يتم اختيار وقت (المستخدم ألغى)، يمكن إظهار رسالة أو عدم فعل شيء
+                    Get.snackbar(
+                      'إلغاء التفعيل',
+                      'لم يتم تحديد وقت لتذكير أذكار المساء.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.orange,
+                      colorText: Colors.white,
+                      borderRadius: 10,
+                      margin: const EdgeInsets.all(16),
+                    );
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min, // للحفاظ على الصف مدمجًا
+                    children: [
+                      Icon(
+                        Icons
+                            .add_alert_outlined, // أيقونة واضحة للإضافة والتنبيه
+                        color:
+                            Get
+                                .theme
+                                .colorScheme
+                                .onSecondary, // لون الأيقونة (أبيض)
+                        size: 20,
+                      ),
+                      const SizedBox(
+                        width: 6,
+                      ), // مسافة صغيرة بين الأيقونة والنص
+                      Text(
+                        'تذكير المساء', // نص واضح للزر
+                        style: TextStyle(
+                          color: Get.theme.colorScheme.onSecondary,
+                          fontFamily: 'Tajawal',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -475,8 +630,26 @@ class AdkarAlmsaPage extends StatelessWidget {
                             textDirection: TextDirection.rtl,
                           ),
                         ),
-                        // لا يوجد 'category' في بيانات أذكار المساء التي عرفناها
-                        // لذلك تم حذف الجزء الخاص بها هنا.
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF388E3C).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: const Text(
+                            'أذكار المساء', // نص ثابت لأن 'category' غير موجود
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF1B5E20),
+                              fontFamily: 'Tajawal',
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textDirection: TextDirection.rtl,
+                          ),
+                        ),
                       ],
                     ),
                   ],

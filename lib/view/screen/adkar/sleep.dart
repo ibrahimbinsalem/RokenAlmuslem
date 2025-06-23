@@ -2,36 +2,92 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+// تأكد من المسار الصحيح للكنترولر
 import 'package:rokenalmuslem/controller/adkar/sleepcontrller.dart';
+// استيراد خدمة الإشعارات ومعرفات الإشعارات ووقت الإشعارات
+import 'package:rokenalmuslem/core/services/localnotification.dart';
+import 'package:rokenalmuslem/core/class/app_setting_mg.dart'; // مسار AppSettingsController
+
+// ويدجت FadeIn (يمكنك وضعها في ملف منفصل مثل utilities/widgets.dart لتجنب التكرار)
+class FadeIn extends StatefulWidget {
+  final Widget child;
+  final Duration duration;
+  final Duration delay;
+
+  const FadeIn({
+    Key? key,
+    required this.child,
+    this.duration = const Duration(milliseconds: 300),
+    this.delay = Duration.zero,
+  }) : super(key: key);
+
+  @override
+  _FadeInState createState() => _FadeInState();
+}
+
+class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    Future.delayed(widget.delay, () {
+      if (mounted) {
+        _controller.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(opacity: _animation, child: widget.child);
+  }
+}
 
 class AdkarAlnomView extends StatelessWidget {
-  // استخدام Get.find() للحصول على الكنترولر الذي تم تهيئته مسبقًا
+  // تهيئة الكنترولر وتخزينه في GetX
   final AdkarAlnomController _controller = Get.put(AdkarAlnomController());
+  // الوصول إلى مثيل NotificationService
+  final NotificationService _notificationService =
+      Get.find<NotificationService>();
 
   AdkarAlnomView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[800],
-      extendBodyBehindAppBar: true, // لجعل الـ body يمتد خلف الـ appbar
+      backgroundColor: Colors.grey[800], // خلفية متناسقة وداكنة
+      extendBodyBehindAppBar: true, // للسماح للخلفية بالتمدد خلف الـ AppBar
       appBar: AppBar(
         title: const Text(
           'أذكار النوم',
           style: TextStyle(
             color: Colors.white,
-            fontFamily: 'Tajawal', // تأكد من وجود هذا الخط
+            fontFamily: 'Tajawal', // استخدام نفس الخط
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent, // لجعل الـ appbar شفافًا
-        elevation: 0,
+        backgroundColor: Colors.transparent, // لجعل الخلفية شفافة لرؤية التدرج
+        elevation: 0, // إزالة الظل
         iconTheme: const IconThemeData(
           color: Colors.white,
-        ), // لون الأيقونات في الـ appbar
+        ), // لون أيقونة الرجوع
         flexibleSpace: Container(
-          // تدرج لوني للـ appbar
+          // تدرج لوني لشريط التطبيق
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -43,42 +99,205 @@ class AdkarAlnomView extends StatelessWidget {
             ),
           ),
         ),
-        actions: [
+        actions: <Widget>[
+          // زر إعادة تعيين كل العدادات
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _controller.resetAllCounters,
-            tooltip: 'إعادة تعيين كل العدادات',
+            onPressed: _controller.resetAllCounters, // استدعاء من الكنترولر
+            tooltip: 'إعادة تعيين جميع العدادات',
             color: Colors.white,
+          ),
+          // جديد: زر "تذكير النوم" المحسّن مع منتقي الوقت
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+            decoration: BoxDecoration(
+              color: Get.theme.colorScheme.secondary, // لون خلفية الزر
+              borderRadius: BorderRadius.circular(12), // حواف مدورة
+              boxShadow: [
+                BoxShadow(
+                  color: Get.theme.colorScheme.secondary.withOpacity(0.4),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2), // ظل خفيف
+                ),
+              ],
+            ),
+            child: Material(
+              color:
+                  Colors
+                      .transparent, // لجعل Material transparent لعرض BoxDecoration
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  // جعل onTap async
+                  // عرض منتقي الوقت للسماح للمستخدم باختيار وقت التنبيه
+                  final TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: const TimeOfDay(
+                      hour: 22,
+                      minute: 0,
+                    ), // وقت افتراضي (10:00 مساءً)
+                    builder: (BuildContext context, Widget? child) {
+                      return Theme(
+                        data: Get.theme.copyWith(
+                          colorScheme: Get.theme.colorScheme.copyWith(
+                            primary:
+                                Get
+                                    .theme
+                                    .colorScheme
+                                    .primary, // لون الثيم الأساسي
+                            onPrimary:
+                                Get
+                                    .theme
+                                    .colorScheme
+                                    .onPrimary, // لون النص على الأساسي
+                            surface:
+                                Get
+                                    .theme
+                                    .colorScheme
+                                    .surface, // لون الخلفية في منتقي الوقت
+                            onSurface:
+                                Get
+                                    .theme
+                                    .colorScheme
+                                    .onSurface, // لون النص على الخلفية
+                          ),
+                          textButtonTheme: TextButtonThemeData(
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  Get
+                                      .theme
+                                      .colorScheme
+                                      .primary, // لون أزرار النص
+                            ),
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+
+                  if (pickedTime != null) {
+                    // جدولة إشعار أذكار النوم بالوقت الذي اختاره المستخدم
+                    _notificationService.scheduleDailyReminder(
+                      id:
+                          AppSettingsController
+                              .sleepAzkarId, // استخدام ID مخصص لأذكار النوم
+                      title: 'تذكير: أذكار النوم',
+                      body: 'لا تنسَ أذكار النوم قبل أن تنام.',
+                      time: TimeOfDay(
+                        hour: pickedTime.hour,
+                        minute: pickedTime.minute,
+                      ), // استخدام الوقت المختار
+                      payload: 'sleep_azkar_reminder',
+                    );
+                    Get.snackbar(
+                      'تم تفعيل التذكير',
+                      'ستتلقى تذكيرًا يوميًا لأذكار النوم في الساعة ${pickedTime.format(context)}.', // عرض الوقت المختار
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor:
+                          Get
+                              .theme
+                              .colorScheme
+                              .secondary, // لون خلفية السناك بار (الأخضر)
+                      colorText:
+                          Get
+                              .theme
+                              .colorScheme
+                              .onSecondary, // لون النص في السناك بار (الأبيض)
+                      borderRadius: 10,
+                      margin: const EdgeInsets.all(16),
+                    );
+                  } else {
+                    // إذا لم يتم اختيار وقت (المستخدم ألغى)، يمكن إظهار رسالة أو عدم فعل شيء
+                    Get.snackbar(
+                      'إلغاء التفعيل',
+                      'لم يتم تحديد وقت لتذكير أذكار النوم.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.orange,
+                      colorText: Colors.white,
+                      borderRadius: 10,
+                      margin: const EdgeInsets.all(16),
+                    );
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min, // للحفاظ على الصف مدمجًا
+                    children: [
+                      Icon(
+                        Icons.nights_stay_outlined, // أيقونة واضحة لـ "النوم"
+                        color:
+                            Get
+                                .theme
+                                .colorScheme
+                                .onSecondary, // لون الأيقونة (أبيض)
+                        size: 20,
+                      ),
+                      const SizedBox(
+                        width: 6,
+                      ), // مسافة صغيرة بين الأيقونة والنص
+                      Text(
+                        'تذكير النوم', // نص واضح للزر
+                        style: TextStyle(
+                          color: Get.theme.colorScheme.onSecondary,
+                          fontFamily: 'Tajawal',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
       body: Stack(
         children: [
-          // خلفية معتمة
+          // زخرفة الخلفية (مطابقة لصفحة أذكار الصباح)
           Positioned.fill(
             child: Opacity(
               opacity: 0.1,
               child: Image.asset(
-                'assets/images/مسبحة.png', // تأكد من وجود هذه الصورة في assets
+                'assets/images/مسبحة.png', // تأكد من هذا المسار
                 fit: BoxFit.cover,
                 repeat: ImageRepeat.repeat,
               ),
             ),
           ),
+
           // قائمة الأذكار
           Obx(
             () => ListView.builder(
               padding: const EdgeInsets.only(
-                top: kToolbarHeight + 40, // لإعطاء مساحة أسفل الـ appbar
+                top:
+                    kToolbarHeight +
+                    40, // تعديل الـ padding بسبب الـ AppBar الشفاف
                 bottom: 20,
               ),
               itemCount: _controller.items.length,
               itemBuilder: (context, index) {
-                final dhikr = _controller.items[index];
+                final dhikrItem = _controller.items[index];
+
+                // تخطي عرض العناصر الفارغة
+                if (dhikrItem["name"].isEmpty &&
+                    dhikrItem["start"].isEmpty &&
+                    dhikrItem["ayah"].isEmpty &&
+                    dhikrItem["mang"].isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
                 return FadeIn(
                   duration: const Duration(milliseconds: 400),
-                  delay: Duration(milliseconds: index * 50),
-                  child: _buildDhikrCard(dhikr, index),
+                  delay: Duration(milliseconds: index * 50), // تأثير ظهور متدرج
+                  child: _buildDhikrCard(dhikrItem, index),
                 );
               },
             ),
@@ -88,34 +307,39 @@ class AdkarAlnomView extends StatelessWidget {
     );
   }
 
-  // بناء بطاقة الذكر
+  // دالة لبناء بطاقة الذكر الواحدة
   Widget _buildDhikrCard(Map<String, dynamic> dhikr, int index) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[900], // لون خلفية البطاقة
+        color: Colors.grey[900], // خلفية داكنة للبطاقة
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.3), // ظل بارز
             spreadRadius: 2,
             blurRadius: 10,
-            offset: const Offset(0, 5), // ظل خفيف
+            offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 0.5,
+        ), // حدود خفيفة
       ),
       child: Material(
-        color: Colors.transparent, // لجعل تأثير الـ InkWell مرئياً
+        color: Colors.transparent, // لجعل InkWell يعمل بشكل صحيح
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () => _showDhikrDetails(dhikr), // عند الضغط، عرض التفاصيل
+          onTap: () => _showDhikrDetails(dhikr), // عند النقر، عرض التفاصيل
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (dhikr['start'].toString().isNotEmpty)
+                // نص البداية (إن وجد)
+                if (dhikr['start'] != null &&
+                    dhikr['start'].toString().isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 15),
                     child: Text(
@@ -130,6 +354,7 @@ class AdkarAlnomView extends StatelessWidget {
                       textDirection: TextDirection.rtl,
                     ),
                   ),
+                // نص الذكر الرئيسي
                 Text(
                   dhikr['name'],
                   style: const TextStyle(
@@ -143,38 +368,39 @@ class AdkarAlnomView extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
-                if (dhikr['meaning'].toString().isNotEmpty)
+                // نص الفضل/المعنى (إن وجد)
+                if (dhikr['meaning'] != null &&
+                    dhikr['meaning'].toString().isNotEmpty)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          'معنى وفضل الذكر:',
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF388E3C),
-                            fontFamily: 'Tajawal',
-                          ),
-                          textAlign: TextAlign.right,
-                          textDirection: TextDirection.rtl,
+                      Text(
+                        'معنى وفضل الذكر:',
+                        style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF388E3C), // لون أخضر مميز
+                          fontFamily: 'Tajawal',
                         ),
+                        textAlign: TextAlign.right,
+                        textDirection: TextDirection.rtl,
                       ),
+                      const SizedBox(height: 10),
                       Text(
                         dhikr['meaning'],
                         style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 17,
+                          color: Colors.white.withOpacity(0.85),
                           fontFamily: 'Tajawal',
                           height: 1.6,
                         ),
                         textAlign: TextAlign.right,
                         textDirection: TextDirection.rtl,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 25),
                     ],
                   ),
+                // صف العداد والمصدر
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -183,7 +409,7 @@ class AdkarAlnomView extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 10, right: 0),
                         child: Text(
-                          dhikr['ayah'],
+                          dhikr['ayah'], // مصدر الذكر
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withOpacity(0.5),
@@ -194,7 +420,10 @@ class AdkarAlnomView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    _buildCounter(dhikr, index), // العداد
+                    _buildCounter(
+                      dhikr,
+                      index,
+                    ), // بناء العداد وزر إعادة التعيين الخاص به
                   ],
                 ),
               ],
@@ -205,20 +434,24 @@ class AdkarAlnomView extends StatelessWidget {
     );
   }
 
-  // بناء العداد التفاعلي
+  // دالة لبناء العداد
   Widget _buildCounter(Map<String, dynamic> dhikr, int index) {
     return Obx(
       () => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // زر إعادة تعيين العداد الفردي
           IconButton(
             icon: const Icon(Icons.undo_rounded, size: 22),
-            onPressed: () => _controller.resetCount(index),
+            onPressed:
+                () => _controller.resetCount(index), // استدعاء من الكنترولر
             color: Colors.white.withOpacity(0.7),
-            tooltip: 'إعادة تعيين العداد',
+            tooltip: 'إعادة تعيين هذا العداد',
           ),
+          // زر العداد نفسه
           GestureDetector(
-            onTap: () => _controller.decrementCount(index),
+            onTap:
+                () => _controller.decrementCount(index), // استدعاء من الكنترولر
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
@@ -227,9 +460,16 @@ class AdkarAlnomView extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors:
-                      dhikr['count'].value > 0
-                          ? [const Color(0xFF388E3C), const Color(0xFF1B5E20)]
-                          : [Colors.grey[700]!, Colors.grey[600]!],
+                      dhikr['count'].value >
+                              0 // لاحظ استخدام .value هنا
+                          ? [
+                            const Color(0xFF388E3C), // أخضر داكن (نشط)
+                            const Color(0xFF1B5E20), // أخضر أغمق (نشط)
+                          ]
+                          : [
+                            Colors.grey[700]!, // رمادي (غير نشط)
+                            Colors.grey[600]!, // رمادي أغمق (غير نشط)
+                          ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -249,12 +489,12 @@ class AdkarAlnomView extends StatelessWidget {
               child: Center(
                 child: TweenAnimationBuilder<double>(
                   duration: const Duration(milliseconds: 200),
-                  tween: Tween(begin: 0.8, end: 1.0),
+                  tween: Tween(begin: 0.8, end: 1.0), // تأثير "الانبثاق"
                   builder: (context, value, child) {
                     return Transform.scale(
                       scale: value,
                       child: Text(
-                        '${dhikr['count'].value}',
+                        '${dhikr['count'].value}', // لاحظ استخدام .value هنا
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
@@ -272,7 +512,7 @@ class AdkarAlnomView extends StatelessWidget {
     );
   }
 
-  // عرض تفاصيل الذكر في BottomSheet
+  // دالة عرض التفاصيل في BottomSheet
   void _showDhikrDetails(Map<String, dynamic> dhikr) {
     Get.bottomSheet(
       ClipRRect(
@@ -282,7 +522,7 @@ class AdkarAlnomView extends StatelessWidget {
         ),
         child: Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: Colors.white, // خلفية بيضاء للـ BottomSheet
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(30),
               topRight: Radius.circular(30),
@@ -294,7 +534,7 @@ class AdkarAlnomView extends StatelessWidget {
                 child: Opacity(
                   opacity: 0.05,
                   child: Image.asset(
-                    'assets/images/مسبحة.png',
+                    'assets/images/مسبحة.png', // نفس النمط الخلفي
                     fit: BoxFit.cover,
                     repeat: ImageRepeat.repeat,
                   ),
@@ -316,7 +556,8 @@ class AdkarAlnomView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (dhikr['start'].toString().isNotEmpty)
+                    if (dhikr['start'] != null &&
+                        dhikr['start'].toString().isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 18),
                         child: Text(
@@ -343,12 +584,13 @@ class AdkarAlnomView extends StatelessWidget {
                       textDirection: TextDirection.rtl,
                     ),
                     const SizedBox(height: 25),
-                    if (dhikr['meaning'].toString().isNotEmpty)
+                    if (dhikr['mang'] != null &&
+                        dhikr['mang'].toString().isNotEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const Text(
-                            'معنى وفضل الذكر:',
+                            'فضل الذكر:',
                             style: TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.bold,
@@ -360,7 +602,7 @@ class AdkarAlnomView extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            dhikr['meaning'],
+                            dhikr['mang'],
                             style: TextStyle(
                               fontSize: 17,
                               color: Colors.black.withOpacity(0.85),
@@ -419,54 +661,5 @@ class AdkarAlnomView extends StatelessWidget {
       ),
       isScrollControlled: true, // لتحديد ارتفاع الـ bottom sheet
     );
-  }
-}
-
-// FadeIn Widget (لتحسين تجربة المستخدم بظهور تدريجي للعناصر)
-class FadeIn extends StatefulWidget {
-  final Widget child;
-  final Duration duration;
-  final Duration delay;
-
-  const FadeIn({
-    Key? key,
-    required this.child,
-    this.duration = const Duration(milliseconds: 300),
-    this.delay = Duration.zero,
-  }) : super(key: key);
-
-  @override
-  _FadeInState createState() => _FadeInState();
-}
-
-class _FadeInState extends State<FadeIn> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration);
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    Future.delayed(widget.delay, () {
-      if (mounted) {
-        _controller.forward();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(opacity: _animation, child: widget.child);
   }
 }

@@ -11,7 +11,8 @@ class OnBordingControllerImpl extends OnBordingController {
     },
     {
       "title": "الأذكار اليومية",
-      "subtitle": "احفظ أذكارك اليومية مع تنبيهات تذكيرية في أوقاتها المحددة",
+      "subtitle":
+          "احفظ أذكارك اليومية مع ركن المسلم مع معرفة اوقات الصلاة الخاصه بمنطقتك ",
       "image": "assets/images/logo.png",
     },
     {

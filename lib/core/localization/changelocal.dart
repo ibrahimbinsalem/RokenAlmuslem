@@ -131,6 +131,8 @@ class LocalController extends GetxController {
   Rx<Locale> locale = const Locale('en').obs;
   Rx<ThemeData> theme = themeEnglish.obs;
 
+  get isRtl => null;
+
   @override
   void onInit() {
     super.onInit();

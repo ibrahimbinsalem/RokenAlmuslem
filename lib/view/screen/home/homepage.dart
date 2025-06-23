@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
 import 'package:rokenalmuslem/controller/more/masbahacontroller.dart';
+import 'package:rokenalmuslem/core/constant/routes.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,6 +25,12 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final TasbeehController tasbeehController = Get.put(TasbeehController());
+
+  // دالة للتحقق مما إذا كان اليوم جمعة
+  bool get isFriday {
+    final now = DateTime.now();
+    return now.weekday == DateTime.friday;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +166,9 @@ class _HomePageState extends State<HomePage> {
                             context,
                             icon: "assets/images/اسماء الله.png",
                             label: "اسماء الله",
-                            onTap: () {},
+                            onTap: () {
+                              Get.toNamed(AppRoute.asmaAllah);
+                            },
                             iconBgColor: iconBgColor,
                             sizeFactor: 0.18, // حجم نسبي للأيقونة
                           ).animate().scale(
@@ -167,23 +176,27 @@ class _HomePageState extends State<HomePage> {
                             duration: 400.ms,
                             curve: Curves.easeOutBack,
                           ),
-                          _buildShortcut(
-                            context,
-                            icon: "assets/images/حلقات ذكر .png",
-                            label: "حلقات ذكر",
-                            onTap: () {},
-                            iconBgColor: iconBgColor,
-                            sizeFactor: 0.18,
-                          ).animate().scale(
-                            delay: 700.ms,
-                            duration: 400.ms,
-                            curve: Curves.easeOutBack,
-                          ),
+                          // _buildShortcut(
+                          //   context,
+                          //   icon: "assets/images/حلقات ذكر .png",
+                          //   label: "حلقات ذكر",
+                          //   onTap: () {
+
+                          //   },
+                          //   iconBgColor: iconBgColor,
+                          //   sizeFactor: 0.18,
+                          // ).animate().scale(
+                          //   delay: 700.ms,
+                          //   duration: 400.ms,
+                          //   curve: Curves.easeOutBack,
+                          // ),
                           _buildShortcut(
                             context,
                             icon: "assets/images/مسبحة.png",
                             label: "بيت الاستغفار",
-                            onTap: () {},
+                            onTap: () {
+                              Get.toNamed(AppRoute.msbaha);
+                            },
                             iconBgColor: iconBgColor,
                             sizeFactor: 0.18,
                           ).animate().scale(
@@ -195,7 +208,9 @@ class _HomePageState extends State<HomePage> {
                             context,
                             icon: "assets/images/الاربعون النووية .png",
                             label: "الأربعين النووية",
-                            onTap: () {},
+                            onTap: () {
+                              Get.toNamed(AppRoute.alarboun);
+                            },
                             iconBgColor: iconBgColor,
                             sizeFactor: 0.18,
                           ).animate().scale(
@@ -207,47 +222,49 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    // رسالة يوم الجمعة
-                    _buildSectionHeader(
-                          title: "رسالة يوم الجمعة",
-                          onPressed: () {},
-                          accentColor: accentColor,
-                          screenWidth: screenWidth, // تمرير عرض الشاشة
-                        )
-                        .animate()
-                        .fadeIn(delay: Duration(seconds: 1))
-                        .slideX(begin: 0.1, end: 0),
-                    Container(
-                          margin: EdgeInsets.symmetric(
-                            horizontal: screenWidth * 0.04, // هامش أفقي نسبي
-                            vertical: screenHeight * 0.01, // هامش عمودي نسبي
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                              screenWidth * 0.05,
-                            ), // نصف قطر نسبي
-                            boxShadow: [
-                              BoxShadow(
-                                color: primaryColor.withOpacity(0.2),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              screenWidth * 0.05,
-                            ), // نصف قطر نسبي
-                            child: Image.asset(
-                              "assets/images/سنن يوم الجمعة .jpeg",
-                              fit: BoxFit.cover,
+                    // رسالة يوم الجمعة (تظهر فقط يوم الجمعة)
+                    if (isFriday) ...[
+                      _buildSectionHeader(
+                            title: "رسالة يوم الجمعة",
+                            onPressed: () {},
+                            accentColor: accentColor,
+                            screenWidth: screenWidth, // تمرير عرض الشاشة
+                          )
+                          .animate()
+                          .fadeIn(delay: Duration(seconds: 1))
+                          .slideX(begin: 0.1, end: 0),
+                      Container(
+                            margin: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.04, // هامش أفقي نسبي
+                              vertical: screenHeight * 0.01, // هامش عمودي نسبي
                             ),
-                          ),
-                        )
-                        .animate()
-                        .fadeIn(delay: Duration(seconds: 1))
-                        .slideY(begin: 0.1, end: 0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                screenWidth * 0.05,
+                              ), // نصف قطر نسبي
+                              boxShadow: [
+                                BoxShadow(
+                                  color: primaryColor.withOpacity(0.2),
+                                  blurRadius: 20,
+                                  spreadRadius: 5,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                screenWidth * 0.05,
+                              ), // نصف قطر نسبي
+                              child: Image.asset(
+                                "assets/images/سنن يوم الجمعة .jpeg",
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(delay: Duration(seconds: 1))
+                          .slideY(begin: 0.1, end: 0),
+                    ],
 
                     // آية اليوم
                     _buildSectionHeader(
@@ -381,8 +398,8 @@ class _HomePageState extends State<HomePage> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    iconBgColor.withValues(alpha: 0.8),
-                    iconBgColor.withValues(alpha: 0.8),
+                    iconBgColor.withOpacity(0.8),
+                    iconBgColor.withOpacity(0.8),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,

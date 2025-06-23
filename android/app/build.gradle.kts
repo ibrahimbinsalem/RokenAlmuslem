@@ -11,6 +11,8 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
+        // هذه السطور تمت إضافتها لتفعيل core library desugaring بصيغة Kotlin DSL
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -24,7 +26,7 @@ android {
         applicationId = "com.example.rokenalmuslem"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -41,4 +43,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// هذه الكتلة تمت إضافتها لإضافة تبعية desugaring بصيغة Kotlin DSL
+dependencies {
+    // تم تحديث الإصدار هنا من 1.1.5 إلى 2.1.4
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") // <--- هنا التغيير
 }

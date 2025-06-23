@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rokenalmuslem/controller/adkar/alsbahcontroller.dart'; // تأكد من المسار الصحيح
+import 'package:rokenalmuslem/controller/adkar/alsbahcontroller.dart';
+import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
+import 'package:rokenalmuslem/core/services/localnotification.dart';
 
 class Alsbah extends StatelessWidget {
-  // استخدام Get.put هنا مناسب إذا كانت هذه أول مرة يتم فيها تهيئة الكنترولر
   final AdkarSabahController _controller = Get.put(AdkarSabahController());
+  final NotificationService _notificationService =
+      Get.find<NotificationService>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[800], // Consistent background
-      extendBodyBehindAppBar: true, // Allow body to extend behind app bar
+      backgroundColor: Colors.grey[800],
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           'أذكار الصباح',
@@ -21,11 +24,10 @@ class Alsbah extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent, // Make app bar transparent
-        elevation: 0, // Remove shadow
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         flexibleSpace: Container(
-          // Gradient background for the app bar
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFF1B5E20), Color(0xFF388E3C)],
@@ -41,16 +43,86 @@ class Alsbah extends StatelessWidget {
             tooltip: 'إعادة تعيين كل العدادات',
             color: Colors.white,
           ),
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+            decoration: BoxDecoration(
+              color: Get.theme.colorScheme.secondary,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Get.theme.colorScheme.secondary.withOpacity(0.4),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  final now = DateTime.now();
+                  final notificationTime = now.add(const Duration(minutes: 2));
+
+                  _notificationService.scheduleDailyReminder(
+                    id: AppSettingsController.morningAzkarId,
+                    title: 'تذكير تجريبي: أذكار الصباح',
+                    body:
+                        'هذا إشعار تجريبي لأذكار الصباح. شكراً لتجربتك التطبيق!',
+                    time: TimeOfDay.fromDateTime(notificationTime),
+                    payload: 'morning_azkar_test',
+                  );
+
+                  Get.snackbar(
+                    'تم تفعيل الإشعار التجريبي',
+                    'ستتلقى إشعاراً تجريبياً بعد دقيقتين لتجربة النظام',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Get.theme.colorScheme.secondary,
+                    colorText: Get.theme.colorScheme.onSecondary,
+                    borderRadius: 10,
+                    margin: const EdgeInsets.all(16),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.timer_outlined,
+                        color: Get.theme.colorScheme.onSecondary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'تجربة الإشعار',
+                        style: TextStyle(
+                          color: Get.theme.colorScheme.onSecondary,
+                          fontFamily: 'Tajawal',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
       body: Stack(
         children: [
-          // Background decoration (optional, but adds depth)
           Positioned.fill(
             child: Opacity(
               opacity: 0.1,
               child: Image.asset(
-                'assets/images/مسبحة.png', // Replace with your own Islamic pattern image
+                'assets/images/مسبحة.png',
                 fit: BoxFit.cover,
                 repeat: ImageRepeat.repeat,
               ),
@@ -61,15 +133,13 @@ class Alsbah extends StatelessWidget {
               padding: const EdgeInsets.only(
                 top: kToolbarHeight + 40,
                 bottom: 20,
-              ), // Adjust padding for app bar
+              ),
               itemCount: _controller.items.length,
               itemBuilder: (context, index) {
                 final dhikr = _controller.items[index];
                 return FadeIn(
                   duration: const Duration(milliseconds: 400),
-                  delay: Duration(
-                    milliseconds: index * 50,
-                  ), // Staggered animation
+                  delay: Duration(milliseconds: index * 50),
                   child: _buildDhikrCard(dhikr, index),
                 );
               },
@@ -84,20 +154,17 @@ class Alsbah extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[900], // Darker background for the card
+        color: Colors.grey[900],
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3), // More prominent shadow
+            color: Colors.black.withOpacity(0.3),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-          width: 0.5,
-        ), // Subtle border
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
       ),
       child: Material(
         color: Colors.transparent,
@@ -118,7 +185,7 @@ class Alsbah extends StatelessWidget {
                         fontSize: 18,
                         color: Colors.white.withOpacity(0.7),
                         fontFamily: 'Tajawal',
-                        height: 1.5, // Improved line height
+                        height: 1.5,
                       ),
                       textAlign: TextAlign.right,
                       textDirection: TextDirection.rtl,
@@ -127,7 +194,7 @@ class Alsbah extends StatelessWidget {
                 Text(
                   dhikr['name'],
                   style: const TextStyle(
-                    fontSize: 22, // Slightly smaller for better fit
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                     fontFamily: 'Tajawal',
@@ -136,13 +203,8 @@ class Alsbah extends StatelessWidget {
                   textDirection: TextDirection.rtl,
                 ),
                 const SizedBox(height: 20),
-                Divider(
-                  color: Colors.white.withOpacity(0.2),
-                  thickness: 1,
-                ), // Thinner divider
-                if (dhikr['mang']
-                    .toString()
-                    .isNotEmpty) // Changed from 'meaning' to 'mang' to match your data structure
+                Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
+                if (dhikr['mang'].toString().isNotEmpty)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -153,9 +215,7 @@ class Alsbah extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: Color(
-                              0xFF388E3C,
-                            ), // Green accent for heading
+                            color: Color(0xFF388E3C),
                             fontFamily: 'Tajawal',
                           ),
                           textAlign: TextAlign.right,
@@ -163,12 +223,12 @@ class Alsbah extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        dhikr['mang'], // Changed from 'meaning' to 'mang'
+                        dhikr['mang'],
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white.withOpacity(0.8),
                           fontFamily: 'Tajawal',
-                          height: 1.6, // Improved line height
+                          height: 1.6,
                         ),
                         textAlign: TextAlign.right,
                         textDirection: TextDirection.rtl,
@@ -178,8 +238,7 @@ class Alsbah extends StatelessWidget {
                   ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.end, // Align items to the bottom
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
                       child: Padding(
@@ -212,7 +271,6 @@ class Alsbah extends StatelessWidget {
       () => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Reset button (moved inside counter for better grouping)
           IconButton(
             icon: const Icon(Icons.undo_rounded, size: 22),
             onPressed: () => _controller.resetCount(index),
@@ -220,7 +278,7 @@ class Alsbah extends StatelessWidget {
             tooltip: 'إعادة تعيين العداد',
           ),
           GestureDetector(
-            onTap: () => _controller.decrementCount(index), // Tap to decrease
+            onTap: () => _controller.decrementCount(index),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
@@ -230,14 +288,8 @@ class Alsbah extends StatelessWidget {
                 gradient: LinearGradient(
                   colors:
                       dhikr['count'].value > 0
-                          ? [
-                            const Color(0xFF388E3C),
-                            const Color(0xFF1B5E20),
-                          ] // Green gradient when active
-                          : [
-                            Colors.grey[700]!,
-                            Colors.grey[600]!,
-                          ], // Grey gradient when count is 0
+                          ? [const Color(0xFF388E3C), const Color(0xFF1B5E20)]
+                          : [Colors.grey[700]!, Colors.grey[600]!],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -257,7 +309,7 @@ class Alsbah extends StatelessWidget {
               child: Center(
                 child: TweenAnimationBuilder<double>(
                   duration: const Duration(milliseconds: 200),
-                  tween: Tween(begin: 0.8, end: 1.0), // Pop animation
+                  tween: Tween(begin: 0.8, end: 1.0),
                   builder: (context, value, child) {
                     return Transform.scale(
                       scale: value,
@@ -265,7 +317,7 @@ class Alsbah extends StatelessWidget {
                         '${dhikr['count'].value}',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w900, // Extra bold
+                          fontWeight: FontWeight.w900,
                           fontSize: 22,
                         ),
                       ),
@@ -288,27 +340,20 @@ class Alsbah extends StatelessWidget {
           topRight: Radius.circular(30),
         ),
         child: Container(
-          // Use a Stack for background image
           child: Stack(
             children: [
               Positioned.fill(
                 child: Opacity(
                   opacity: 0.05,
                   child: Image.asset(
-                    'assets/images/مسبحة.png', // Same pattern for consistency
+                    'assets/images/مسبحة.png',
                     fit: BoxFit.cover,
                     repeat: ImageRepeat.repeat,
                   ),
                 ),
               ),
-              // Content of the bottom sheet
               SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  25,
-                  25,
-                  25,
-                  40,
-                ), // Adjusted padding
+                padding: const EdgeInsets.fromLTRB(25, 25, 25, 40),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -350,9 +395,7 @@ class Alsbah extends StatelessWidget {
                       textDirection: TextDirection.rtl,
                     ),
                     const SizedBox(height: 25),
-                    if (dhikr['mang']
-                        .toString()
-                        .isNotEmpty) // Changed from 'meaning' to 'mang'
+                    if (dhikr['mang'].toString().isNotEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -369,7 +412,7 @@ class Alsbah extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            dhikr['mang'], // Changed from 'meaning' to 'mang'
+                            dhikr['mang'],
                             style: TextStyle(
                               fontSize: 17,
                               color: Colors.black.withOpacity(0.85),
@@ -397,7 +440,6 @@ class Alsbah extends StatelessWidget {
                             textDirection: TextDirection.rtl,
                           ),
                         ),
-                        // **الجزء الذي تم تعديله أو إزالته - لا يوجد عمود 'category' الآن**
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -407,9 +449,8 @@ class Alsbah extends StatelessWidget {
                             color: const Color(0xFF388E3C).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          // بدلاً من dhikr['category']، يمكنك وضع نص ثابت أو إزالة هذا الجزء
                           child: const Text(
-                            'أذكار الصباح', // هنا وضعنا نص ثابت
+                            'أذكار الصباح',
                             style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF1B5E20),
@@ -435,7 +476,7 @@ class Alsbah extends StatelessWidget {
           ),
         ),
       ),
-      isScrollControlled: true, // Allow bottom sheet to be full height
+      isScrollControlled: true,
     );
   }
 }

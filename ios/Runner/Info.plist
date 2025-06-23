@@ -50,5 +50,7 @@
     <string>هذا التطبيق يحتاج إلى موقعك لتحديد اتجاه القبلة بدقة.</string>
     <key>NSMotionUsageDescription</key>
     <string>يتطلب هذا التطبيق الوصول إلى مستشعر الحركة (البوصلة) لتحديد اتجاه القبلة بشكل صحيح.</string>
-    </dict>
+    <key>NSUserNotificationsUsageDescription</key>
+    <string>يستخدم هذا التطبيق الإشعارات لتذكيرك بالأذكار والأحاديث اليومية والفوائد.</string>
+</dict>
 </plist>
