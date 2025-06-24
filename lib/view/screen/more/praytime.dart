@@ -17,11 +17,24 @@ class PrayerTimesView extends StatelessWidget {
     final hijriDate = DateFormat('dd MMMM yyyy', 'ar_EG').format(now);
 
     return Scaffold(
+      // floatingActionButton: Obx(() {
+      //   if (controller.isApproved.value) {
+      //     return FloatingActionButton.extended(
+      //       onPressed: () => controller.approvePrayerTimes(),
+      //       icon: const Icon(Icons.check_circle),
+      //       label: const Text('اعتماد الأوقات'),
+      //       backgroundColor: Colors.teal,
+      //       foregroundColor: Colors.white,
+      //       elevation: 4,
+      //     );
+      //   }
+      //   return const SizedBox();
+      // }),
       body: CustomScrollView(
         slivers: [
           // AppBar with transparency effect
           SliverAppBar(
-            expandedHeight: 250.0, // Increased height for more visual impact
+            expandedHeight: 250.0,
             pinned: true,
             stretch: true,
             flexibleSpace: FlexibleSpaceBar(
@@ -30,23 +43,18 @@ class PrayerTimesView extends StatelessWidget {
                 style: theme.textTheme.headlineSmall?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  shadows: const [
-                    Shadow(color: Colors.black54, blurRadius: 8),
-                  ], // Softer shadow
+                  shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
                 ),
-                textAlign: TextAlign.center, // Center the title
+                textAlign: TextAlign.center,
               ),
               centerTitle: true,
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Background Image with Islamic pattern
                   Image.asset(
-                    'assets/images/Gemini_Generated_Image_cijwhucijwhucijw.png', // Replace with your image path
+                    'assets/images/Gemini_Generated_Image_cijwhucijwhucijw.png',
                     fit: BoxFit.cover,
-                    opacity: const AlwaysStoppedAnimation(
-                      0.2,
-                    ), // Adjust opacity
+                    opacity: const AlwaysStoppedAnimation(0.2),
                   ),
                   DecoratedBox(
                     decoration: BoxDecoration(
@@ -72,6 +80,11 @@ class PrayerTimesView extends StatelessWidget {
                 onPressed: () => controller.manualRefresh(),
                 tooltip: 'تحديث أوقات الصلاة',
               ),
+              // IconButton(
+              //   icon: const Icon(Icons.notifications, color: Colors.white),
+              //   onPressed: () => _showNotificationSettings(context),
+              //   tooltip: 'إعدادات الإشعارات',
+              // ),
             ],
           ),
 
@@ -99,14 +112,14 @@ class PrayerTimesView extends StatelessWidget {
               return SliverFillRemaining(
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0), // Increased padding
+                    padding: const EdgeInsets.all(24.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.wifi_off, // More descriptive icon for errors
-                          color: Colors.red.shade600, // Stronger error color
-                          size: 70, // Larger icon
+                          Icons.wifi_off,
+                          color: Colors.red.shade600,
+                          size: 70,
                         ),
                         const SizedBox(height: 25),
                         Text(
@@ -114,11 +127,10 @@ class PrayerTimesView extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: theme.textTheme.titleLarge?.copyWith(
                             color: Colors.red.shade600,
-                            fontWeight:
-                                FontWeight.bold, // Make error message bold
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 35), // Increased spacing
+                        const SizedBox(height: 35),
                         ElevatedButton.icon(
                           onPressed: () => controller.determinePosition(),
                           icon: const Icon(Icons.location_on, size: 22),
@@ -127,19 +139,16 @@ class PrayerTimesView extends StatelessWidget {
                             style: TextStyle(fontSize: 16),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Colors.blueAccent.shade700, // Darker blue
+                            backgroundColor: Colors.blueAccent.shade700,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 30,
                               vertical: 18,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                15,
-                              ), // More rounded corners
+                              borderRadius: BorderRadius.circular(15),
                             ),
-                            elevation: 5, // Add shadow to button
+                            elevation: 5,
                           ),
                         ),
                       ],
@@ -173,10 +182,9 @@ class PrayerTimesView extends StatelessWidget {
                     crossAxisCount: 2,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio:
-                        1.4, // Adjusted aspect ratio for better fit
-                    mainAxisSpacing: 16, // Increased spacing
-                    crossAxisSpacing: 16, // Increased spacing
+                    childAspectRatio: 1.4,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
                     children: [
                       _buildCountrySelectionCard(theme),
                       _buildCalculationMethodCard(theme),
@@ -188,6 +196,10 @@ class PrayerTimesView extends StatelessWidget {
 
                 const SizedBox(height: 25),
 
+                // Time adjustment slider for Yemen
+                if (controller.selectedCountry.value.contains('اليمن'))
+                  _buildTimeAdjustmentSlider(theme, isDarkMode),
+
                 // Additional information
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -197,7 +209,7 @@ class PrayerTimesView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                      fontStyle: FontStyle.italic, // Italic for additional info
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
@@ -207,6 +219,72 @@ class PrayerTimesView extends StatelessWidget {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTimeAdjustmentSlider(ThemeData theme, bool isDarkMode) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.timer,
+                    color:
+                        isDarkMode ? Colors.tealAccent : Colors.teal.shade700,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'ضبط التوقيت لليمن',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              Row(
+                children: [
+                  Expanded(
+                    child: Slider(
+                      value: controller.timeAdjustment.value.toDouble(),
+                      min: 0,
+                      max: 120,
+                      divisions: 24,
+                      label: '${controller.timeAdjustment.value} دقيقة',
+                      activeColor: Colors.teal,
+                      inactiveColor: Colors.teal.withOpacity(0.3),
+                      onChanged: (value) {
+                        controller.updateTimeAdjustment(value.toInt());
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '${controller.timeAdjustment.value} دقيقة',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'يمكنك ضبط الدقائق الإضافية لأوقات الصلاة في اليمن',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -245,10 +323,7 @@ class PrayerTimesView extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  DateFormat(
-                    'EEEE',
-                    'ar_EG',
-                  ).format(DateTime.now()), // Added year to Gregorian
+                  DateFormat('EEEE', 'ar_EG').format(DateTime.now()),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -263,8 +338,31 @@ class PrayerTimesView extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                // Add a small Islamic art element here
                 const SizedBox(height: 15),
+                // Obx(() {
+                //   if (controller.isApproved.value) {
+                //     return Container(
+                //       margin: const EdgeInsets.only(top: 10),
+                //       padding: const EdgeInsets.symmetric(
+                //         horizontal: 12,
+                //         vertical: 6,
+                //       ),
+                //       decoration: BoxDecoration(
+                //         color: Colors.white.withOpacity(0.2),
+                //         borderRadius: BorderRadius.circular(20),
+                //       ),
+                //       child: const Text(
+                //         'الأوقات معتمدة',
+                //         style: TextStyle(
+                //           color: Colors.white,
+                //           fontSize: 14,
+                //           fontWeight: FontWeight.bold,
+                //         ),
+                //       ),
+                //     );
+                //   }
+                //   return const SizedBox();
+                // }),
               ],
             ),
           ),
@@ -292,13 +390,10 @@ class PrayerTimesView extends StatelessWidget {
                   isDarkMode ? Colors.blueGrey.shade800 : Colors.grey.shade50,
                 ],
               ),
-              // Add a subtle Islamic pattern as background
-              image: DecorationImage(
-                image: const AssetImage(
-                  'assets/images/patern.png',
-                ), // Replace with your image path
+              image: const DecorationImage(
+                image: AssetImage('assets/images/patern.png'),
                 fit: BoxFit.cover,
-                opacity: 0.05, // Adjust opacity
+                opacity: 0.05,
               ),
             ),
             child: Padding(
@@ -467,7 +562,7 @@ class PrayerTimesView extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
-                  'assets/images/maping.png', // Replace with your image path
+                  'assets/images/maping.png',
                   fit: BoxFit.cover,
                   height: 200,
                   width: double.infinity,
@@ -506,6 +601,15 @@ class PrayerTimesView extends StatelessWidget {
                       controller.currentCountry.value.isNotEmpty
                           ? controller.currentCountry.value
                           : 'غير متوفر',
+                      isDarkMode,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildLocationInfoRow(
+                      Icons.location_city,
+                      'المدينة',
+                      controller.selectedCity.value.isNotEmpty
+                          ? controller.selectedCity.value
+                          : 'غير محددة',
                       isDarkMode,
                     ),
                     const SizedBox(height: 8),
@@ -727,7 +831,7 @@ class PrayerTimesView extends StatelessWidget {
                           .toList(),
                   onChanged: (newValue) {
                     if (newValue != null) {
-                      controller.onCalculationMethodChanged(newValue);
+                      controller.updateTimeAdjustment(newValue);
                     }
                   },
                   isExpanded: true,
@@ -771,11 +875,7 @@ class PrayerTimesView extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.school,
-                    color: Colors.white,
-                    size: 28,
-                  ), // Changed icon to school
+                  const Icon(Icons.school, color: Colors.white, size: 28),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -824,7 +924,7 @@ class PrayerTimesView extends StatelessWidget {
                           .toList(),
                   onChanged: (newValue) {
                     if (newValue != null) {
-                      controller.onJuristicSchoolChanged(newValue);
+                      controller.updateTimeAdjustment(newValue);
                     }
                   },
                   isExpanded: true,
@@ -863,18 +963,7 @@ class PrayerTimesView extends StatelessWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          onTap: () {
-            // Open settings page
-            Get.snackbar(
-              'الإعدادات',
-              'سيتم فتح صفحة الإعدادات قريباً!',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green.shade700,
-              colorText: Colors.white,
-              margin: const EdgeInsets.all(15),
-              borderRadius: 10,
-            );
-          },
+          onTap: () => _showSettingsDialog(),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -890,12 +979,11 @@ class PrayerTimesView extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                // Add a small Islamic art element here
                 const SizedBox(height: 5),
                 Image.asset(
-                  'assets/images/artup.png', // Replace with your image path
-                  height: 10, // Adjust size
-                  color: Colors.white.withOpacity(0.7), // Adjust color
+                  'assets/images/artup.png',
+                  height: 10,
+                  color: Colors.white.withOpacity(0.7),
                 ),
               ],
             ),
@@ -983,8 +1071,6 @@ class PrayerTimesView extends StatelessWidget {
         prayerMinute,
       );
 
-      // Define a window around the prayer time to consider it "current"
-      // For example, 30 minutes before to 60 minutes after.
       final startTimeWindow = prayerDateTime.subtract(
         const Duration(minutes: 30),
       );
@@ -994,5 +1080,80 @@ class PrayerTimesView extends StatelessWidget {
     } catch (e) {
       return false;
     }
+  }
+
+  // void _showNotificationSettings(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: const Text('إعدادات الإشعارات'),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Obx(
+  //               () => SwitchListTile(
+  //                 title: const Text('تفعيل الإشعارات'),
+  //                 value: controller.areTimesApproved.value,
+  //                 onChanged: (value) {
+  //                   if (value) {
+  //                     controller.approvePrayerTimes();
+  //                   } else {
+  //                     controller.areTimesApproved.value = false;
+  //                     controller.flutterLocalNotificationsPlugin.cancelAll();
+  //                   }
+  //                 },
+  //               ),
+  //             ),
+  //             const SizedBox(height: 10),
+  //             const Text(
+  //               'سيتم إرسال إشعارات قبل كل صلاة بـ 10 دقائق',
+  //               style: TextStyle(fontSize: 14),
+  //               textAlign: TextAlign.center,
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: const Text('تم'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+  void _showSettingsDialog() {
+    Get.defaultDialog(
+      title: 'الإعدادات الإضافية',
+      content: Column(
+        children: [
+          // Obx(
+          //   () => ListTile(
+          //     leading: const Icon(Icons.notifications),
+          //     title: const Text('حالة الإشعارات'),
+          //     trailing: Text(
+          //       controller.isApproved.value ? 'مفعلة' : 'غير مفعلة',
+          //       style: TextStyle(
+          //         color: controller.isApproved.value ? Colors.green : Colors.red,
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.help),
+            title: const Text('مساعدة'),
+            onTap:
+                () => Get.snackbar(
+                  'مساعدة',
+                  'سيتم إضافة المزيد من الخيارات في التحديثات القادمة',
+                ),
+          ),
+        ],
+      ),
+      confirm: TextButton(onPressed: () => Get.back(), child: const Text('تم')),
+    );
   }
 }

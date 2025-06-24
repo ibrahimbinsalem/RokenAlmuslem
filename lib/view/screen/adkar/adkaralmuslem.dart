@@ -1,36 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rokenalmuslem/core/constant/routes.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
+import 'package:rokenalmuslem/core/constant/routes.dart'; // تأكد من أن هذا المسار صحيح
 
 class AdkarAlmuslam extends StatelessWidget {
   const AdkarAlmuslam({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // نستخدم Theme.of(context) للحصول على الثيم الحالي الذي تم بناؤه في main.dart
+    final ThemeData currentTheme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor:
+          currentTheme.colorScheme.surface, // خلفية متناسقة مع الثيم
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 180,
-            pinned: true,
+            pinned: false,
+            centerTitle: true, // هذا يوسّط العنوان في SliverAppBar
+            floating: true, // للسماح بالشريط بالاختفاء والظهور بسرعة
+            elevation: 8, // إضافة ظل للشريط العلوي
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'أذكار المسلم',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+              titlePadding: const EdgeInsets.only(
+                bottom: 16.0,
+              ), // مسافة سفلية للعنوان
+              title: Center(
+                // لف العنوان بـ Center widget لضمان التوسيط
+                child: Text(
+                  'أذكار المسلم',
+                  style: currentTheme.appBarTheme.titleTextStyle?.copyWith(
+                    fontSize: 22,
+                  ), // استخدام نمط العنوان من الثيم مع تعديل الحجم
                 ),
               ),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.green[800]!, Colors.green[600]!],
-                    begin: Alignment.topCenter,
-
-                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.green[900]!, // أخضر أغمق
+                      Colors.green[700]!, // أخضر متوسط
+                      Colors.green[500]!, // أخضر فاتح
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
+                // يمكن إضافة صورة خلفية خفيفة هنا إذا لزم الأمر
+                // child: Opacity(
+                //   opacity: 0.1,
+                //   child: Image.asset(
+                //     'assets/images/islamic_pattern.png', // مثال لصورة
+                //     fit: BoxFit.cover,
+                //     color: Colors.black.withOpacity(0.3),
+                //     colorBlendMode: BlendMode.dstATop,
+                //   ),
+                // ),
               ),
             ),
           ),
@@ -42,117 +68,132 @@ class AdkarAlmuslam extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 1.2,
+                childAspectRatio:
+                    0.95, // ** تم التعديل هنا: جعل البطاقات أطول قليلاً لمنع التجاوز **
               ),
               delegate: SliverChildListDelegate([
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار المساء",
                   icon: Icons.nightlight_round,
-                  color: Colors.deepPurple,
+                  color: Colors.deepPurpleAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.almsa);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار الصباح",
                   icon: Icons.wb_sunny,
-                  color: Colors.amber,
+                  color: Colors.amberAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.alsbah);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار بعد الصلاة",
-                  icon: Icons.mosque,
-                  color: Colors.green,
+                  icon: Icons.mosque, // أيقونة مسجد
+                  color: Colors.lightGreenAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.afterpray);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار الصلاة",
-                  icon: Icons.man,
-                  color: Colors.blue,
+                  icon: Icons.person_pin_outlined, // أيقونة شخص يصلي
+                  color: Colors.blueAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.pray);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار النوم",
                   icon: Icons.bedtime,
-                  color: Colors.indigo,
+                  color: Colors.indigoAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.sleep);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار الآذان",
-                  icon: Icons.mic,
-                  color: Colors.teal,
+                  icon: Icons.volume_up, // أيقونة مكبر صوت مناسبة للآذان
+                  color: Colors.tealAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.aladan);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار المسجد",
-                  icon: Icons.account_balance,
-                  color: Colors.brown,
+                  icon: Icons.account_balance, // أيقونة مسجد
+                  color: Colors.brown.shade300,
                   onTap: () {
                     Get.toNamed(AppRoute.almsjed);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار الإستيقاظ",
                   icon: Icons.alarm,
-                  color: Colors.lightBlue,
+                  color: Colors.cyanAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.alastygad);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار المنزل",
                   icon: Icons.home,
-                  color: Colors.orange,
+                  color: Colors.orangeAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.almanzel);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار الوضوء",
                   icon: Icons.water_drop,
-                  color: Colors.cyan,
+                  color: Colors.lightBlueAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.washing);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار الخلاء",
-                  icon: Icons.meeting_room_rounded,
-                  color: Colors.pink,
+                  icon: Icons.wc, // أيقونة حمام
+                  color: Colors.pinkAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.alkhla);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار الطعام",
                   icon: Icons.restaurant,
-                  color: Colors.red,
+                  color: Colors.redAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.eat);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أذكار أخرى",
                   icon: Icons.more_horiz,
-                  color: Colors.grey,
+                  color: Colors.grey.shade400,
                   onTap: () {
                     _showComingSoonDialog(context);
                   },
                 ),
                 _buildAdkarCard(
+                  context, // تمرير السياق
                   title: "أدعية للميّت",
-                  icon: Icons.heart_broken,
-                  color: Colors.deepOrange,
+                  icon: Icons.sentiment_dissatisfied_outlined, // أيقونة تعبيرية
+                  color: Colors.deepOrangeAccent,
                   onTap: () {
                     Get.toNamed(AppRoute.fordead);
                   },
@@ -165,37 +206,111 @@ class AdkarAlmuslam extends StatelessWidget {
     );
   }
 
-  Widget _buildAdkarCard({
+  Widget _buildAdkarCard(
+    BuildContext context, {
     required String title,
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        color: const Color(0xFF1E1E1E),
-        child: Container(
+    final ThemeData theme = Theme.of(context);
+    return Card(
+      elevation: 6, // ظل أفضل
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ), // زوايا أكثر استدارة
+      clipBehavior: Clip.antiAlias, // لضمان ظهور التدرج بشكل صحيح داخل الحدود
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Ink(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: color.withOpacity(0.3), width: 1),
+            gradient: LinearGradient(
+              // تدرج لوني خفيف للبطاقة
+              colors: [
+                theme.cardColor, // استخدام لون البطاقة من الثيم
+                theme.cardColor.withOpacity(0.9),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: color.withOpacity(0.4),
+              width: 1.5,
+            ), // حدود أكثر بروزًا
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 40, color: color),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(
+                    18,
+                  ), // مساحة داخلية أكبر للأيقونة
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      // تدرج شعاعي لخلفية الأيقونة
+                      colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
+                      radius: 0.8,
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: color.withOpacity(0.5), // حدود الأيقونة
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      // ظل للأيقونة
+                      BoxShadow(
+                        color: color.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 45,
+                    color: color,
+                  ), // حجم أكبر للأيقونة
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  // استخدام نمط من Theme.of(context).textTheme
+                  style: theme.textTheme.titleLarge!.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black38,
+                        blurRadius: 2,
+                        offset: const Offset(1, 1),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  height: 3,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        color.withOpacity(0.1),
+                        color,
+                        color.withOpacity(0.1),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -203,32 +318,59 @@ class AdkarAlmuslam extends StatelessWidget {
   }
 
   void _showComingSoonDialog(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            backgroundColor: const Color(0xFF1E1E1E),
+            backgroundColor: theme.cardColor, // خلفية متناسقة
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(25),
             ),
-            title: const Text(
-              "قريبا",
-              style: TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
-            ),
-            content: const Text(
-              "سيتم إضافة هذه الأذكار قريباً بإذن الله",
-              style: TextStyle(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              Center(
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    "حسناً",
-                    style: TextStyle(color: Colors.white),
+            title: Column(
+              children: [
+                Icon(
+                  Icons.hourglass_empty,
+                  color: theme.colorScheme.primary, // لون الأيقونة من الثيم
+                  size: 40,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "قريبا",
+                  style: theme.textTheme.headlineSmall!.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            content: Text(
+              "سيتم إضافة هذه الأذكار قريباً بإذن الله",
+              style: theme.textTheme.bodyMedium!.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary, // زر بلون مميز
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 25,
+                    vertical: 10,
+                  ),
+                ),
+                child: Text(
+                  "حسناً",
+                  style: theme.textTheme.labelLarge!.copyWith(
+                    color: theme.colorScheme.onPrimary,
+                  ), // نص الزر بلون متناسق
                 ),
               ),
             ],

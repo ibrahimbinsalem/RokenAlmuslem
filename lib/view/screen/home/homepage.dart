@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                                "اختصارات:",
+                                ": اختصارات",
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontWeight: FontWeight.w600,
