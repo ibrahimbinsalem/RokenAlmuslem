@@ -327,7 +327,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       textTheme: customTextTheme,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         margin: const EdgeInsets.all(8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

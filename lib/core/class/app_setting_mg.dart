@@ -53,22 +53,34 @@ class AppSettingsController extends GetxController {
 
   Future<void> loadSettings() async {
     notificationsEnabled.value = _prefs.getBool('notificationsEnabled') ?? true;
-    notificationIntervalMinutes.value = _prefs.getInt('notificationIntervalMinutes') ?? 60;
+    notificationIntervalMinutes.value =
+        _prefs.getInt('notificationIntervalMinutes') ?? 60;
     selectedLanguage.value = _prefs.getString('selectedLanguage') ?? 'العربية';
-    darkModeEnabled.value = _prefs.getBool('darkModeEnabled') ?? false;
+    darkModeEnabled.value = _prefs.getBool('darkModeEnabled') ?? true;
     fontSizeMultiplier.value = _prefs.getDouble('fontSizeMultiplier') ?? 1.0;
-    vibrateOnNotification.value = _prefs.getBool('vibrateOnNotification') ?? true;
+    vibrateOnNotification.value =
+        _prefs.getBool('vibrateOnNotification') ?? true;
     randomAzkarOrder.value = _prefs.getBool('randomAzkarOrder') ?? true;
 
-    generalDailyAzkarEnabled.value = _prefs.getBool('generalDailyAzkarEnabled') ?? false;
-    morningAzkarReminderEnabled.value = _prefs.getBool('morningAzkarReminderEnabled') ?? false;
-    eveningAzkarReminderEnabled.value = _prefs.getBool('eveningAzkarReminderEnabled') ?? false;
-    sleepAzkarReminderEnabled.value = _prefs.getBool('sleepAzkarReminderEnabled') ?? false;
-    tasbeehReminderEnabled.value = _prefs.getBool('tasbeehReminderEnabled') ?? false;
-    weeklyFridayReminderEnabled.value = _prefs.getBool('weeklyFridayReminderEnabled') ?? false;
-    prayerTimesNotificationsEnabled.value = _prefs.getBool('prayerTimesNotificationsEnabled') ?? false;
+    generalDailyAzkarEnabled.value =
+        _prefs.getBool('generalDailyAzkarEnabled') ?? false;
+    morningAzkarReminderEnabled.value =
+        _prefs.getBool('morningAzkarReminderEnabled') ?? false;
+    eveningAzkarReminderEnabled.value =
+        _prefs.getBool('eveningAzkarReminderEnabled') ?? false;
+    sleepAzkarReminderEnabled.value =
+        _prefs.getBool('sleepAzkarReminderEnabled') ?? false;
+    tasbeehReminderEnabled.value =
+        _prefs.getBool('tasbeehReminderEnabled') ?? false;
+    weeklyFridayReminderEnabled.value =
+        _prefs.getBool('weeklyFridayReminderEnabled') ?? false;
+    prayerTimesNotificationsEnabled.value =
+        _prefs.getBool('prayerTimesNotificationsEnabled') ?? false;
 
-    _applyCurrentTheme();
+    // Defer theme application to avoid "setState called during build" errors.
+    // This ensures the theme change happens after the current build cycle is complete.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyCurrentTheme());
+
     _syncNotificationsState();
   }
 
@@ -85,7 +97,9 @@ class AppSettingsController extends GetxController {
   }
 
   void _applyCurrentTheme() {
-    Get.changeThemeMode(darkModeEnabled.value ? ThemeMode.dark : ThemeMode.light);
+    Get.changeThemeMode(
+      darkModeEnabled.value ? ThemeMode.dark : ThemeMode.light,
+    );
   }
 
   Future<void> setNotificationsEnabled(bool value) async {
@@ -167,86 +181,97 @@ class AppSettingsController extends GetxController {
   Future<void> setGeneralDailyAzkarEnabled(bool value) async {
     generalDailyAzkarEnabled.value = value;
     await _saveSetting('generalDailyAzkarEnabled', value);
-    _syncSpecificNotification(generalDailyAzkarId, value,
-        () => _notificationService.scheduleDailyReminder(
-          id: generalDailyAzkarId,
-          title: 'تذكير أذكار عام',
-          body: 'حان وقت أذكارك اليومية!',
-          time: const TimeOfDay(hour: 8, minute: 0),
-          payload: 'generalDailyAzkar',
-        ),
+    _syncSpecificNotification(
+      generalDailyAzkarId,
+      value,
+      () => _notificationService.scheduleDailyReminder(
+        id: generalDailyAzkarId,
+        title: 'تذكير أذكار عام',
+        body: 'حان وقت أذكارك اليومية!',
+        time: const TimeOfDay(hour: 8, minute: 0),
+        payload: 'generalDailyAzkar',
+      ),
     );
   }
 
   Future<void> setMorningAzkarReminderEnabled(bool value) async {
     morningAzkarReminderEnabled.value = value;
     await _saveSetting('morningAzkarReminderEnabled', value);
-    _syncSpecificNotification(morningAzkarId, value,
-        () => _notificationService.scheduleDailyReminder(
-          id: morningAzkarId,
-          title: 'أذكار الصباح',
-          body: 'ابدأ يومك بذكر الله',
-          time: const TimeOfDay(hour: 6, minute: 0),
-          payload: 'morningAzkar',
-        ),
+    _syncSpecificNotification(
+      morningAzkarId,
+      value,
+      () => _notificationService.scheduleDailyReminder(
+        id: morningAzkarId,
+        title: 'أذكار الصباح',
+        body: 'ابدأ يومك بذكر الله',
+        time: const TimeOfDay(hour: 6, minute: 0),
+        payload: 'morningAzkar',
+      ),
     );
   }
 
   Future<void> setEveningAzkarReminderEnabled(bool value) async {
     eveningAzkarReminderEnabled.value = value;
     await _saveSetting('eveningAzkarReminderEnabled', value);
-    _syncSpecificNotification(eveningAzkarId, value,
-        () => _notificationService.scheduleDailyReminder(
-          id: eveningAzkarId,
-          title: 'أذكار المساء',
-          body: 'حصّن نفسك بذكر الله',
-          time: const TimeOfDay(hour: 18, minute: 0),
-          payload: 'eveningAzkar',
-        ),
+    _syncSpecificNotification(
+      eveningAzkarId,
+      value,
+      () => _notificationService.scheduleDailyReminder(
+        id: eveningAzkarId,
+        title: 'أذكار المساء',
+        body: 'حصّن نفسك بذكر الله',
+        time: const TimeOfDay(hour: 18, minute: 0),
+        payload: 'eveningAzkar',
+      ),
     );
   }
 
   Future<void> setSleepAzkarReminderEnabled(bool value) async {
     sleepAzkarReminderEnabled.value = value;
     await _saveSetting('sleepAzkarReminderEnabled', value);
-    _syncSpecificNotification(sleepAzkarId, value,
-        () => _notificationService.scheduleDailyReminder(
-          id: sleepAzkarId,
-          title: 'أذكار النوم',
-          body: 'تذكير بأذكار النوم قبل الخلود إليه',
-          time: const TimeOfDay(hour: 22, minute: 0),
-          payload: 'sleepAzkar',
-        ),
+    _syncSpecificNotification(
+      sleepAzkarId,
+      value,
+      () => _notificationService.scheduleDailyReminder(
+        id: sleepAzkarId,
+        title: 'أذكار النوم',
+        body: 'تذكير بأذكار النوم قبل الخلود إليه',
+        time: const TimeOfDay(hour: 22, minute: 0),
+        payload: 'sleepAzkar',
+      ),
     );
   }
 
   Future<void> setTasbeehReminderEnabled(bool value) async {
     tasbeehReminderEnabled.value = value;
     await _saveSetting('tasbeehReminderEnabled', value);
-    _syncSpecificNotification(tasbeehReminderId, value,
-        () => _notificationService.scheduleDailyReminder(
-          id: tasbeehReminderId,
-          title: 'تذكير تسبيح',
-          body: 'حان وقت التسبيح، لا تنس ذكر الله!',
-          time: const TimeOfDay(hour: 12, minute: 0),
-          payload: 'tasbeeh',
-        ),
+    _syncSpecificNotification(
+      tasbeehReminderId,
+      value,
+      () => _notificationService.scheduleDailyReminder(
+        id: tasbeehReminderId,
+        title: 'تذكير تسبيح',
+        body: 'حان وقت التسبيح، لا تنس ذكر الله!',
+        time: const TimeOfDay(hour: 12, minute: 0),
+        payload: 'tasbeeh',
+      ),
     );
   }
 
   Future<void> setWeeklyFridayReminderEnabled(bool value) async {
     weeklyFridayReminderEnabled.value = value;
     await _saveSetting('weeklyFridayReminderEnabled', value);
-    _syncSpecificNotification(weeklyFridayReminderId, value,
-        () => _notificationService.scheduleWeeklyReminder(
-          id: weeklyFridayReminderId,
-          title: 'تذكير الجمعة',
-          body: 'لا تنسَ قراءة سورة الكهف والصلاة على النبي ﷺ',
-          time: const TimeOfDay(hour: 10, minute: 0),
-          day: WeekDay.friday,
-          payload: 'fridayReminder',
-          
-        ),
+    _syncSpecificNotification(
+      weeklyFridayReminderId,
+      value,
+      () => _notificationService.scheduleWeeklyReminder(
+        id: weeklyFridayReminderId,
+        title: 'تذكير الجمعة',
+        body: 'لا تنسَ قراءة سورة الكهف والصلاة على النبي ﷺ',
+        time: const TimeOfDay(hour: 10, minute: 0),
+        day: WeekDay.friday,
+        payload: 'fridayReminder',
+      ),
     );
   }
 
@@ -257,7 +282,10 @@ class AppSettingsController extends GetxController {
   }
 
   Future<void> _syncSpecificNotification(
-      int id, bool enabled, Function scheduleFunction) async {
+    int id,
+    bool enabled,
+    Function scheduleFunction,
+  ) async {
     if (notificationsEnabled.value) {
       if (enabled) {
         await scheduleFunction();
@@ -272,11 +300,15 @@ class AppSettingsController extends GetxController {
   // **تعديلات مهمة في _syncNotificationsState**
   Future<void> _syncNotificationsState() async {
     // 1. إلغاء جميع الإشعارات أولاً. هذا يضمن عدم وجود إشعارات قديمة أو مكررة.
+    // This is a simple and robust strategy.
     await _notificationService.cancelAllNotifications();
 
     // 2. التحقق من المفتاح الرئيسي لتمكين الإشعارات بشكل عام.
     if (!notificationsEnabled.value) {
-      print('Global notifications disabled. No new notifications will be scheduled.');
+      print(
+        'Global notifications disabled. No new notifications will be scheduled.',
+      );
+      // Since all notifications were cancelled above, we can just exit.
       return; // إذا كانت الإشعارات معطلة عالميًا، لا نجدول أي شيء.
     }
 
@@ -342,8 +374,11 @@ class AppSettingsController extends GetxController {
       // التأكد من أن بيانات أوقات الصلاة متاحة قبل الجدولة.
       // إذا كانت فارغة، حاول جلبها.
       if (_prayerTimesController.prayerTimesData.isEmpty) {
-        print('Prayer times data is empty, attempting to fetch before scheduling.');
-        await _prayerTimesController.fetchPrayerTimes(); // هذه الدالة ستملأ prayerTimesData
+        print(
+          'Prayer times data is empty, attempting to fetch before scheduling.',
+        );
+        await _prayerTimesController
+            .fetchPrayerTimes(); // هذه الدالة ستملأ prayerTimesData
       }
 
       // جدولة إشعارات أوقات الصلاة فقط إذا كانت البيانات موجودة الآن
@@ -351,16 +386,13 @@ class AppSettingsController extends GetxController {
         await _prayerTimesController.schedulePrayerTimeNotifications(
           enableVibration: vibrateOnNotification.value,
           playSound: true,
-         
         );
         print('Prayer time notifications scheduled by AppSettingsController.');
       } else {
-        print('Prayer times data still empty after fetch attempt, cannot schedule prayer notifications.');
+        print(
+          'Prayer times data still empty after fetch attempt, cannot schedule prayer notifications.',
+        );
       }
-    } else {
-      // إذا كانت إشعارات الصلاة معطلة، قم بإلغائها
-      print('Prayer time notifications disabled. Cancelling specific prayer notifications.');
-      await _prayerTimesController.cancelAllPrayerTimeNotifications();
     }
   }
 
@@ -404,7 +436,7 @@ class AppSettingsController extends GetxController {
   Future<TimeOfDay?> getReminderTime(String keySuffix) async {
     final hour = _prefs.getInt('${keySuffix}Hour');
     final minute = _prefs.getInt('${keySuffix}Minute');
-    
+
     return (hour != null && minute != null)
         ? TimeOfDay(hour: hour, minute: minute)
         : null;

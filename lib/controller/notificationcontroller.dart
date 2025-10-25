@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:rokenalmuslem/core/class/app_setting_mg.dart'; // استيراد AppSettingsController
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart'; // استيراد PrayerTimesController
 import 'package:rokenalmuslem/core/services/localnotification.dart'
-    hide NotificationType; // تأكد من 'hide NotificationType' لتجنب التضارب إذا كان موجودًا
+    hide
+        NotificationType; // تأكد من 'hide NotificationType' لتجنب التضارب إذا كان موجودًا
 
 import 'notification_item.dart'; // تأكد من أن هذا الملف موجود وبه تعريف NotificationItem
 import 'dart:convert'; // لاستخدام json.decode
@@ -21,18 +22,21 @@ class NotificationsController extends GetxController {
   // حقن متحكمات التبعية
   final NotificationService _notificationService;
   late AppSettingsController _appSettingsController;
-  late PrayerTimesController _prayerTimesController; // إضافة PrayerTimesController
+  late PrayerTimesController
+  _prayerTimesController; // إضافة PrayerTimesController
 
   // Constructor مع حقن التبعيات
   NotificationsController({NotificationService? notificationService})
-      : _notificationService = notificationService ?? Get.find<NotificationService>();
+    : _notificationService =
+          notificationService ?? Get.find<NotificationService>();
 
   @override
   void onInit() {
     super.onInit();
     // يجب العثور على المتحكمات بعد تهيئتها في main.dart
     _appSettingsController = Get.find<AppSettingsController>();
-    _prayerTimesController = Get.find<PrayerTimesController>(); // حقن PrayerTimesController
+    _prayerTimesController =
+        Get.find<PrayerTimesController>(); // حقن PrayerTimesController
     refreshNotifications(); // جلب الإشعارات عند تهيئة المتحكم
   }
 
@@ -59,7 +63,6 @@ class NotificationsController extends GetxController {
       // 2. بعد إعادة الجدولة (التي حدثت بفضل loadSettings/syncNotificationsState)،
       // قم بجلب قائمة الإشعارات المعلقة لعرضها
       await _fetchNotifications();
-
     } catch (e, stack) {
       errorMessage.value = 'خطأ في تحديث الإشعارات: $e';
       debugPrint('Error refreshing notifications: $e\n$stack');
@@ -100,21 +103,29 @@ class NotificationsController extends GetxController {
 
   // دالة لجلب الإشعارات المعلقة من FlutterLocalNotificationsPlugin
   Future<void> _fetchNotifications({bool append = false}) async {
-    final pendingRequests = await _notificationService.getPendingNotifications();
-    
+    final pendingRequests =
+        await _notificationService.getPendingNotifications();
+
     // تصفية الإشعارات بناءً على حالة التفعيل في AppSettingsController
     final List<NotificationItem> filteredNotifications = [];
 
     // جلب جميع إعدادات التفعيل من AppSettingsController
-    final bool globalNotificationsEnabled = _appSettingsController.notificationsEnabled.value;
-    final bool prayerTimesNotificationsEnabled = _appSettingsController.prayerTimesNotificationsEnabled.value;
-    final bool generalDailyAzkarEnabled = _appSettingsController.generalDailyAzkarEnabled.value;
-    final bool morningAzkarReminderEnabled = _appSettingsController.morningAzkarReminderEnabled.value;
-    final bool eveningAzkarReminderEnabled = _appSettingsController.eveningAzkarReminderEnabled.value;
-    final bool sleepAzkarReminderEnabled = _appSettingsController.sleepAzkarReminderEnabled.value;
-    final bool tasbeehReminderEnabled = _appSettingsController.tasbeehReminderEnabled.value;
-    final bool weeklyFridayReminderEnabled = _appSettingsController.weeklyFridayReminderEnabled.value;
-
+    final bool globalNotificationsEnabled =
+        _appSettingsController.notificationsEnabled.value;
+    final bool prayerTimesNotificationsEnabled =
+        _appSettingsController.prayerTimesNotificationsEnabled.value;
+    final bool generalDailyAzkarEnabled =
+        _appSettingsController.generalDailyAzkarEnabled.value;
+    final bool morningAzkarReminderEnabled =
+        _appSettingsController.morningAzkarReminderEnabled.value;
+    final bool eveningAzkarReminderEnabled =
+        _appSettingsController.eveningAzkarReminderEnabled.value;
+    final bool sleepAzkarReminderEnabled =
+        _appSettingsController.sleepAzkarReminderEnabled.value;
+    final bool tasbeehReminderEnabled =
+        _appSettingsController.tasbeehReminderEnabled.value;
+    final bool weeklyFridayReminderEnabled =
+        _appSettingsController.weeklyFridayReminderEnabled.value;
 
     for (var request in pendingRequests) {
       DateTime timeToDisplay = DateTime.now(); // قيمة افتراضية
@@ -123,14 +134,21 @@ class NotificationsController extends GetxController {
 
       try {
         if (request.payload != null && request.payload!.startsWith('{')) {
-          final Map<String, dynamic> payloadData = json.decode(request.payload!);
-          if (payloadData.containsKey('scheduledTime') && payloadData['scheduledTime'] is String) {
-            timeToDisplay = DateTime.tryParse(payloadData['scheduledTime']) ?? DateTime.now();
+          final Map<String, dynamic> payloadData = json.decode(
+            request.payload!,
+          );
+          if (payloadData.containsKey('scheduledTime') &&
+              payloadData['scheduledTime'] is String) {
+            timeToDisplay =
+                DateTime.tryParse(payloadData['scheduledTime']) ??
+                DateTime.now();
           }
-          if (payloadData.containsKey('type') && payloadData['type'] is String) {
+          if (payloadData.containsKey('type') &&
+              payloadData['type'] is String) {
             notificationTypeString = payloadData['type'];
           }
-          if (payloadData.containsKey('prayerName') && payloadData['prayerName'] is String) {
+          if (payloadData.containsKey('prayerName') &&
+              payloadData['prayerName'] is String) {
             prayerNameFromPayload = payloadData['prayerName'];
           }
         }
@@ -138,8 +156,12 @@ class NotificationsController extends GetxController {
         debugPrint('Error parsing scheduledTime or type from payload: $e');
       }
 
-      NotificationType type = _determineNotificationType(notificationTypeString, request.title ?? '', prayerNameFromPayload);
-      
+      NotificationType type = _determineNotificationType(
+        notificationTypeString,
+        request.title ?? '',
+        prayerNameFromPayload,
+      );
+
       // **فلترة الإشعارات هنا بناءً على الإعدادات**
       bool shouldAdd = false;
       if (globalNotificationsEnabled) {
@@ -212,7 +234,8 @@ class NotificationsController extends GetxController {
     );
 
     if (!append) {
-      notifications.value = paginatedNotifications; // استبدال القائمة عند الصفحة 0
+      notifications.value =
+          paginatedNotifications; // استبدال القائمة عند الصفحة 0
     } else {
       notifications.addAll(paginatedNotifications); // إضافة المزيد
     }
@@ -221,37 +244,50 @@ class NotificationsController extends GetxController {
   }
 
   // تحديد نوع الإشعار بناءً على الـ payload (والعنوان كخيار احتياطي)
-  NotificationType _determineNotificationType(String payloadType, String title, String? prayerNameFromPayload) {
+  NotificationType _determineNotificationType(
+    String payloadType,
+    String title,
+    String? prayerNameFromPayload,
+  ) {
     // الاعتماد على payloadType أولاً
-    if (payloadType == 'generalDailyAzkar') return NotificationType.generalDailyAzkar;
+    if (payloadType == 'generalDailyAzkar')
+      return NotificationType.generalDailyAzkar;
     if (payloadType == 'morningAzkar') return NotificationType.morningAdhkar;
     if (payloadType == 'eveningAzkar') return NotificationType.eveningAdhkar;
     if (payloadType == 'sleepAzkar') return NotificationType.sleepAdhkar;
     if (payloadType == 'tasbeeh') return NotificationType.tasbeeh;
     if (payloadType == 'fridayReminder') return NotificationType.fridayReminder;
-    
+
     // لأوقات الصلاة، بناءً على prayerNameFromPayload أو العنوان
     if (payloadType == 'prayerTime' && prayerNameFromPayload != null) {
       switch (prayerNameFromPayload) {
-        case 'الفجر': return NotificationType.prayerFajr;
-        case 'الشروق': return NotificationType.prayerSunrise;
-        case 'الظهر': return NotificationType.prayerDhuhr;
-        case 'العصر': return NotificationType.prayerAsr;
-        case 'المغرب': return NotificationType.prayerMaghrib;
-        case 'العشاء': return NotificationType.prayerIsha;
+        case 'الفجر':
+          return NotificationType.prayerFajr;
+        case 'الشروق':
+          return NotificationType.prayerSunrise;
+        case 'الظهر':
+          return NotificationType.prayerDhuhr;
+        case 'العصر':
+          return NotificationType.prayerAsr;
+        case 'المغرب':
+          return NotificationType.prayerMaghrib;
+        case 'العشاء':
+          return NotificationType.prayerIsha;
       }
     }
-    
+
     // كخيار احتياطي إذا لم يتطابق الـ payloadType بشكل داطع
-    if (title.contains('تذكير أذكار عام')) return NotificationType.generalDailyAzkar;
+    if (title.contains('تذكير أذكار عام'))
+      return NotificationType.generalDailyAzkar;
     if (title.contains('أذكار الصباح')) return NotificationType.morningAdhkar;
     if (title.contains('أذكار المساء')) return NotificationType.eveningAdhkar;
     if (title.contains('أذكار النوم')) return NotificationType.sleepAdhkar;
     if (title.contains('تذكير تسبيح')) return NotificationType.tasbeeh;
     if (title.contains('تذكير الجمعة')) return NotificationType.fridayReminder;
-    
+
     if (title.contains('صلاة الفجر')) return NotificationType.prayerFajr;
-    if (title.contains('صلاة الشروق')) return NotificationType.prayerSunrise; // غالباً ما يكون الشروق وليس صلاة
+    if (title.contains('صلاة الشروق'))
+      return NotificationType.prayerSunrise; // غالباً ما يكون الشروق وليس صلاة
     if (title.contains('صلاة الظهر')) return NotificationType.prayerDhuhr;
     if (title.contains('صلاة العصر')) return NotificationType.prayerAsr;
     if (title.contains('صلاة المغرب')) return NotificationType.prayerMaghrib;
@@ -260,48 +296,79 @@ class NotificationsController extends GetxController {
     return NotificationType.general;
   }
 
-
   // الحصول على الأيقونة بناءً على نوع الإشعار
   IconData _getIconForType(NotificationType type) {
     switch (type) {
-      case NotificationType.morningAdhkar: return Icons.wb_sunny_outlined;
-      case NotificationType.eveningAdhkar: return Icons.nights_stay_outlined;
-      case NotificationType.prayerFajr: return Icons.brightness_2_outlined; // أيقونة الفجر
-      case NotificationType.prayerSunrise: return Icons.wb_sunny_outlined; // أيقونة الشروق
-      case NotificationType.prayerDhuhr: return Icons.wb_sunny_sharp; // أيقونة الظهيرة
-      case NotificationType.prayerAsr: return Icons.wb_cloudy_outlined; // أيقونة العصر
-      case NotificationType.prayerMaghrib: return Icons.brightness_3_outlined; // أيقونة المغرب
-      case NotificationType.prayerIsha: return Icons.nights_stay; // أيقونة العشاء
-      case NotificationType.tasbeeh: return Icons.bubble_chart;
-      case NotificationType.sleepAdhkar: return Icons.bedtime;
-      case NotificationType.fridayReminder: return Icons.mosque_outlined;
-      case NotificationType.hadith: return Icons.format_quote_outlined;
-      case NotificationType.ayah: return Icons.book_outlined;
-      case NotificationType.duaa: return Icons.emoji_people_outlined;
-      case NotificationType.generalDailyAzkar: return Icons.notifications_active_outlined;
-      default: return Icons.notifications_none;
+      case NotificationType.morningAdhkar:
+        return Icons.wb_sunny_outlined;
+      case NotificationType.eveningAdhkar:
+        return Icons.nights_stay_outlined;
+      case NotificationType.prayerFajr:
+        return Icons.brightness_2_outlined; // أيقونة الفجر
+      case NotificationType.prayerSunrise:
+        return Icons.wb_sunny_outlined; // أيقونة الشروق
+      case NotificationType.prayerDhuhr:
+        return Icons.wb_sunny_sharp; // أيقونة الظهيرة
+      case NotificationType.prayerAsr:
+        return Icons.wb_cloudy_outlined; // أيقونة العصر
+      case NotificationType.prayerMaghrib:
+        return Icons.brightness_3_outlined; // أيقونة المغرب
+      case NotificationType.prayerIsha:
+        return Icons.nights_stay; // أيقونة العشاء
+      case NotificationType.tasbeeh:
+        return Icons.bubble_chart;
+      case NotificationType.sleepAdhkar:
+        return Icons.bedtime;
+      case NotificationType.fridayReminder:
+        return Icons.mosque_outlined;
+      case NotificationType.hadith:
+        return Icons.format_quote_outlined;
+      case NotificationType.ayah:
+        return Icons.book_outlined;
+      case NotificationType.duaa:
+        return Icons.emoji_people_outlined;
+      case NotificationType.generalDailyAzkar:
+        return Icons.notifications_active_outlined;
+      default:
+        return Icons.notifications_none;
     }
   }
 
   // الحصول على اللون بناءً على نوع الإشعار
   Color _getColorForType(NotificationType type) {
     switch (type) {
-      case NotificationType.morningAdhkar: return const Color(0xFFF9A825); // أصفر ذهبي
-      case NotificationType.eveningAdhkar: return const Color(0xFF5C6BC0); // بنفسجي فاتح
-      case NotificationType.prayerFajr: return Colors.orange.shade800;
-      case NotificationType.prayerSunrise: return Colors.amber.shade700;
-      case NotificationType.prayerDhuhr: return Colors.blue.shade600;
-      case NotificationType.prayerAsr: return Colors.deepOrange.shade400;
-      case NotificationType.prayerMaghrib: return Colors.purple.shade700;
-      case NotificationType.prayerIsha: return Colors.indigo.shade800;
-      case NotificationType.tasbeeh: return Colors.green.shade600;
-      case NotificationType.sleepAdhkar: return Colors.blueGrey.shade600;
-      case NotificationType.fridayReminder: return Colors.teal.shade700;
-      case NotificationType.hadith: return const Color(0xFF43A047); // أخضر داكن
-      case NotificationType.ayah: return const Color(0xFF00897B); // تركواز
-      case NotificationType.duaa: return const Color(0xFF7B1FA2); // بنفسجي عميق
-      case NotificationType.generalDailyAzkar: return Colors.lime.shade700;
-      default: return Colors.grey;
+      case NotificationType.morningAdhkar:
+        return const Color(0xFFF9A825); // أصفر ذهبي
+      case NotificationType.eveningAdhkar:
+        return const Color(0xFF5C6BC0); // بنفسجي فاتح
+      case NotificationType.prayerFajr:
+        return Colors.orange.shade800;
+      case NotificationType.prayerSunrise:
+        return Colors.amber.shade700;
+      case NotificationType.prayerDhuhr:
+        return Colors.blue.shade600;
+      case NotificationType.prayerAsr:
+        return Colors.deepOrange.shade400;
+      case NotificationType.prayerMaghrib:
+        return Colors.purple.shade700;
+      case NotificationType.prayerIsha:
+        return Colors.indigo.shade800;
+      case NotificationType.tasbeeh:
+        return Colors.green.shade600;
+      case NotificationType.sleepAdhkar:
+        return Colors.blueGrey.shade600;
+      case NotificationType.fridayReminder:
+        return Colors.teal.shade700;
+      case NotificationType.hadith:
+        return const Color(0xFF43A047); // أخضر داكن
+      case NotificationType.ayah:
+        return const Color(0xFF00897B); // تركواز
+      case NotificationType.duaa:
+        return const Color(0xFF7B1FA2); // بنفسجي عميق
+      case NotificationType.generalDailyAzkar:
+        return Colors.lime.shade700;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -321,6 +388,11 @@ class NotificationsController extends GetxController {
       // إلغاء جميع الإشعارات المجدولة في نظام التشغيل
       await _notificationService.cancelAllNotifications();
       notifications.clear(); // مسح القائمة في المتحكم
+      hasMore.value = false; // لا يوجد المزيد من الإشعارات
+      // تحديث الواجهة لإظهار رسالة "لا توجد إشعارات"
+      // هذا السطر مهم لـ GetX ليعرف أن القائمة قد تغيرت بشكل جذري
+      notifications.refresh();
+
       Get.snackbar(
         "تم الحذف",
         "تم حذف جميع الإشعارات المجدولة بنجاح",
@@ -337,13 +409,26 @@ class NotificationsController extends GetxController {
 
   Future<void> markAsRead(int index) async {
     if (index >= 0 && index < notifications.length) {
-      notifications[index].isRead = true;
-      notifications.refresh(); // لإعادة بناء الواجهة بعد التغيير
+      final notificationItem = notifications[index];
+      // 1. إلغاء الإشعار من النظام لأنه تم التعامل معه
+      await _notificationService.cancelNotification(notificationItem.id);
+
+      // 2. إزالة الإشعار من القائمة المعروضة في الواجهة
+      notifications.removeAt(index);
+
+      // 3. تحديث الواجهة
+      notifications.refresh();
+
+      Get.snackbar(
+        "تمت المعالجة",
+        "تمت معالجة الإشعار: ${notificationItem.title}",
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
     }
   }
 
   Future<void> handleNotificationTap(int index) async {
-    await markAsRead(index);
     final notification = notifications[index];
 
     switch (notification.type) {
@@ -376,7 +461,9 @@ class NotificationsController extends GetxController {
       case NotificationType.general:
       case NotificationType.generalDailyAzkar: // أضف هذا
       default:
-        debugPrint('Notification tapped: ${notification.title} with payload: ${notification.id}');
+        debugPrint(
+          'Notification tapped: ${notification.title} with payload: ${notification.id}',
+        );
         Get.snackbar(
           notification.title,
           notification.message,
@@ -387,18 +474,30 @@ class NotificationsController extends GetxController {
           duration: const Duration(seconds: 5),
         );
     }
+    // بعد التعامل مع الإشعار، قم بإزالته من القائمة والنظام
+    await markAsRead(index);
   }
 
   String formatTime(DateTime time) {
     final now = DateTime.now();
-    final difference = now.difference(time);
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final notificationDate = DateTime(time.year, time.month, time.day);
 
-    if (difference.inMinutes < 1) return "الآن";
-    if (difference.inMinutes < 60) return "منذ ${difference.inMinutes} دقيقة";
-    if (difference.inHours < 24) return "منذ ${difference.inHours} ساعة";
-    if (difference.inDays == 1) return "بالأمس";
-    if (difference.inDays < 7) return "منذ ${difference.inDays} أيام";
-    return DateFormat('yyyy/MM/dd', 'ar').format(time);
+    final timeFormat = DateFormat(
+      'hh:mm a',
+      'ar',
+    ); // تنسيق الوقت (e.g., 08:00 صباحًا)
+
+    if (notificationDate == today) {
+      return 'اليوم, ${timeFormat.format(time)}';
+    } else if (notificationDate == tomorrow) {
+      return 'غداً, ${timeFormat.format(time)}';
+    } else {
+      // إذا كان التاريخ في الماضي أو المستقبل البعيد، اعرض التاريخ الكامل
+      final dateFormat = DateFormat('yyyy/MM/dd', 'ar');
+      return '${dateFormat.format(time)}, ${timeFormat.format(time)}';
+    }
   }
 
   Future<bool> _showConfirmationDialog({

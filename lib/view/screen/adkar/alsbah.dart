@@ -43,77 +43,77 @@ class Alsbah extends StatelessWidget {
             tooltip: 'إعادة تعيين كل العدادات',
             color: Colors.white,
           ),
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-            decoration: BoxDecoration(
-              color: Get.theme.colorScheme.secondary,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Get.theme.colorScheme.secondary.withOpacity(0.4),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () async {
-                  final now = DateTime.now();
-                  final notificationTime = now.add(const Duration(minutes: 2));
+          // Container(
+          //   margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+          //   decoration: BoxDecoration(
+          //     color: Get.theme.colorScheme.secondary,
+          //     borderRadius: BorderRadius.circular(12),
+          //     boxShadow: [
+          //       BoxShadow(
+          //         color: Get.theme.colorScheme.secondary.withOpacity(0.4),
+          //         spreadRadius: 1,
+          //         blurRadius: 4,
+          //         offset: const Offset(0, 2),
+          //       ),
+          //     ],
+          //   ),
+          //   child: Material(
+          //     color: Colors.transparent,
+          //     borderRadius: BorderRadius.circular(12),
+          //     child: InkWell(
+          //       borderRadius: BorderRadius.circular(12),
+          //       onTap: () async {
+          //         final now = DateTime.now();
+          //         final notificationTime = now.add(const Duration(minutes: 2));
 
-                  _notificationService.scheduleDailyReminder(
-                    id: AppSettingsController.morningAzkarId,
-                    title: 'تذكير تجريبي: أذكار الصباح',
-                    body:
-                        'هذا إشعار تجريبي لأذكار الصباح. شكراً لتجربتك التطبيق!',
-                    time: TimeOfDay.fromDateTime(notificationTime),
-                    payload: 'morning_azkar_test',
-                  );
+          //         _notificationService.scheduleDailyReminder(
+          //           id: AppSettingsController.morningAzkarId,
+          //           title: 'تذكير تجريبي: أذكار الصباح',
+          //           body:
+          //               'هذا إشعار تجريبي لأذكار الصباح. شكراً لتجربتك التطبيق!',
+          //           time: TimeOfDay.fromDateTime(notificationTime),
+          //           payload: 'morning_azkar_test',
+          //         );
 
-                  Get.snackbar(
-                    'تم تفعيل الإشعار التجريبي',
-                    'ستتلقى إشعاراً تجريبياً بعد دقيقتين لتجربة النظام',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Get.theme.colorScheme.secondary,
-                    colorText: Get.theme.colorScheme.onSecondary,
-                    borderRadius: 10,
-                    margin: const EdgeInsets.all(16),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.timer_outlined,
-                        color: Get.theme.colorScheme.onSecondary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'تجربة الإشعار',
-                        style: TextStyle(
-                          color: Get.theme.colorScheme.onSecondary,
-                          fontFamily: 'Tajawal',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          //         Get.snackbar(
+          //           'تم تفعيل الإشعار التجريبي',
+          //           'ستتلقى إشعاراً تجريبياً بعد دقيقتين لتجربة النظام',
+          //           snackPosition: SnackPosition.BOTTOM,
+          //           backgroundColor: Get.theme.colorScheme.secondary,
+          //           colorText: Get.theme.colorScheme.onSecondary,
+          //           borderRadius: 10,
+          //           margin: const EdgeInsets.all(16),
+          //         );
+          //       },
+          //       child: Padding(
+          //         padding: const EdgeInsets.symmetric(
+          //           horizontal: 10,
+          //           vertical: 8,
+          //         ),
+          //         child: Row(
+          //           mainAxisSize: MainAxisSize.min,
+          //           children: [
+          //             Icon(
+          //               Icons.timer_outlined,
+          //               color: Get.theme.colorScheme.onSecondary,
+          //               size: 20,
+          //             ),
+          //             const SizedBox(width: 6),
+          //             Text(
+          //               'تجربة الإشعار',
+          //               style: TextStyle(
+          //                 color: Get.theme.colorScheme.onSecondary,
+          //                 fontFamily: 'Tajawal',
+          //                 fontSize: 14,
+          //                 fontWeight: FontWeight.bold,
+          //               ),
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
       body: Stack(

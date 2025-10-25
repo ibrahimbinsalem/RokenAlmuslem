@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
+import 'package:rokenalmuslem/controller/ayah_controller.dart';
 import 'package:rokenalmuslem/controller/more/masbahacontroller.dart';
 import 'package:rokenalmuslem/core/constant/routes.dart';
 
@@ -15,16 +16,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Map<String, String>> items = [
-    {
-      "ayah": "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-      "sorah": "سورة الشرح",
-      "hadyth": "من سلك طريقًا يلتمس فيه علمًا سهل الله له به طريقًا إلى الجنة",
-      "alrawy": "رواه مسلم",
-    },
-  ];
-
   final TasbeehController tasbeehController = Get.put(TasbeehController());
+  final AyahController ayahController = Get.put(AyahController());
 
   // دالة للتحقق مما إذا كان اليوم جمعة
   bool get isFriday {
@@ -276,11 +269,13 @@ class _HomePageState extends State<HomePage> {
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideX(begin: -0.1, end: 0),
-                    _buildAyahCard(
-                          items[0],
-                          primaryColor,
-                          cardColor,
-                          screenWidth,
+                    Obx(
+                          () => _buildAyahCard(
+                            ayahController.currentAyah.value,
+                            primaryColor,
+                            cardColor,
+                            screenWidth,
+                          ),
                         )
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
@@ -296,12 +291,7 @@ class _HomePageState extends State<HomePage> {
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideX(begin: 0.1, end: 0),
-                    _buildHadithCard(
-                          items[0],
-                          primaryColor,
-                          cardColor,
-                          screenWidth,
-                        )
+                    _buildHadithCard(primaryColor, cardColor, screenWidth)
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideY(begin: 0.1, end: 0),
@@ -331,7 +321,7 @@ class _HomePageState extends State<HomePage> {
                     // تذييل الصفحة
                     SizedBox(height: screenHeight * 0.06), // ارتفاع نسبي
                     Text(
-                          "أذكاري",
+                          "ركن المسلم",
                           style: TextStyle(
                             color: primaryColor,
                             fontSize: screenWidth * 0.08, // حجم خط نسبي
@@ -495,6 +485,9 @@ class _HomePageState extends State<HomePage> {
     Color cardColor,
     double screenWidth, // استقبل عرض الشاشة
   ) {
+    final String ayah = item["ayah"] ?? "جاري تحميل الآية...";
+    final String surah = item["surah"] ?? "";
+
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.04,
@@ -517,7 +510,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            item["ayah"]!,
+            ayah,
             style: TextStyle(
               color: Colors.white.withOpacity(0.95),
               fontSize: screenWidth * 0.055, // حجم خط نسبي
@@ -542,7 +535,7 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: () => _copyToClipboard(item["ayah"]!, context),
+                    onPressed: () => _copyToClipboard(ayah, context),
                     icon: Icon(
                       Icons.copy_outlined,
                       color: primaryColor,
@@ -564,7 +557,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               Text(
-                item["sorah"]!,
+                surah,
                 style: TextStyle(
                   color: primaryColor,
                   fontStyle: FontStyle.italic,
@@ -580,7 +573,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHadithCard(
-    Map<String, String> item,
     Color primaryColor,
     Color cardColor,
     double screenWidth, // استقبل عرض الشاشة
@@ -607,7 +599,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            item["hadyth"]!,
+            "من سلك طريقًا يلتمس فيه علمًا سهل الله له به طريقًا إلى الجنة",
             style: TextStyle(
               color: Colors.white.withOpacity(0.95),
               fontSize: screenWidth * 0.05, // حجم خط نسبي
@@ -631,7 +623,11 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: () => _copyToClipboard(item["hadyth"]!, context),
+                    onPressed:
+                        () => _copyToClipboard(
+                          "من سلك طريقًا يلتمس فيه علمًا سهل الله له به طريقًا إلى الجنة",
+                          context,
+                        ),
                     icon: Icon(
                       Icons.copy_outlined,
                       color: primaryColor,
@@ -653,7 +649,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               Text(
-                item["alrawy"]!,
+                "رواه مسلم",
                 style: TextStyle(
                   color: primaryColor,
                   fontStyle: FontStyle.italic,

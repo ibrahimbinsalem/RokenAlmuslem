@@ -4,7 +4,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
 import 'package:rokenalmuslem/core/services/localnotification.dart';
-import 'package:rokenalmuslem/view/screen/more/aboutbage.dart'; // تأكد من المسار الصحيح
+import 'package:rokenalmuslem/view/screen/more/aboutbage.dart';
+import 'package:url_launcher/url_launcher.dart'; // تأكد من المسار الصحيح
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -12,7 +13,9 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppSettingsController appSettings = Get.put(AppSettingsController());
-    final NotificationService notificationService = Get.put(NotificationService());
+    final NotificationService notificationService = Get.put(
+      NotificationService(),
+    );
 
     final ThemeData currentTheme = Theme.of(context);
 
@@ -95,7 +98,9 @@ class SettingsPage extends StatelessWidget {
                 title: 'تنبيهات أوقات الصلاة',
                 value: appSettings.prayerTimesNotificationsEnabled.value,
                 onChanged: (newValue) async {
-                  await appSettings.setPrayerTimesNotificationsEnabled(newValue);
+                  await appSettings.setPrayerTimesNotificationsEnabled(
+                    newValue,
+                  );
                 },
                 theme: currentTheme,
               ),
@@ -173,7 +178,9 @@ class SettingsPage extends StatelessWidget {
               context,
               title: 'إدارة التنبيهات المجدولة',
               icon: Icons.notifications_none_outlined,
-              onTap: () => _showScheduledNotificationsDialog(context, currentTheme),
+              onTap:
+                  () =>
+                      _showScheduledNotificationsDialog(context, currentTheme),
               theme: currentTheme,
             ),
             _buildListTile(
@@ -181,7 +188,11 @@ class SettingsPage extends StatelessWidget {
               title: 'مشاركة التطبيق',
               icon: Icons.share_outlined,
               onTap: () {
-                _showSnackBar(context, 'ميزة المشاركة قيد التطوير!', currentTheme);
+                _showSnackBar(
+                  context,
+                  'ميزة المشاركة قيد التطوير!',
+                  currentTheme,
+                );
               },
               theme: currentTheme,
             ),
@@ -190,7 +201,24 @@ class SettingsPage extends StatelessWidget {
               title: 'تقييم التطبيق',
               icon: Icons.star_rate_outlined,
               onTap: () {
-                _showSnackBar(context, 'ميزة التقييم قيد التطوير!', currentTheme);
+                _showSnackBar(
+                  context,
+                  'ميزة التقييم قيد التطوير!',
+                  currentTheme,
+                );
+              },
+              theme: currentTheme,
+            ),
+            _buildListTile(
+              context,
+              title: 'سياسة الخصوصية',
+              icon: Icons.policy_outlined,
+              onTap: () {
+                launchUrl(
+                  Uri.parse(
+                    "https://newbalignearab.arabwaredos.com/baligneback/rokenalmuslam.html",
+                  ),
+                );
               },
               theme: currentTheme,
             ),
@@ -388,17 +416,18 @@ class SettingsPage extends StatelessWidget {
               style: theme.textTheme.titleMedium!.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
-              items: items.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(
-                    value,
-                    style: theme.textTheme.titleMedium!.copyWith(
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                );
-              }).toList(),
+              items:
+                  items.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        value,
+                        style: theme.textTheme.titleMedium!.copyWith(
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    );
+                  }).toList(),
               underline: const SizedBox.shrink(),
               icon: Icon(
                 Icons.arrow_drop_down,
@@ -516,7 +545,12 @@ class SettingsPage extends StatelessWidget {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
-            child: Text('تأكيد', style: theme.textTheme.labelLarge!.copyWith(color: theme.colorScheme.onPrimary)),
+            child: Text(
+              'تأكيد',
+              style: theme.textTheme.labelLarge!.copyWith(
+                color: theme.colorScheme.onPrimary,
+              ),
+            ),
           ),
         ],
       ),
@@ -527,7 +561,8 @@ class SettingsPage extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
   ) async {
-    final NotificationService notificationService = Get.find<NotificationService>();
+    final NotificationService notificationService =
+        Get.find<NotificationService>();
 
     Get.dialog(
       AlertDialog(
@@ -556,7 +591,9 @@ class SettingsPage extends StatelessWidget {
                   return Center(
                     child: Text(
                       'حدث خطأ: ${snapshot.error}',
-                      style: theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.error),
+                      style: theme.textTheme.bodyMedium!.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
                     ),
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -624,9 +661,7 @@ class SettingsPage extends StatelessWidget {
                                   'تم حذف التنبيه: ${notification.title}',
                                   theme,
                                 );
-                                setState(
-                                  () {},
-                                );
+                                setState(() {});
                               },
                               tooltip: 'حذف التنبيه',
                             ),
