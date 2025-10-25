@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:hijri/hijri_calendar.dart';
+import 'package:intl/intl.dart';
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
 import 'package:rokenalmuslem/controller/ayah_controller.dart';
+import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart';
 import 'package:rokenalmuslem/controller/more/masbahacontroller.dart';
 import 'package:rokenalmuslem/core/constant/routes.dart';
 
@@ -18,6 +21,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TasbeehController tasbeehController = Get.put(TasbeehController());
   final AyahController ayahController = Get.put(AyahController());
+  // إضافة متحكم أوقات الصلاة
+  final PrayerTimesController prayerController = Get.put(
+    PrayerTimesController(),
+  );
 
   // دالة للتحقق مما إذا كان اليوم جمعة
   bool get isFriday {
@@ -52,17 +59,18 @@ class _HomePageState extends State<HomePage> {
         child: SafeArea(
           child: Obx(() {
             if (!tasbeehController.isPrefsInitialized.value) {
-              return Center(
+              // هذا الشرط سيبقى كما هو لأنه يعمل بشكل صحيح
+              return const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(color: primaryColor),
-                    SizedBox(height: screenHeight * 0.02), // ارتفاع نسبي
+                    SizedBox(height: 20), // ارتفاع نسبي
                     Text(
                       "جاري تحميل البيانات...",
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: screenWidth * 0.04, // حجم خط نسبي
+                        color: Colors.white,
+                        fontSize: 20, // حجم خط نسبي
                       ),
                     ),
                   ],
@@ -72,6 +80,9 @@ class _HomePageState extends State<HomePage> {
               return SingleChildScrollView(
                 child: Column(
                   children: [
+                    // --== ويدجت جديد لعرض الوقت والتاريخ والصلاة القادمة ==--
+                    // نستخدم Obx هنا للاستماع إلى التغييرات في prayerController
+
                     // البسملة
                     Padding(
                       padding: EdgeInsets.only(
@@ -99,6 +110,13 @@ class _HomePageState extends State<HomePage> {
                             .fadeIn(duration: 800.ms, delay: 200.ms)
                             .slideY(begin: 0.1, end: 0),
                       ),
+                    ),
+
+                    _buildHeaderSection(
+                      context,
+                      primaryColor,
+                      accentColor,
+                      screenWidth,
                     ),
 
                     // اختصارات
@@ -269,13 +287,12 @@ class _HomePageState extends State<HomePage> {
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideX(begin: -0.1, end: 0),
-                    Obx(
-                          () => _buildAyahCard(
-                            ayahController.currentAyah.value,
-                            primaryColor,
-                            cardColor,
-                            screenWidth,
-                          ),
+                    _buildAyahCard(
+                          ayahController
+                              .currentAyah, // تمرير المتغير التفاعلي مباشرة
+                          primaryColor,
+                          cardColor,
+                          screenWidth,
                         )
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
@@ -306,13 +323,12 @@ class _HomePageState extends State<HomePage> {
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideX(begin: -0.1, end: 0),
-                    Obx(
-                          () => _buildAsmaAllahCard(
-                            tasbeehController.currentAsmaAllah.value,
-                            primaryColor,
-                            cardColor,
-                            screenWidth,
-                          ),
+                    _buildAsmaAllahCard(
+                          tasbeehController
+                              .currentAsmaAllah, // تمرير المتغير التفاعلي مباشرة
+                          primaryColor,
+                          cardColor,
+                          screenWidth,
                         )
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
@@ -365,6 +381,175 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ================ Widgets مساعدة =================
+
+  // الويدجت الجديد لعرض الوقت والتاريخ والصلاة القادمة
+  Widget _buildHeaderSection(
+    BuildContext context,
+    Color primaryColor,
+    Color accentColor,
+    double screenWidth,
+  ) {
+    // تهيئة التقويم الهجري والميلادي
+    var hijriDate = HijriCalendar.now();
+    var gregorianDate = DateTime.now();
+    // استخدام intl لتهيئة التاريخ
+    var gregorianFormatter = DateFormat('EEEE, d MMMM yyyy', 'ar');
+    var hijriFormatter = DateFormat('EEEE, dd MMMM yyyy', 'ar_EG');
+    return FutureBuilder<void>(
+      future: prayerController.initializationFuture,
+      builder: (context, snapshot) {
+        // في حالة التحميل أو عدم وجود بيانات بعد
+        if (snapshot.connectionState == ConnectionState.waiting ||
+            prayerController.prayerTimesData.isEmpty) {
+          return Container(
+            margin: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.04,
+              vertical: screenWidth * 0.02,
+            ),
+            padding: EdgeInsets.all(screenWidth * 0.04),
+            child: const Center(
+              child: Text(
+                "جاري تحميل أوقات الصلاة...",
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+          );
+        }
+
+        // في حالة حدوث خطأ
+        if (snapshot.hasError) {
+          return Container(
+            margin: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.04,
+              vertical: screenWidth * 0.02,
+            ),
+            padding: EdgeInsets.all(screenWidth * 0.04),
+            child: Center(
+              child: Text(
+                "خطأ: ${snapshot.error}",
+                style: const TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          );
+        }
+
+        // في حالة اكتمال التحميل بنجاح، نعرض الساعة والعداد
+        return StreamBuilder(
+          stream: Stream.periodic(const Duration(seconds: 1)),
+          builder: (context, streamSnapshot) {
+            final now = DateTime.now();
+            final nextPrayerInfo = prayerController.getNextPrayer();
+            final nextPrayerName = nextPrayerInfo['name'] ?? 'غير معروف';
+            final nextPrayerTime = nextPrayerInfo['time'] as DateTime?;
+
+            String countdown = '...';
+            if (nextPrayerTime != null) {
+              final difference = nextPrayerTime.difference(now);
+              if (difference.isNegative) {
+                countdown = 'حان الآن';
+              } else {
+                final hours = difference.inHours;
+                final minutes = difference.inMinutes.remainder(60);
+                final seconds = difference.inSeconds.remainder(60);
+                countdown =
+                    '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+              }
+            }
+
+            return Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.04,
+                vertical: screenWidth * 0.02,
+              ),
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A2A3A).withOpacity(0.7),
+                borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                border: Border.all(
+                  color: primaryColor.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // التاريخ الميلادي والهجري
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        hijriDate.toFormat("d MMMM yyyy"),
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: screenWidth * 0.035,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        gregorianFormatter.format(gregorianDate),
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: screenWidth * 0.035,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Divider(color: primaryColor.withOpacity(0.4), height: 20),
+                  // الوقت الحالي
+                  Text(
+                    DateFormat('hh:mm:ss a', 'ar').format(now),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: screenWidth * 0.1,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Tajawal',
+                      shadows: [
+                        Shadow(
+                          blurRadius: 8,
+                          color: primaryColor.withOpacity(0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // الصلاة القادمة والعداد التنازلي
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'صلاة $nextPrayerName بعد: ',
+                        style: TextStyle(
+                          color: accentColor,
+                          fontSize: screenWidth * 0.045,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        countdown,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: screenWidth * 0.045,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Tajawal',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, end: 0);
+          },
+        );
+      },
+    );
+  }
 
   Widget _buildShortcut(
     BuildContext context, {
@@ -480,12 +665,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildAyahCard(
-    Map<String, String> item,
+    RxMap<String, String> item, // استقبال المتغير التفاعلي
     Color primaryColor,
     Color cardColor,
     double screenWidth, // استقبل عرض الشاشة
   ) {
-    final String ayah = item["ayah"] ?? "جاري تحميل الآية...";
+    final String ayah =
+        item.value["ayah"] ?? "جاري تحميل الآية..."; // الوصول للقيمة هنا
     final String surah = item["surah"] ?? "";
 
     return Container(
@@ -525,8 +711,8 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            textAlign: TextAlign.justify,
-            textDirection: TextDirection.rtl,
+            textAlign: TextAlign.right,
+            // textDirection: TextDirection.ltr,
           ),
           SizedBox(height: screenWidth * 0.05), // ارتفاع نسبي
           Row(
@@ -613,8 +799,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            textAlign: TextAlign.justify,
-            textDirection: TextDirection.rtl,
+            textAlign: TextAlign.right,
           ),
           SizedBox(height: screenWidth * 0.05), // ارتفاع نسبي
           Row(
@@ -665,13 +850,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildAsmaAllahCard(
-    Map<String, String> asmaAllahData,
+    RxMap<String, String> asmaAllahData, // استقبال المتغير التفاعلي
     Color primaryColor,
     Color cardColor,
     double screenWidth, // استقبل عرض الشاشة
   ) {
-    final String name = asmaAllahData["name"] ?? "جاري التحميل...";
-    final String dis = asmaAllahData["dis"] ?? "يرجى الانتظار.";
+    final String name =
+        asmaAllahData.value["name"] ?? "جاري التحميل..."; // الوصول للقيمة هنا
+    final String dis = asmaAllahData.value["dis"] ?? "يرجى الانتظار.";
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -731,7 +917,7 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.w500,
                     height: 1.6,
                   ),
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.right,
                 )
                 .animate(key: ValueKey(dis))
                 .fadeIn(duration: 500.ms)

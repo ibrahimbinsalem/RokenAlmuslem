@@ -40,12 +40,15 @@ class AppSettingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // تم نقل Get.find<PrayerTimesController>() إلى _initAndLoadSettings
     _notificationService = Get.find<NotificationService>();
-    _prayerTimesController = Get.find<PrayerTimesController>();
     _initAndLoadSettings();
   }
 
   Future<void> _initAndLoadSettings() async {
+    // يتم حقن PrayerTimesController هنا بعد التأكد من تهيئته
+    _prayerTimesController = Get.find<PrayerTimesController>();
+
     _prefs = await SharedPreferences.getInstance();
     await loadSettings();
   }

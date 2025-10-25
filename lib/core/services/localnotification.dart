@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:convert'; // لإضافة json.encode
 import 'package:flutter_timezone/flutter_timezone.dart'; // للحصول على المنطقة الزمنية المحلية
 
@@ -44,20 +45,23 @@ class NotificationService extends GetxService {
   }
 
   Future<bool> requestPermissions() async {
-    final bool? resultAndroid =
-        await _notificationsPlugin
-            .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin
-            >()
-            ?.requestExactAlarmsPermission();
+    // Request general notification permission first
+    final PermissionStatus notificationStatus =
+        await Permission.notification.request();
+    if (!notificationStatus.isGranted) {
+      return false;
+    }
 
-    final bool? resultIOS = await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
+    // On Android, also request exact alarm permission
+    if (GetPlatform.isAndroid) {
+      final PermissionStatus alarmStatus =
+          await Permission.scheduleExactAlarm.request();
+      return alarmStatus.isGranted;
+    }
 
-    return (resultAndroid ?? false) || (resultIOS ?? false);
+    // For iOS and other platforms, general notification permission is enough
+    // for what flutter_local_notifications does with requestPermissions.
+    return true;
   }
 
   Future<void> showNotification({

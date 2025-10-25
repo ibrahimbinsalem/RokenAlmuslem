@@ -1,11 +1,11 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:adhan/adhan.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -13,87 +13,98 @@ import 'package:intl/intl.dart'; // استيراد مكتبة intl
 
 // استيراد NotificationService
 import 'package:rokenalmuslem/core/services/localnotification.dart';
+import 'package:rokenalmuslem/core/class/app_setting_mg.dart'; // للوصول إلى إعدادات الاهتزاز
 
 class PrayerTimesController extends GetxController {
-  final RxBool isLoading = false.obs;
+  // --- State Variables ---
+  bool isLoading = true;
   final RxString errorMessage = ''.obs;
-  final RxString currentCountry = 'غير محدد'.obs;
   final RxMap<String, String> prayerTimesData = <String, String>{}.obs;
-  final RxList<String> countries = <String>[].obs;
-  final RxString selectedCountry = ''.obs;
-  final RxString selectedCity = ''.obs;
+
+  // Location
   final RxDouble latitude = 0.0.obs;
   final RxDouble longitude = 0.0.obs;
+  final RxString currentAddress = 'جاري تحديد الموقع...'.obs;
 
-  final RxInt selectedCalculationMethod = 2.obs;
-  final RxInt selectedJuristicSchool = 0.obs;
-  final RxInt timeAdjustment = 0.obs; // التعديل بالدقائق لليمن
+  // Prayer Times Settings
+  final Rx<CalculationMethod> calculationMethod =
+      CalculationMethod.muslim_world_league.obs;
+
+  // --- New State Variables for Adjustments & Approval ---
+  final RxBool isApproved = false.obs;
+  final RxMap<String, int> prayerTimeAdjustments = <String, int>{}.obs;
+  final RxMap<String, String> originalPrayerTimes = <String, String>{}.obs;
+
+  final Rx<Madhab> madhab = Madhab.shafi.obs;
 
   late NotificationService _notificationService;
+  late AppSettingsController _appSettingsController; // لإعدادات الاهتزاز
 
-  // معرفات الإشعارات الثابتة لأوقات الصلاة
-  // (نفس المعرفات في AppSettingsController لضمان التناسق)
+  // Future للتحميل الأولي
+  late Future<void> initializationFuture;
+
   static const int prayerFajrId = 1000;
-  static const int prayerSunriseId = 1001;
-  static const int prayerDhuhrId = 1002;
-  static const int prayerAsrId = 1003;
-  static const int prayerMaghribId = 1004;
-  static const int prayerIshaId = 1005;
+  static const int prayerSunriseId = 1001; // شروق
+  static const int prayerDhuhrId = 1002; // ظهر
+  static const int prayerAsrId = 1003; // عصر
+  static const int prayerMaghribId = 1004; // مغرب
+  static const int prayerIshaId = 1005; // عشاء
 
-  final Map<int, String> calculationMethods = {
-    0: 'الشيعة الاثنا عشرية',
-    1: 'جامعة العلوم الإسلامية، كراتشي',
-    2: 'رابطة العالم الإسلامي',
-    3: 'جامعة أم القرى، مكة',
-    4: 'هيئة المساحة المصرية',
-    5: 'معهد الجيوفيزياء، جامعة طهران',
-    7: 'الجامعة الإسلامية، دمشق',
-    8: 'مركز الجالية الإسلامية، كولونيا',
-    9: 'اتحاد الجمعيات الإسلامية لفرنسا',
-    10: 'وزارة الشؤون الدينية، تونس',
-    11: 'القاهرة الكبرى',
-    12: 'اللجنة الإسلامية الموحدة لأوروبا',
-    13: 'ديانيت işleri başkanlığı، تركيا',
-    14: 'إدارة شؤون المسلمين في روسيا',
-    15: 'لجنة رؤية الهلال العالمية (MCW)',
-    16: 'دبي',
-    17: 'قطر',
-    18: 'الكويت',
-    19: 'أمريكا الشمالية (ISNA)',
-    20: 'سنغافورة',
-    21: 'فرنسا (UOIF - زاوية 18)',
-    22: 'فرنسا (UOIF - زاوية 19)',
-    23: 'فرنسا (مسجد باريس)',
-    24: 'المغرب (هيئة الحبوس)',
-    25: 'الجزائر',
-    26: 'ليبيا',
-    99: 'أخرى',
+  // --- Mappings for UI ---
+  final Map<CalculationMethod, String> calculationMethodNames = {
+    CalculationMethod.muslim_world_league: 'رابطة العالم الإسلامي',
+    CalculationMethod.egyptian: 'الهيئة المصرية العامة للمساحة',
+    CalculationMethod.karachi: 'جامعة العلوم الإسلامية، كراتشي',
+    CalculationMethod.umm_al_qura: 'جامعة أم القرى، مكة المكرمة',
+    CalculationMethod.dubai: 'هيئة دبي للأوقاف',
+    CalculationMethod.qatar: 'وزارة الأوقاف والشؤون الإسلامية القطرية',
+    CalculationMethod.kuwait: 'الكويت',
+    CalculationMethod.moon_sighting_committee: 'لجنة رؤية الهلال',
+    CalculationMethod.north_america:
+        'الجمعية الإسلامية لأمريكا الشمالية (ISNA)',
+    CalculationMethod.singapore: 'المجلس الإسلامي في سنغافورة',
+    CalculationMethod.turkey: 'رئاسة الشؤون الدينية التركية',
+    CalculationMethod.tehran: 'معهد الجيوفيزياء، جامعة طهران',
+    CalculationMethod.other: 'أخرى',
   };
 
-  final Map<int, String> juristicSchools = {
-    0: 'شافعي، حنبلي، مالكي',
-    1: 'حنفي',
+  final Map<Madhab, String> madhabNames = {
+    Madhab.shafi: 'شافعي، مالكي، حنبلي',
+    Madhab.hanafi: 'حنفي',
   };
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
-    _notificationService = Get.find<NotificationService>();
-    await _configureLocalTimeZone();
-    await loadPreferences();
-    await fetchCountries();
+    // نقوم بإسناد عملية التهيئة إلى Future ليتم تتبعه في الواجهة
+    initializationFuture = _initialize();
+  }
 
-    if (selectedCountry.value.isEmpty ||
-        selectedCountry.value.contains('اليمن')) {
-      selectedCalculationMethod.value = 2;
-      selectedJuristicSchool.value = 0;
-      timeAdjustment.value = 60;
-    }
+  @override
+  void onReady() {
+    super.onReady();
+    // يتم حقن AppSettingsController هنا بعد التأكد من تهيئة جميع المتحكمات
+    _appSettingsController = Get.find<AppSettingsController>();
+  }
 
-    if (latitude.value == 0.0 || longitude.value == 0.0) {
+  // دالة التهيئة الجديدة التي تعيد Future
+  Future<void> _initialize() async {
+    try {
+      // لا نحتاج إلى تعيين isLoading = true هنا لأنها تبدأ بـ true
+      _notificationService = Get.find<NotificationService>();
+      await _configureLocalTimeZone();
+      await loadPreferences();
+
+      // سنقوم بتحديث الموقع في كل مرة يتم فيها تشغيل التطبيق لضمان دقة البيانات
       await determinePosition();
-    } else {
-      await fetchPrayerTimes();
+    } catch (e) {
+      print("An error occurred during initialization: $e");
+      errorMessage.value = 'حدث خطأ غير متوقع أثناء تهيئة التطبيق.';
+    } finally {
+      // هذا الجزء سيتم تنفيذه دائمًا، سواء نجحت العملية أو فشلت
+      isLoading = false;
+      // إخبار الواجهة بأن عملية التحميل قد انتهت
+      update();
     }
   }
 
@@ -102,48 +113,91 @@ class PrayerTimesController extends GetxController {
     try {
       final String timeZoneName = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(timeZoneName));
+      print("Timezone configured: $timeZoneName");
     } catch (e) {
+      print(
+        "Failed to get local timezone, falling back to Asia/Aden. Error: $e",
+      );
       tz.setLocalLocation(tz.getLocation('Asia/Aden'));
     }
   }
 
-  // دالة عامة لجدولة جميع تنبيهات أوقات الصلاة (يتم استدعاؤها من AppSettingsController)
-  Future<void> schedulePrayerTimeNotifications({required bool enableVibration, required bool playSound}) async {
-    // Note: cancellation logic is handled by AppSettingsController's _syncNotificationsState
-    // which calls cancelAllNotifications() for ALL notifications before re-scheduling enabled ones.
-    // So, we don't need to cancel here if AppSettingsController manages it globally.
-
-    if (prayerTimesData.isNotEmpty) {
-      // تعريف الصلوات بالترتيب المنطقي والاسم العربي ومعرفاتها
-      final List<Map<String, dynamic>> prayersToSchedule = [
-        {'name': 'الفجر', 'time': prayerTimesData['الفجر']!, 'id': prayerFajrId, 'type': 'prayerFajr'},
-        {'name': 'الشروق', 'time': prayerTimesData['الشروق']!, 'id': prayerSunriseId, 'type': 'prayerSunrise'},
-        {'name': 'الظهر', 'time': prayerTimesData['الظهر']!, 'id': prayerDhuhrId, 'type': 'prayerDhuhr'},
-        {'name': 'العصر', 'time': prayerTimesData['العصر']!, 'id': prayerAsrId, 'type': 'prayerAsr'},
-        {'name': 'المغرب', 'time': prayerTimesData['المغرب']!, 'id': prayerMaghribId, 'type': 'prayerMaghrib'},
-        {'name': 'العشاء', 'time': prayerTimesData['العشاء']!, 'id': prayerIshaId, 'type': 'prayerIsha'},
-      ];
-
-      for (var prayer in prayersToSchedule) {
-        await _notificationService.scheduleDailyReminder(
-          id: prayer['id'],
-          title: 'حان وقت صلاة ${prayer['name']}',
-          body: 'تقبل الله منا ومنكم صالح الأعمال',
-          time: _parseTimeOfDay(prayer['time']),
-          payload: json.encode({ // Include structured payload
-            'type': prayer['type'], // Specific prayer type
-            'prayerName': prayer['name'], // Arabic prayer name
-          }),
-      
-        );
-      }
-      print('Prayer time notifications scheduled by PrayerTimesController.');
-    } else {
+  Future<void> schedulePrayerTimeNotifications({
+    required bool enableVibration,
+    required bool playSound,
+  }) async {
+    if (prayerTimesData.isEmpty) {
       print('Prayer times data is empty, cannot schedule notifications.');
+      return;
     }
+
+    // أولاً، قم بإلغاء الإشعارات القديمة لأوقات الصلاة لتجنب التكرار
+    await cancelAllPrayerTimeNotifications();
+    final myCoordinates = Coordinates(latitude.value, longitude.value);
+    final params = calculationMethod.value.getParameters();
+    params.madhab = madhab.value;
+    final prayerTimes = PrayerTimes.today(myCoordinates, params);
+
+    final prayersToSchedule = {
+      'الفجر': {
+        'id': prayerFajrId,
+        'time': prayerTimes.fajr,
+        'type': 'prayerFajr',
+      },
+      'الشروق': {
+        'id': prayerSunriseId,
+        'time': prayerTimes.sunrise,
+        'type': 'prayerSunrise',
+      },
+      'الظهر': {
+        'id': prayerDhuhrId,
+        'time': prayerTimes.dhuhr,
+        'type': 'prayerDhuhr',
+      },
+      'العصر': {
+        'id': prayerAsrId,
+        'time': prayerTimes.asr,
+        'type': 'prayerAsr',
+      },
+      'المغرب': {
+        'id': prayerMaghribId,
+        'time': prayerTimes.maghrib,
+        'type': 'prayerMaghrib',
+      },
+      'العشاء': {
+        'id': prayerIshaId,
+        'time': prayerTimes.isha,
+        'type': 'prayerIsha',
+      },
+    };
+
+    for (var prayerEntry in prayersToSchedule.entries) {
+      final prayer = prayerEntry.value;
+      final prayerName = prayerEntry.key;
+      final prayerTimeUTC = prayer['time'] as DateTime;
+      // يجب تحويل وقت الصلاة (بتوقيت UTC) إلى TZDateTime للمنطقة الزمنية المحلية
+      // لضمان جدولة الإشعار بشكل صحيح.
+      final scheduledDateTime = tz.TZDateTime.from(prayerTimeUTC, tz.local);
+
+      // نستخدم دالة مخصصة لجدولة إشعار يومي متكرر في منطقة زمنية محددة.
+      // هذه الدالة تستخدم TZDateTime لضمان الدقة مع التوقيت الصيفي/الشتوي.
+      // تم التغيير إلى scheduleDailyReminder لأنها الدالة الموجودة في الخدمة
+      await _notificationService.scheduleDailyReminder(
+        id: prayer['id'] as int,
+        title: 'حان وقت صلاة $prayerName',
+        body: 'تقبل الله منا ومنكم صالح الأعمال',
+        time: TimeOfDay.fromDateTime(scheduledDateTime), // تمرير TimeOfDay
+        enableVibration: enableVibration, // تمرير إعداد الاهتزاز
+        playSound: playSound, // تمرير إعداد الصوت
+        payload: json.encode({
+          'type': prayer['type'] as String,
+          'prayerName': prayerName, // Arabic prayer name
+        }),
+      );
+    }
+    print('Prayer time notifications scheduled by PrayerTimesController.');
   }
-  
-  // دالة لإلغاء جميع إشعارات أوقات الصلاة المجدولة (من خلال معرفاتها المعروفة)
+
   Future<void> cancelAllPrayerTimeNotifications() async {
     await _notificationService.cancelNotification(prayerFajrId);
     await _notificationService.cancelNotification(prayerSunriseId);
@@ -154,290 +208,279 @@ class PrayerTimesController extends GetxController {
     print('Cancelled all specific prayer time notifications.');
   }
 
-  // دالة مساعدة لتحويل الوقت من "HH:MM ص/م" أو "HH:MM" إلى TimeOfDay
-  TimeOfDay _parseTimeOfDay(String timeString) {
+  TimeOfDay parseTimeOfDay(String timeString) {
     try {
-      DateFormat format24hr = DateFormat('HH:mm');
-      DateTime tempTime = format24hr.parse(timeString.split(' ')[0]);
-      return TimeOfDay.fromDateTime(tempTime);
-    } catch (_) {
+      // محاولة تحليل التنسيق العربي hh:mm a (مثل: 05:30 صباحًا)
       DateFormat format12hrAmPm = DateFormat('hh:mm a', 'ar');
       DateTime tempTime = format12hrAmPm.parse(timeString);
       return TimeOfDay.fromDateTime(tempTime);
+    } catch (_) {
+      // إذا فشل التنسيق الأول، جرب تنسيق 24 ساعة (مثل: 17:30)
+      try {
+        DateFormat format24hr = DateFormat('HH:mm');
+        DateTime tempTime = format24hr.parse(timeString.split(' ')[0]);
+        return TimeOfDay.fromDateTime(tempTime);
+      } catch (e) {
+        print("Error parsing time string: $timeString. Error: $e");
+        return const TimeOfDay(hour: 0, minute: 0);
+      }
     }
   }
 
   Future<void> determinePosition() async {
     try {
-      isLoading.value = true;
       errorMessage.value = '';
+      currentAddress.value = 'جاري طلب صلاحيات الموقع...';
 
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        errorMessage.value = 'خدمة الموقع معطلة. يرجى تفعيلها';
-        return;
-      }
+      var status = await Permission.location.request();
 
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          errorMessage.value = 'تم رفض صلاحيات الموقع';
-          return;
-        }
-      }
+      if (status.isGranted) {
+        currentAddress.value = 'جاري تحديد موقعك...';
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
 
-      if (permission == LocationPermission.deniedForever) {
-        errorMessage.value = 'صلاحيات الموقع مرفوضة بشكل دائم';
-        return;
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-      );
-
-      if (position.latitude == 0.0 && position.longitude == 0.0) {
-        latitude.value = 15.3694; // Sana'a default
-        longitude.value = 44.1910;
-        selectedCountry.value = 'اليمن';
-      } else {
         latitude.value = position.latitude;
-        longitude.value = position.latitude; // Should be position.longitude
-      }
+        longitude.value = position.longitude;
 
-      await fetchLocationDetails(latitude.value, longitude.value);
-      await fetchPrayerTimes();
+        await _updateLocationAndFetchPrayers();
+      } else if (status.isDenied) {
+        errorMessage.value =
+            'تم رفض إذن الوصول للموقع. لا يمكن حساب أوقات الصلاة.';
+      } else if (status.isPermanentlyDenied) {
+        errorMessage.value =
+            'تم رفض إذن الموقع بشكل دائم. يرجى تفعيله من إعدادات التطبيق.';
+        await openAppSettings();
+      }
     } catch (e) {
-      latitude.value = 15.3694; // Sana'a default
+      print("Error in determinePosition: $e");
+      errorMessage.value = 'فشل في تحديد الموقع. حاول مرة أخرى.';
+      // استخدام موقع افتراضي في حالة الفشل
+      latitude.value = 15.3694; // Sana'a
       longitude.value = 44.1910;
-      selectedCountry.value = 'اليمن';
-      errorMessage.value = 'تم استخدام موقع صنعاء الافتراضي. خطأ: $e';
-      await fetchPrayerTimes();
-    } finally {
-      isLoading.value = false;
+      await _updateLocationAndFetchPrayers();
     }
+  }
+
+  Future<void> _updateLocationAndFetchPrayers() async {
+    await savePreferences();
+    await fetchLocationDetails(latitude.value, longitude.value);
+    fetchPrayerTimes();
   }
 
   Future<void> fetchLocationDetails(double lat, double lng) async {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&zoom=10&addressdetails=1',
+          'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&zoom=10&addressdetails=1&accept-language=ar',
         ),
+        // إضافة Headers للامتثال لسياسة Nominatim
+        headers: {
+          'User-Agent': 'RokenAlmuslem/1.0 (ibrahimghanem707@gmail.com)',
+        },
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final address = data['address'];
-
-        currentCountry.value = address['country'] ?? 'غير محدد';
-        selectedCountry.value = currentCountry.value;
-        selectedCity.value =
-            address['city'] ?? address['town'] ?? address['village'] ?? '';
-
-        if (selectedCountry.value.contains('اليمن')) {
-          selectedCalculationMethod.value = 2;
-          selectedJuristicSchool.value = 0;
-          timeAdjustment.value = 60;
-        }
-
-        await savePreferences();
+        final city =
+            address['city'] ??
+            address['town'] ??
+            address['village'] ??
+            'مكان غير معروف';
+        final country = address['country'] ?? 'دولة غير معروفة';
+        currentAddress.value = '$city, $country';
+      } else {
+        print(
+          'Failed to fetch location name. Status code: ${response.statusCode}',
+        );
+        currentAddress.value = 'فشل في تحديد اسم الموقع';
       }
     } catch (e) {
       print('Error fetching location details: $e');
+      currentAddress.value = 'لا يوجد اتصال بالشبكة';
+      errorMessage.value =
+          'لا يمكن تحديث اسم الموقع. يرجى التحقق من اتصالك بالإنترنت.';
     }
-  }
-
-  Future<void> fetchCountries() async {
-    try {
-      isLoading.value = true;
-      errorMessage.value = '';
-
-      final response = await http.get(
-        Uri.parse('https://restcountries.com/v3.1/all?fields=name'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data is List) {
-          countries.assignAll(
-            data
-                .map((item) => item['name']['common'].toString())
-                .where((name) => name.isNotEmpty)
-                .toList()
-              ..sort((a, b) => a.compareTo(b)),
-          );
-
-          if (!countries.contains('Yemen')) {
-            countries.add('Yemen');
-            countries.sort();
-          }
-        }
-      } else {
-        errorMessage.value = 'فشل في جلب قائمة الدول';
-      }
-    } catch (e) {
-      errorMessage.value = 'حدث خطأ في جلب الدول: $e';
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> fetchPrayerTimes() async {
-    try {
-      isLoading.value = true;
-      errorMessage.value = '';
-
-      int method = selectedCalculationMethod.value;
-      if (selectedCountry.value.contains('اليمن')) {
-        method = 2;
-      }
-
-      final response = await http.get(
-        Uri.parse(
-          'http://api.aladhan.com/v1/timings?latitude=${latitude.value}&longitude=${longitude.value}&method=$method&school=${selectedJuristicSchool.value}',
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['data'] != null && data['data']['timings'] != null) {
-          final timings = data['data']['timings'];
-          prayerTimesData.clear();
-
-          final apiPrayerNames = {
-            'Fajr': 'الفجر',
-            'Sunrise': 'الشروق',
-            'Dhuhr': 'الظهر',
-            'Asr': 'العصر',
-            'Maghrib': 'المغرب',
-            'Isha': 'العشاء',
-          };
-
-          if (selectedCountry.value.contains('اليمن')) {
-            apiPrayerNames.forEach((key, value) {
-              if (timings.containsKey(key)) {
-                prayerTimesData[value] = _adjustTime(
-                  timings[key],
-                  timeAdjustment.value,
-                );
-              }
-            });
-          } else {
-            apiPrayerNames.forEach((key, value) {
-              if (timings.containsKey(key)) {
-                prayerTimesData[value] = _formatTime(timings[key]);
-              }
-            });
-          }
-          await savePreferences();
-        }
-      } else {
-        errorMessage.value = 'فشل في جلب أوقات الصلاة: ${response.statusCode}';
-      }
-    } catch (e) {
-      errorMessage.value = 'حدث خطأ في جلب أوقات الصلاة: $e';
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  String _adjustTime(String time, int minutesToAdd) {
-    try {
-      DateFormat apiFormat = DateFormat('HH:mm');
-      DateTime parsedDateTime = apiFormat.parse(time);
-      parsedDateTime = parsedDateTime.add(Duration(minutes: minutesToAdd));
-      return DateFormat('hh:mm a', 'ar').format(parsedDateTime);
-    } catch (e) {
-      print('Error adjusting time: $e');
-      return time;
-    }
-  }
-
-  String _formatTime(String time) {
-    try {
-      DateFormat apiFormat = DateFormat('HH:mm');
-      DateTime parsedDateTime = apiFormat.parse(time);
-      return DateFormat('hh:mm a', 'ar').format(parsedDateTime);
-    } catch (e) {
-      print('Error formatting time: $e');
-      return time;
-    }
-  }
-
-  Future<void> onCountryChanged(String country) async {
-    selectedCountry.value = country;
-    selectedCity.value = '';
     await savePreferences();
-
-    if (country.contains('اليمن')) {
-      selectedCalculationMethod.value = 2;
-      selectedJuristicSchool.value = 0;
-      timeAdjustment.value = 60;
-    } else {
-      timeAdjustment.value = 0;
-      selectedCalculationMethod.value = 2;
-      selectedJuristicSchool.value = 0;
-    }
-    await fetchCoordinatesForCountry();
   }
 
-  Future<void> fetchCoordinatesForCountry() async {
+  void fetchPrayerTimes() {
+    if (latitude.value == 0.0 && longitude.value == 0.0) {
+      errorMessage.value = 'الموقع غير محدد. لا يمكن حساب أوقات الصلاة.';
+      return;
+    }
+
+    errorMessage.value = '';
+    // No need for update() here, as determinePosition already called it.
     try {
-      isLoading.value = true;
-      errorMessage.value = '';
+      final myCoordinates = Coordinates(latitude.value, longitude.value);
+      final params = calculationMethod.value.getParameters();
+      params.madhab = madhab.value;
+      final prayerTimes = PrayerTimes.today(myCoordinates, params);
 
-      String query = selectedCountry.value;
-      if (selectedCity.isNotEmpty) {
-        query = '$query, $selectedCity';
+      prayerTimesData.clear();
+      prayerTimesData['الفجر'] = _formatTime(prayerTimes.fajr);
+      prayerTimesData['الشروق'] = _formatTime(prayerTimes.sunrise);
+      prayerTimesData['الظهر'] = _formatTime(prayerTimes.dhuhr);
+      prayerTimesData['العصر'] = _formatTime(prayerTimes.asr);
+      prayerTimesData['المغرب'] = _formatTime(prayerTimes.maghrib);
+      prayerTimesData['العشاء'] = _formatTime(prayerTimes.isha);
+
+      // Store original times and apply adjustments
+      originalPrayerTimes.value = Map.from(prayerTimesData);
+      _applyAdjustments();
+
+      print("Prayer times calculated successfully for ${currentAddress.value}");
+      savePreferences();
+    } catch (e) {
+      print("Error calculating prayer times: $e");
+      errorMessage.value = 'حدث خطأ أثناء حساب أوقات الصلاة.';
+    }
+  }
+
+  String _formatTime(DateTime time) {
+    // We need to show the time in the device's local timezone, not UTC.
+    // The adhan package returns times in UTC by default.
+    final localTime = tz.TZDateTime.from(time, tz.local);
+    return DateFormat('hh:mm a', 'ar').format(localTime);
+  }
+
+  void _applyAdjustments() {
+    prayerTimeAdjustments.forEach((prayerName, adjustment) {
+      if (originalPrayerTimes.containsKey(prayerName)) {
+        final originalTimeStr = originalPrayerTimes[prayerName]!;
+        final time = parseTimeOfDay(originalTimeStr);
+        final originalDateTime = DateTime(2023, 1, 1, time.hour, time.minute);
+        final adjustedDateTime = originalDateTime.add(
+          Duration(minutes: adjustment),
+        );
+        prayerTimesData[prayerName] = _formatTime(adjustedDateTime);
       }
+    });
+  }
 
-      final response = await http.get(
-        Uri.parse(
-          'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(query)}&format=json&limit=1',
-        ),
+  void adjustPrayerTime(String prayerName, int minutes) {
+    final currentAdjustment = prayerTimeAdjustments[prayerName] ?? 0;
+    final newAdjustment = currentAdjustment + minutes;
+    prayerTimeAdjustments[prayerName] = newAdjustment;
+
+    // Apply adjustment to the displayed time
+    if (originalPrayerTimes.containsKey(prayerName)) {
+      final originalTimeStr = originalPrayerTimes[prayerName]!;
+      final time = parseTimeOfDay(originalTimeStr);
+      final originalDateTime = DateTime(2023, 1, 1, time.hour, time.minute);
+      final adjustedDateTime = originalDateTime.add(
+        Duration(minutes: newAdjustment),
+      );
+      prayerTimesData[prayerName] = _formatTime(adjustedDateTime);
+    }
+  }
+
+  void setPrayerTimeAdjustment(String prayerName, int totalAdjustment) {
+    prayerTimeAdjustments[prayerName] = totalAdjustment;
+
+    // Apply adjustment to the displayed time
+    if (originalPrayerTimes.containsKey(prayerName)) {
+      final originalTimeStr = originalPrayerTimes[prayerName]!;
+      final time = parseTimeOfDay(originalTimeStr);
+      final originalDateTime = DateTime(2023, 1, 1, time.hour, time.minute);
+      final adjustedDateTime = originalDateTime.add(
+        Duration(minutes: totalAdjustment),
+      );
+      prayerTimesData[prayerName] = _formatTime(adjustedDateTime);
+    }
+    // We use update() to notify listeners of this specific change if needed,
+    // especially for the dialog UI.
+    update([prayerName]);
+  }
+
+  Future<void> saveAndApproveTimes() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Save adjustments
+    final adjustmentsJson = json.encode(prayerTimeAdjustments);
+    await prefs.setString('prayerTimeAdjustments', adjustmentsJson);
+
+    // Mark as approved
+    isApproved.value = true;
+    await prefs.setBool('prayerTimesApproved', true);
+
+    // Reschedule notifications with the new times
+    final bool hasPermission = await _checkAndRequestExactAlarmPermission();
+    if (hasPermission) {
+      await schedulePrayerTimeNotifications(
+        enableVibration: _appSettingsController.vibrateOnNotification.value,
+        playSound: _appSettingsController.prayerTimesNotificationsEnabled.value,
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data.isNotEmpty) {
-          latitude.value = double.parse(data[0]['lat']);
-          longitude.value = double.parse(data[0]['lon']);
-          await savePreferences();
-          await fetchPrayerTimes();
-        } else {
-          errorMessage.value = 'لم يتم العثور على إحداثيات للدولة/المدينة المحددة.';
-        }
-      } else {
-        errorMessage.value = 'فشل في تحديد الإحداثيات: ${response.statusCode}';
-      }
-    } catch (e) {
-      errorMessage.value = 'حدث خطأ في تحديد الإحداثيات: $e';
-    } finally {
-      isLoading.value = false;
+      Get.snackbar(
+        'تم الحفظ',
+        'تم اعتماد التوقيتات الجديدة وجدولة الإشعارات.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<bool> _checkAndRequestExactAlarmPermission() async {
+    final status = await Permission.scheduleExactAlarm.status;
+    if (status.isGranted) {
+      return true;
+    }
+
+    final requestedStatus = await Permission.scheduleExactAlarm.request();
+    if (requestedStatus.isGranted) {
+      return true;
+    }
+
+    // If denied, guide the user to settings.
+    Get.snackbar(
+      'الإذن مطلوب',
+      'لتنبيهات أوقات الصلاة، يرجى تفعيل صلاحية "التنبيهات والتذكيرات".',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.orange,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 5),
+      mainButton: TextButton(
+        onPressed: () => openAppSettings(),
+        child: const Text('الإعدادات'),
+      ),
+    );
+    return false;
+  }
+
+  void onCalculationMethodChanged(CalculationMethod? method) {
+    if (method != null) {
+      calculationMethod.value = method;
+      fetchPrayerTimes();
+    }
+  }
+
+  void onJuristicSchoolChanged(Madhab? school) {
+    if (school != null) {
+      madhab.value = school;
+      fetchPrayerTimes();
     }
   }
 
   Future<void> savePreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('selectedCountry', selectedCountry.value);
-      await prefs.setString('selectedCity', selectedCity.value);
       await prefs.setDouble('latitude', latitude.value);
       await prefs.setDouble('longitude', longitude.value);
-      await prefs.setInt(
-        'selectedCalculationMethod',
-        selectedCalculationMethod.value,
-      );
-      await prefs.setInt(
-        'selectedJuristicSchool',
-        selectedJuristicSchool.value,
-      );
-      await prefs.setInt('timeAdjustment', timeAdjustment.value);
+      await prefs.setString('calculationMethod', calculationMethod.value.name);
+      await prefs.setString('madhab', madhab.value.name);
+      await prefs.setString('currentAddress', currentAddress.value);
+      await prefs.setBool('prayerTimesApproved', isApproved.value);
 
-      if (prayerTimesData.isNotEmpty) {
-        await prefs.setString('prayerTimesData', json.encode(prayerTimesData));
-      }
+      // Save adjustments
+      final adjustmentsJson = json.encode(
+        prayerTimeAdjustments.map((key, value) => MapEntry(key, value)),
+      );
+      await prefs.setString('prayerTimeAdjustments', adjustmentsJson);
+
+      print("Preferences saved.");
     } catch (e) {
       print('Error saving preferences: $e');
     }
@@ -446,34 +489,111 @@ class PrayerTimesController extends GetxController {
   Future<void> loadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      selectedCountry.value = prefs.getString('selectedCountry') ?? '';
-      selectedCity.value = prefs.getString('selectedCity') ?? '';
       latitude.value = prefs.getDouble('latitude') ?? 0.0;
       longitude.value = prefs.getDouble('longitude') ?? 0.0;
-      selectedCalculationMethod.value =
-          prefs.getInt('selectedCalculationMethod') ?? 2;
-      selectedJuristicSchool.value =
-          prefs.getInt('selectedJuristicSchool') ?? 0;
-      timeAdjustment.value = prefs.getInt('timeAdjustment') ?? 0;
+      currentAddress.value =
+          prefs.getString('currentAddress') ?? 'جاري تحديد الموقع...';
+      isApproved.value = prefs.getBool('prayerTimesApproved') ?? false;
 
-      final savedTimes = prefs.getString('prayerTimesData');
-      if (savedTimes != null) {
-        prayerTimesData.assignAll(
-          Map<String, String>.from(json.decode(savedTimes)),
+      // Load adjustments
+      final adjustmentsJson = prefs.getString('prayerTimeAdjustments');
+      if (adjustmentsJson != null) {
+        final decodedMap = json.decode(adjustmentsJson) as Map<String, dynamic>;
+        prayerTimeAdjustments.value = decodedMap.map(
+          (key, value) => MapEntry(key, value as int),
         );
       }
+
+      final savedMethod = prefs.getString('calculationMethod');
+      if (savedMethod != null) {
+        calculationMethod.value = CalculationMethod.values.firstWhere(
+          (e) => e.name == savedMethod,
+          orElse: () => CalculationMethod.muslim_world_league,
+        );
+      }
+
+      final savedMadhab = prefs.getString('madhab');
+      if (savedMadhab != null) {
+        madhab.value = Madhab.values.firstWhere(
+          (e) => e.name == savedMadhab,
+          orElse: () => Madhab.shafi,
+        );
+      }
+      print("Preferences loaded.");
     } catch (e) {
       print('Error loading preferences: $e');
     }
   }
 
-  void updateTimeAdjustment(int minutes) {
-    timeAdjustment.value = minutes;
-    savePreferences();
-    fetchPrayerTimes();
+  Future<void> manualRefresh() async {
+    await determinePosition();
   }
 
-  Future<void> manualRefresh() async {
-    await fetchPrayerTimes();
+  // دالة جديدة لجلب الصلاة القادمة
+  Map<String, dynamic> getNextPrayer() {
+    final now = DateTime.now();
+    final myCoordinates = Coordinates(latitude.value, longitude.value);
+    final params = calculationMethod.value.getParameters();
+    params.madhab = madhab.value;
+
+    // حساب أوقات الصلاة لليوم الحالي واليوم التالي
+    final todayPrayerTimes = PrayerTimes.today(myCoordinates, params);
+    final tomorrow = now.add(const Duration(days: 1));
+    final tomorrowDateComponents = DateComponents.from(tomorrow);
+    final tomorrowPrayerTimes = PrayerTimes(
+      myCoordinates,
+      tomorrowDateComponents,
+      params,
+    );
+
+    final prayerTimesList = [
+      {'name': 'الفجر', 'time': todayPrayerTimes.fajr},
+      {'name': 'الشروق', 'time': todayPrayerTimes.sunrise},
+      {'name': 'الظهر', 'time': todayPrayerTimes.dhuhr},
+      {'name': 'العصر', 'time': todayPrayerTimes.asr},
+      {'name': 'المغرب', 'time': todayPrayerTimes.maghrib},
+      {'name': 'العشاء', 'time': todayPrayerTimes.isha},
+      // إضافة صلاة الفجر لليوم التالي كخيار أخير
+      {'name': 'الفجر', 'time': tomorrowPrayerTimes.fajr},
+    ];
+
+    // تطبيق التعديلات اليدوية على أوقات الصلاة
+    final adjustedPrayerTimes =
+        prayerTimesList.map((p) {
+          final prayerName = p['name'] as String;
+          final prayerTime = p['time'] as DateTime;
+          final adjustment = prayerTimeAdjustments[prayerName] ?? 0;
+          return {
+            'name': prayerName,
+            'time': prayerTime.add(Duration(minutes: adjustment)),
+          };
+        }).toList();
+
+    // البحث عن أول صلاة وقتها بعد الوقت الحالي
+    for (final prayer in adjustedPrayerTimes) {
+      final prayerTime = prayer['time'] as DateTime;
+      if (prayerTime.isAfter(now)) {
+        return prayer;
+      }
+    }
+
+    // في حالة عدم وجود صلاة قادمة (وهو أمر غير محتمل بسبب إضافة فجر اليوم التالي)
+    return {'name': 'غير معروف', 'time': null};
+  }
+
+  // --- Deprecated/Removed Methods ---
+  // The following methods are no longer needed with the new local calculation approach.
+  // - fetchCountries()
+  // - onCountryChanged()
+  // - fetchCoordinatesForCountry()
+  // - The old fetchPrayerTimes() that used HTTP.
+  // - The old _formatTime that parsed a string.
+  // - The old maps for calculation methods and schools by integer.
+  // تم إزالة الخصائص الوهمية (Dummy properties) لأن الواجهة (praytime.dart) لا تستخدمها.
+  // RxString get selectedCountry => ''.obs;
+  // RxList<String> get countries => <String>[].obs;
+  Future<void> onCountryChanged(String country) async {
+    // This is now handled by location services.
+    Get.snackbar('ملاحظة', 'يتم تحديد الدولة تلقائياً عبر الموقع الجغرافي.');
   }
 }
