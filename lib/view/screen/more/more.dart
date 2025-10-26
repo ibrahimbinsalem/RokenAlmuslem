@@ -72,13 +72,12 @@ class MorePage extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 200.0, // تحديد أقصى عرض لكل عنصر
                 crossAxisSpacing: 13,
                 mainAxisSpacing: 16,
-                childAspectRatio:
-                    0.95, // تعديل نسبة العرض إلى الارتفاع للبطاقات
-              ),
+                childAspectRatio: 0.9, // تعديل نسبة العرض إلى الارتفاع
+              ), // استخدام هذا الـ delegate يجعله متجاوبًا
               delegate: SliverChildListDelegate([
                 _buildFeatureCard(
                   title: "مواقيت الصلاه",
@@ -112,12 +111,12 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.msbaha);
                   },
                 ),
-                _buildFeatureCard(
-                  title: "أذكار المسلم",
-                  image: "assets/images/دعاء.png",
-                  color: Colors.amberAccent, // لون كهرماني زاهي
-                  onTap: () {},
-                ),
+                // _buildFeatureCard(
+                //   title: "أذكار المسلم",
+                //   image: "assets/images/دعاء.png",
+                //   color: Colors.amberAccent, // لون كهرماني زاهي
+                //   onTap: () {},
+                // ),
                 _buildFeatureCard(
                   title: "اتجاه القبلة",
                   image: "assets/images/القبله.png",

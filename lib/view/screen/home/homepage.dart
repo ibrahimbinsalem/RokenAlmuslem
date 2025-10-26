@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_plus/share_plus.dart';
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
 import 'package:rokenalmuslem/controller/ayah_controller.dart';
@@ -748,9 +749,11 @@ class _HomePageState extends State<HomePage> {
                     tooltip: 'نسخ الآية',
                   ),
                   IconButton(
-                    onPressed: () {
-                      /* TODO: إضافة وظيفة المشاركة */
-                    },
+                    onPressed:
+                        () => _shareContent(
+                          'آية اليوم:\n\n"$ayah"\n- $surah',
+                          context,
+                        ),
                     icon: Icon(
                       Icons.share_rounded,
                       color: primaryColor,
@@ -839,9 +842,11 @@ class _HomePageState extends State<HomePage> {
                     tooltip: 'نسخ الحديث',
                   ),
                   IconButton(
-                    onPressed: () {
-                      /* TODO: إضافة وظيفة المشاركة */
-                    },
+                    onPressed:
+                        () => _shareContent(
+                          'حديث اليوم:\n\n"من سلك طريقًا يلتمس فيه علمًا سهل الله له به طريقًا إلى الجنة"\n- رواه مسلم',
+                          context,
+                        ),
                     icon: Icon(
                       Icons.share_rounded,
                       color: primaryColor,
@@ -964,9 +969,11 @@ class _HomePageState extends State<HomePage> {
                   tooltip: 'نسخ الاسم',
                 ),
                 IconButton(
-                  onPressed: () {
-                    /* TODO: إضافة وظيفة المشاركة */
-                  },
+                  onPressed:
+                      () => _shareContent(
+                        'من أسماء الله الحسنى:\n\n$name\n\n$dis',
+                        context,
+                      ),
                   icon: Icon(
                     Icons.share_rounded,
                     color: primaryColor,
@@ -1001,6 +1008,18 @@ class _HomePageState extends State<HomePage> {
           right: MediaQuery.of(context).size.width * 0.1,
         ),
       ),
+    );
+  }
+
+  void _shareContent(String text, BuildContext context) {
+    // هذا السطر يساعد في تحديد مكان ظهور قائمة المشاركة على أجهزة iPad
+    final box = context.findRenderObject() as RenderBox?;
+
+    Share.share(
+      text,
+      subject:
+          'مشاركة من تطبيق ركن المسلم', // عنوان المشاركة (يظهر في الإيميل مثلاً)
+      sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
     );
   }
 }
