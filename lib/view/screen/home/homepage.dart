@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
 import 'package:rokenalmuslem/controller/ayah_controller.dart';
@@ -25,6 +26,20 @@ class _HomePageState extends State<HomePage> {
   final PrayerTimesController prayerController = Get.put(
     PrayerTimesController(),
   );
+
+  String _appVersion = ''; // متغير لتخزين رقم الإصدار
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppVersion(); // استدعاء الدالة عند بدء تشغيل الصفحة
+  }
+
+  // دالة لجلب رقم الإصدار من pubspec.yaml
+  Future<void> _loadAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    setState(() => _appVersion = packageInfo.version);
+  }
 
   // دالة للتحقق مما إذا كان اليوم جمعة
   bool get isFriday {
@@ -363,7 +378,7 @@ class _HomePageState extends State<HomePage> {
                     ).animate().fadeIn(delay: Duration(seconds: 1)),
                     SizedBox(height: screenHeight * 0.02), // ارتفاع نسبي
                     Text(
-                      "V1.0.0",
+                      "V$_appVersion", // استخدام المتغير لعرض الإصدار
                       style: TextStyle(
                         color: Colors.grey[500],
                         fontSize: screenWidth * 0.035,
@@ -389,6 +404,8 @@ class _HomePageState extends State<HomePage> {
     Color accentColor,
     double screenWidth,
   ) {
+    // تهيئة التقويم الهجري باللغة العربية
+    HijriCalendar.setLocal('ar');
     // تهيئة التقويم الهجري والميلادي
     var hijriDate = HijriCalendar.now();
     var gregorianDate = DateTime.now();
@@ -524,20 +541,21 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'صلاة $nextPrayerName بعد: ',
-                        style: TextStyle(
-                          color: accentColor,
-                          fontSize: screenWidth * 0.045,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
                         countdown,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: screenWidth * 0.045,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Tajawal',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        ': صلاة $nextPrayerName بعد ',
+                        style: TextStyle(
+                          color: accentColor,
+                          fontSize: screenWidth * 0.045,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
