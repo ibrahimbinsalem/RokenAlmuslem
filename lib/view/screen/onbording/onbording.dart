@@ -215,10 +215,8 @@ class _OnBordidingState extends State<OnBordiding> {
                     onPressed: () async {
                       // تعيين علامة 'hasSeenOnboarding' إلى true لإشارة إلى اكتمال الترحيب
                       // يتم الوصول إلى MyServices عبر Get.find() بعد تهيئتها في main.dart
-                      await Get.find<MyServices>().sharedprf.setBool(
-                        'hasSeenOnboarding',
-                        true,
-                      );
+                      MyServices myServices = Get.find();
+                      await myServices.sharedprf.setString("step", "1");
                       // الانتقال إلى الصفحة الرئيسية وإزالة جميع المسارات السابقة
                       Get.offAllNamed(AppRoute.homePage);
                     },

@@ -11,10 +11,14 @@ class MyMiddleWare extends GetMiddleware {
 
   @override
   RouteSettings? redirect(String? route) {
-    if (myServices.sharedprf.getString("step") == "2") {
-      return const RouteSettings(name: AppRoute.homePage);
+    String? step = myServices.sharedprf.getString("step");
+
+    // إذا كان المستخدم قد شاهد شاشة الترحيب (step = "1" أو "2")، اسمح له بالمرور إلى الصفحة الرئيسية
+    if (step == "1" || step == "2") {
+      return null; // لا تقم بإعادة التوجيه، دعه يذهب إلى المسار المطلوب (وهو الصفحة الرئيسية من "/")
     }
-    if (myServices.sharedprf.getString("step") == "1") {
+    // إذا لم يشاهد شاشة الترحيب بعد، قم بتوجيهه إليها
+    if (step == "0" || step == null) {
       return const RouteSettings(name: AppRoute.onBording);
     }
 

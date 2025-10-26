@@ -204,9 +204,7 @@ class MyApp extends StatelessWidget {
   }
 
   String _getInitialRoute(MyServices services) {
-    return services.sharedprf.getBool('hasSeenOnboarding') ?? false
-        ? AppRoute.homePage
-        : AppRoute.onBording;
+    return "/"; // دع الوسيط (Middleware) يقرر المسار الصحيح
   }
 
   ThemeData _buildTheme(double fontSizeMultiplier, bool isDark) {

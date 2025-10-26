@@ -1,5 +1,11 @@
 class AppRoute {
-  // OnBording Rout :
+  // Auth
+  static const String login = "/login";
+  static const String signUp = "/signup";
+  static const String verifyCode = "/verifycode";
+  static const String forgetPassword = "/forgetpassword";
+
+  // OnBording Route :
 
   static const String onBording = "/onbording";
 
@@ -35,10 +41,11 @@ class AppRoute {
   static const String setting = "/setting";
   static const String prytime = "/prytime";
 
-
-// Quran :
+  // Quran :
   static const String quran = "/quran";
   static const String surahDetail = "/surahDetail";
 
+  // Settings :
 
+  static const String about = "/about";
 }

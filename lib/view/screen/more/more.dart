@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rokenalmuslem/core/constant/routes.dart'; // تأكد من أن هذا المسار صحيح في مشروعك
+import 'package:rokenalmuslem/core/constant/routes.dart';
+import 'package:rokenalmuslem/view/wedgit/buttons/customdrawer.dart'; // تأكد من أن هذا المسار صحيح في مشروعك
 
 class MorePage extends StatelessWidget {
   const MorePage({super.key});
@@ -9,6 +10,7 @@ class MorePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A1A), // خلفية أغمق قليلاً وأكثر نعومة
+      endDrawer: CustomDrawer(),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -56,17 +58,20 @@ class MorePage extends StatelessWidget {
               ),
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.login, color: Colors.white),
-                onPressed: () {},
-                splashRadius: 24, // حجم تأثير النقر
+              Builder(
+                builder: (context) {
+                  return IconButton(
+                    icon: const Icon(Icons.menu, color: Colors.white),
+                    onPressed: () {
+                      Scaffold.of(
+                        context,
+                      ).openEndDrawer(); // فتح القائمة الجانبية
+                    },
+                    splashRadius: 24, // حجم تأثير النقر
+                  );
+                },
               ),
             ],
-            leading: IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white),
-              onPressed: () {},
-              splashRadius: 24, // حجم تأثير النقر
-            ),
           ),
 
           SliverPadding(

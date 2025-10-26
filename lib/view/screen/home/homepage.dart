@@ -72,6 +72,7 @@ class _HomePageState extends State<HomePage> {
             end: Alignment.bottomCenter,
           ),
         ),
+
         child: SafeArea(
           child: Obx(() {
             if (!tasbeehController.isPrefsInitialized.value) {
