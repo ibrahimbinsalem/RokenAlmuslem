@@ -1,8 +1,7 @@
 class AppLink {
-  static const String server =
-      "https://newbalignearab.arabwaredos.com/baligneback";
+  static const String server = "https://tasks.arabwaredos.com/rouknalmuslam";
 
-  static const String test = "$server/test.php";
+  // static const String test = "$server/test.php"; // Not used with new server
 
   // ============== Auth ==================
 

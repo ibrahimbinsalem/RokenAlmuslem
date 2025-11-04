@@ -20,6 +20,9 @@ import 'package:rokenalmuslem/data/database/database_helper.dart';
 import 'package:rokenalmuslem/rout.dart'; // هذا الملف يجب أن يحتوي على قائمة المسارات
 import 'package:rokenalmuslem/view/screen/more/aboutbage.dart'; // استيراد صفحة حول التطبيق والمطورين
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart'; // **استيراد PrayerTimesController**
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -53,6 +56,22 @@ Future<void> main() async {
 Future<void> _initializeApp() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // **جديد: طباعة FCM Token**
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    debugPrint("========================================");
+    debugPrint("FCM Token: $fcmToken");
+    debugPrint("========================================");
+
+    // **جديد: الاشتراك في موضوع عام لإرسال إشعارات جماعية**
+    await FirebaseMessaging.instance.subscribeToTopic('all_users');
+    debugPrint("========================================");
+    debugPrint("Subscribed to 'all_users' topic");
+    debugPrint("========================================");
+
     await GetStorage.init();
     await initialServices();
 

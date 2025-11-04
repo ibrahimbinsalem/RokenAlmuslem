@@ -36,6 +36,9 @@ class SignUpControllerImp extends SignUpController {
   @override
   void signUp() async {
     if (formKey.currentState!.validate()) {
+      // **جديد: إزالة التركيز من حقول النص لإغلاق لوحة المفاتيح بسلاسة**
+      FocusManager.instance.primaryFocus?.unfocus();
+
       isLoading.value = true;
       // ==========================================================
       // هنا سيتم وضع الكود الخاص بالاتصال بـ API لإنشاء الحساب

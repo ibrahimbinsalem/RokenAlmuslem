@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:http/http.dart' as http;
 import 'package:dartz/dartz.dart';
 import 'package:path/path.dart';
@@ -15,7 +14,11 @@ class Crud {
   Future<Either<StatusRequist, Map>> postData(String linkurl, Map data) async {
     try {
       if (await checkInternet()) {
-        var response = await http.post(Uri.parse(linkurl), body: data);
+        var response = await http.post(
+          Uri.parse(linkurl),
+          body: data,
+          headers: myheaders,
+        );
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           Map responsebody = jsonDecode(response.body);
@@ -28,6 +31,7 @@ class Crud {
         return Left(StatusRequist.offlinefilure);
       }
     } catch (e) {
+      print(e);
       return const Left(StatusRequist.serverExiption);
     }
   }
@@ -48,13 +52,14 @@ class Crud {
         return Left(StatusRequist.offlinefilure);
       }
     } catch (e) {
+      print(e);
       return const Left(StatusRequist.serverExiption);
     }
   }
 
   // Uplod Image whit requist :
 
-  Future<Either<StatusRequist, Map>> addRequestWithImageOne(
+  Future<Either<StatusRequist, Map>> postFile(
     url,
     data,
     File? image, [
@@ -63,6 +68,11 @@ class Crud {
     if (namerequest == null) {
       namerequest = "file";
     }
+
+    print("Crud.postFile: Preparing request...");
+    print("  URL: $url");
+    print("  Data fields: $data");
+    print("  File parameter name (namerequest): $namerequest");
 
     var uri = Uri.parse(url);
     var request = http.MultipartRequest("POST", uri);
@@ -79,17 +89,29 @@ class Crud {
         filename: basename(image.path),
       );
       request.files.add(multipartFile);
+      print("  MultipartFile created:");
+      print("    Field Name: ${multipartFile.field}");
+      print("    Filename: ${multipartFile.filename}");
+      print("    Length: ${multipartFile.length}");
+    } else {
+      print("  No image file provided to Crud.postFile.");
     }
 
     // add Data to request
     data.forEach((key, value) {
       request.fields[key] = value;
     });
-    // add Data to request
+    print("  Request fields: ${request.fields}");
+
     // Send Request
     var myrequest = await request.send();
     // For get Response Body
     var response = await http.Response.fromStream(myrequest);
+    print(
+      "Crud.postFile: Received response. Status Code: ${response.statusCode}",
+    );
+    print("Crud.postFile: Response Body: ${response.body}");
+
     if (response.statusCode == 200 || response.statusCode == 201) {
       print(response.body);
       Map<String, dynamic> responsebody = jsonDecode(response.body);

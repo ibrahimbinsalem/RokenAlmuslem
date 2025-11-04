@@ -17,7 +17,19 @@
         android:label="ركن المسلم"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <activity
+
+        <!-- جديد: إعدادات قناة الإشعارات الافتراضية لـ Firebase -->
+        <!-- هذا يحدد الأيقونة التي ستظهر في شريط الإشعارات. يجب أن تكون أيقونة بيضاء بخلفية شفافة. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" /> <!-- ملاحظة: يفضل إنشاء أيقونة خاصة للإشعارات -->
+        <!-- هذا يحدد لون الأيقونة والنص في الإشعار. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@android:color/holo_blue_dark" />
+
+
+         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"

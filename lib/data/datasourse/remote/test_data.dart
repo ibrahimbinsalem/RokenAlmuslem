@@ -4,7 +4,7 @@ class TestData {
   Crud crud;
   TestData(this.crud);
 
-  addData(Map data) async {
+  addData(Map<String, dynamic> data) async {
     var response = await crud.postData("", data);
 
     return response.fold((l) => l, (r) => r);
@@ -16,7 +16,7 @@ class TestData {
     return response.fold((l) => l, (r) => r);
   }
 
-  getReportType(Map data) async {
+  getReportType(Map<String, dynamic> data) async {
     var response = await crud.postData("", data);
 
     return response.fold((l) => l, (r) => r);
