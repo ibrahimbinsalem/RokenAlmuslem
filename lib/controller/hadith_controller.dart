@@ -23,33 +23,33 @@ class HadithController extends GetxController {
   }
 
   Future<void> _fetchHadith() async {
+    isLoading.value = true;
+    errorMessage.value = '';
+
     try {
-      isLoading.value = true;
-      errorMessage.value = '';
-
-      // 1. محاولة جلب الحديث من الـ API
-      final Hadith? apiHadith = await _fetchHadithFromApi();
-
-      if (apiHadith != null) {
-        // 2. إذا نجح الجلب، قم بتحديث قاعدة البيانات والواجهة
-        await _dbHelper.insertOrUpdateHadith(apiHadith);
-        currentHadith.value = apiHadith;
-      } else {
-        // 3. إذا فشل الجلب من الـ API، حاول جلب الحديث من قاعدة البيانات المحلية
-        final Hadith? localHadith = await _dbHelper.getHadith();
-        if (localHadith != null) {
-          currentHadith.value = localHadith;
-        } else {
-          // 4. إذا لم يوجد حديث في الـ API أو قاعدة البيانات
-          errorMessage.value = 'لم يتم العثور على حديث اليوم.';
-        }
-      }
-    } catch (e) {
-      // في حالة حدوث أي خطأ، حاول التحميل من قاعدة البيانات كحل بديل
-      print("Error in _fetchHadith: $e");
+      // 1. محاولة جلب الحديث من قاعدة البيانات المحلية أولاً لعرض سريع
       final Hadith? localHadith = await _dbHelper.getHadith();
       if (localHadith != null) {
         currentHadith.value = localHadith;
+        isLoading.value = false; // عرض البيانات المحلية فوراً
+      }
+
+      // 2. محاولة جلب الحديث من الـ API في الخلفية لتحديث البيانات
+      final Hadith? apiHadith = await _fetchHadithFromApi();
+
+      if (apiHadith != null) {
+        // 3. إذا نجح الجلب، قم بتحديث قاعدة البيانات والواجهة
+        await _dbHelper.insertOrUpdateHadith(apiHadith);
+        currentHadith.value = apiHadith;
+      } else if (localHadith == null) {
+        // 4. إذا فشل الجلب من الـ API ولم يكن هناك بيانات محلية
+        errorMessage.value =
+            'لم يتم العثور على حديث اليوم. يرجى التحقق من اتصالك بالإنترنت.';
+      }
+    } catch (e) {
+      print("Error in _fetchHadith: $e");
+      // إذا كان هناك خطأ وما زالت البيانات المحلية موجودة، اعرض رسالة خطأ غير مزعجة
+      if (currentHadith.value != null) {
         errorMessage.value = 'فشل الاتصال، تم عرض آخر حديث محفوظ.';
       } else {
         errorMessage.value =

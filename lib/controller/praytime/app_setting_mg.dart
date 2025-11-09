@@ -40,15 +40,11 @@ class AppSettingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // تم نقل Get.find<PrayerTimesController>() إلى _initAndLoadSettings
     _notificationService = Get.find<NotificationService>();
     _initAndLoadSettings();
   }
 
   Future<void> _initAndLoadSettings() async {
-    // يتم حقن PrayerTimesController هنا بعد التأكد من تهيئته
-    _prayerTimesController = Get.find<PrayerTimesController>();
-
     _prefs = await SharedPreferences.getInstance();
     await loadSettings();
   }
@@ -301,6 +297,9 @@ class AppSettingsController extends GetxController {
 
   // **تعديلات مهمة في _syncNotificationsState**
   Future<void> _syncNotificationsState() async {
+    // **الحل النهائي**: يتم العثور على المتحكم هنا عند الحاجة فقط
+    // هذا يضمن أن PrayerTimesController قد تم تهيئته بالكامل.
+    _prayerTimesController = Get.find<PrayerTimesController>();
     // 1. إلغاء جميع الإشعارات أولاً. هذا يضمن عدم وجود إشعارات قديمة أو مكررة.
     // This is a simple and robust strategy.
     await _notificationService.cancelAllNotifications();
@@ -373,15 +372,8 @@ class AppSettingsController extends GetxController {
 
     // 4. جدولة إشعارات أوقات الصلاة إذا كانت مفعلة
     if (prayerTimesNotificationsEnabled.value) {
-      // التأكد من أن بيانات أوقات الصلاة متاحة قبل الجدولة.
-      // إذا كانت فارغة، حاول جلبها.
-      if (_prayerTimesController.prayerTimesData.isEmpty) {
-        print(
-          'Prayer times data is empty, attempting to fetch before scheduling.',
-        );
-        // نستدعي الدالة لجلب البيانات، لكن لا نستخدم نتيجتها في الشرط
-        await _prayerTimesController.prayerTimesData;
-      }
+      // لا نحاول جلب البيانات هنا. نعتمد فقط على البيانات المتاحة حاليًا.
+      // هذا يمنع التوقف في وضع عدم الاتصال.
 
       // جدولة إشعارات أوقات الصلاة فقط إذا كانت البيانات موجودة الآن
       if (_prayerTimesController.prayerTimesData.isNotEmpty) {

@@ -42,8 +42,13 @@ class _HomePageState extends State<HomePage> {
 
   // دالة لجلب رقم الإصدار من pubspec.yaml
   Future<void> _loadAppVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    setState(() => _appVersion = packageInfo.version);
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      setState(() => _appVersion = packageInfo.version);
+    } catch (e) {
+      print("Could not get app version: $e");
+      setState(() => _appVersion = 'N/A');
+    }
   }
 
   // دالة للتحقق مما إذا كان اليوم جمعة
@@ -425,12 +430,12 @@ class _HomePageState extends State<HomePage> {
     var gregorianDate = DateTime.now();
     // استخدام intl لتهيئة التاريخ
     var gregorianFormatter = DateFormat('EEEE, d MMMM yyyy', 'ar');
-    var hijriFormatter = DateFormat('EEEE, dd MMMM yyyy', 'ar_EG');
     return FutureBuilder<void>(
       future: prayerController.initializationFuture,
       builder: (context, snapshot) {
         // في حالة التحميل أو عدم وجود بيانات بعد
-        if (snapshot.connectionState == ConnectionState.waiting ||
+        if (prayerController.isLoading ||
+            snapshot.connectionState == ConnectionState.waiting ||
             prayerController.prayerTimesData.isEmpty) {
           return Container(
             margin: EdgeInsets.symmetric(
@@ -439,9 +444,16 @@ class _HomePageState extends State<HomePage> {
             ),
             padding: EdgeInsets.all(screenWidth * 0.04),
             child: const Center(
-              child: Text(
-                "جاري تحميل أوقات الصلاة...",
-                style: TextStyle(color: Colors.white70),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "جاري تحميل أوقات الصلاة...",
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  SizedBox(width: 10),
+                  CircularProgressIndicator(strokeWidth: 2),
+                ],
               ),
             ),
           );
@@ -457,7 +469,9 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.all(screenWidth * 0.04),
             child: Center(
               child: Text(
-                "خطأ: ${snapshot.error}",
+                prayerController.errorMessage.value.isNotEmpty
+                    ? prayerController.errorMessage.value
+                    : "خطأ في تحميل أوقات الصلاة: ${snapshot.error}",
                 style: const TextStyle(color: Colors.redAccent),
               ),
             ),
@@ -824,7 +838,7 @@ class _HomePageState extends State<HomePage> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(color: AppColors.primaryColor),
+                child: CircularProgressIndicator(color: Colors.cyan),
               ),
             )
           else if (controller.errorMessage.value.isNotEmpty &&

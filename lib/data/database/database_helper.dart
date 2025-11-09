@@ -13,7 +13,8 @@ class DatabaseHelper {
   DatabaseHelper._init();
 
   static const String dbName = 'adkar_database.db';
-  static const int dbVersion = 18; // <--- **قم بزيادة هذا الرقم! مهم جدًا**
+  static const int dbVersion =
+      20; // <--- **تمت زيادة الرقم لتحديث قاعدة البيانات**
 
   // Existing table names
   static const String morningAdkarTableName = 'MorningAdkar';
@@ -36,6 +37,7 @@ class DatabaseHelper {
   static const String adayahNabuiaTableName =
       'AdayahNabuia'; // <--- **الجدول الجديد للأدعية النبوية**
   static const String hadithOfTheDayTableName = 'hadith_of_the_day';
+  static const String prayerTimesTableName = 'prayer_times';
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -260,6 +262,19 @@ class DatabaseHelper {
       )
     ''');
 
+    // إنشاء جدول أوقات الصلاة
+    await db.execute('''
+      CREATE TABLE $prayerTimesTableName (
+        date TEXT PRIMARY KEY,
+        fajr TEXT NOT NULL,
+        sunrise TEXT NOT NULL,
+        dhuhr TEXT NOT NULL,
+        asr TEXT NOT NULL,
+        maghrib TEXT NOT NULL,
+        isha TEXT NOT NULL
+      )
+    ''');
+
     // Populate initial data for all tables including the new ones
     await _populateInitialData(db);
   }
@@ -289,6 +304,7 @@ class DatabaseHelper {
       "DROP TABLE IF EXISTS $adayahNabuiaTableName;",
     ); // <--- **إزالة الجدول الجديد عند الترقية**
     await db.execute("DROP TABLE IF EXISTS $hadithOfTheDayTableName;");
+    await db.execute("DROP TABLE IF EXISTS $prayerTimesTableName;");
 
     await _onCreate(db, newVersion); // إعادة إنشاء جميع الجداول بالبنية الجديدة
   }
@@ -1262,6 +1278,44 @@ class DatabaseHelper {
         text: map['text'] as String,
         source: map['source'] as String,
       );
+    }
+    return null;
+  }
+
+  // دالة لإضافة أو تحديث أوقات الصلاة ليوم معين
+  Future<void> insertOrUpdatePrayerTimes(
+    String date,
+    Map<String, String> times,
+  ) async {
+    final db = await instance.database;
+    final dataToInsert = {
+      'date': date,
+      'fajr': times['الفجر'],
+      'sunrise': times['الشروق'],
+      'dhuhr': times['الظهر'],
+      'asr': times['العصر'],
+      'maghrib': times['المغرب'],
+      'isha': times['العشاء'],
+    };
+    await db.insert(
+      prayerTimesTableName,
+      dataToInsert,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    print("Prayer times for date $date inserted/updated in the database.");
+  }
+
+  // دالة لجلب أوقات الصلاة ليوم معين
+  Future<Map<String, String>?> getPrayerTimesForDate(String date) async {
+    final db = await instance.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      prayerTimesTableName,
+      where: 'date = ?',
+      whereArgs: [date],
+    );
+
+    if (maps.isNotEmpty) {
+      return maps.first as Map<String, String>;
     }
     return null;
   }

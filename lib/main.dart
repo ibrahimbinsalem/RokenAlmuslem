@@ -60,18 +60,25 @@ Future<void> _initializeApp() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // **جديد: طباعة FCM Token**
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    debugPrint("========================================");
-    debugPrint("FCM Token: $fcmToken");
-    debugPrint("========================================");
-
-    // **جديد: الاشتراك في موضوع عام لإرسال إشعارات جماعية**
-    await FirebaseMessaging.instance.subscribeToTopic('all_users');
-    debugPrint("========================================");
-    debugPrint("Subscribed to 'all_users' topic");
-    debugPrint("========================================");
-
+    // جعل عمليات Firebase Messaging غير معرقلة لبدء التشغيل
+    try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      debugPrint("========================================");
+      debugPrint("FCM Token: $fcmToken");
+      debugPrint("========================================");
+      // Attempt to subscribe to a topic, but don't let it block startup if it fails.
+      FirebaseMessaging.instance
+          .subscribeToTopic('all_users')
+          .then((_) {
+            debugPrint("Successfully subscribed to 'all_users' topic");
+          })
+          .catchError((e) {
+            debugPrint("Failed to subscribe to 'all_users' topic: $e");
+          });
+    } catch (e) {
+      debugPrint("Firebase Messaging setup failed (likely offline): $e");
+      // لا تقم بإعادة رمي الخطأ، اسمح للتطبيق بالاستمرار
+    }
     await GetStorage.init();
     await initialServices();
 
@@ -97,13 +104,9 @@ Future<void> _initializeApp() async {
       return controller;
     }, permanent: true);
 
-    // **3. Initialize AppSettingsController using Get.putAsync**
-    // This ensures its async onInit (SharedPreferences load) completes
-    await Get.putAsync<AppSettingsController>(() async {
-      final controller = AppSettingsController();
-      // onInit will be called automatically, which handles async initialization
-      return controller;
-    }, permanent: true);
+    // **3. Initialize AppSettingsController synchronously**
+    // It will find the already initialized PrayerTimesController when needed.
+    Get.put<AppSettingsController>(AppSettingsController(), permanent: true);
 
     // Initialize Workmanager
     await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);

@@ -81,6 +81,7 @@ dependencies:
   package_info_plus: ^8.0.0
   firebase_core: ^4.2.1 # إصدار قديم، قد تحتاج لتحديثه
   firebase_messaging: ^16.0.4 # إصدار قديم، قد تحتاج لتحديثه
+  connectivity_plus: ^5.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

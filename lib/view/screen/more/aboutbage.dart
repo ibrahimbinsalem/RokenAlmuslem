@@ -68,24 +68,24 @@ class AboutUsPage extends StatelessWidget {
               theme: currentTheme,
               avatarColor: Colors.blue,
             ),
-            _buildTeamMemberCard(
-              context,
-              name: '',
-              role: '',
-              description: '',
-              icon: Icons.design_services_rounded,
-              theme: currentTheme,
-              avatarColor: Colors.purple,
-            ),
-            _buildTeamMemberCard(
-              context,
-              name: 'فهد محمد الحيقي',
-              role: 'ناشر للتطبيق',
-              description: 'متخصص في عملية النشر للتطبيق ',
-              icon: Icons.gavel_rounded,
-              theme: currentTheme,
-              avatarColor: Colors.orange,
-            ),
+            // _buildTeamMemberCard(
+            //   context,
+            //   name: '',
+            //   role: '',
+            //   description: '',
+            //   icon: Icons.design_services_rounded,
+            //   theme: currentTheme,
+            //   avatarColor: Colors.purple,
+            // ),
+            // _buildTeamMemberCard(
+            //   context,
+            //   name: 'فهد محمد الحيقي',
+            //   role: 'ناشر للتطبيق',
+            //   description: 'متخصص في عملية النشر للتطبيق ',
+            //   icon: Icons.gavel_rounded,
+            //   theme: currentTheme,
+            //   avatarColor: Colors.orange,
+            // ),
 
             // قسم الشكر والتقدير
             _buildSectionTitle('كلمة شكر', currentTheme),
@@ -497,7 +497,7 @@ class AboutUsPage extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'نسخة التطبيق: 1.0.0',
+              'نسخة التطبيق: 1.0.1',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),
@@ -506,7 +506,7 @@ class AboutUsPage extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          '© 2023 روكن المسلم - جميع الحقوق محفوظة',
+          '© 2025 روكن المسلم - جميع الحقوق محفوظة',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurface.withOpacity(0.6),
           ),

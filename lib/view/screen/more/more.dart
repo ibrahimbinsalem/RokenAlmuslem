@@ -201,6 +201,14 @@ class MorePage extends StatelessWidget {
                   },
                 ),
                 _buildFeatureCard(
+                  title: "القصص",
+                  image: "assets/images/story.png",
+                  color: Colors.purpleAccent, // لون أرجواني زاهي
+                  onTap: () {
+                    _showComingSoonDialog(context);
+                  },
+                ),
+                _buildFeatureCard(
                   title: "الإعدادات",
                   image: "assets/images/اعدادات.png",
                   color: Colors.grey.shade400, // لون رمادي فاتح

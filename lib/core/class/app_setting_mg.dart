@@ -387,6 +387,7 @@ class AppSettingsController extends GetxController {
           enableVibration: vibrateOnNotification.value,
           playSound: true,
         );
+
         print('Prayer time notifications scheduled by AppSettingsController.');
       } else {
         print(

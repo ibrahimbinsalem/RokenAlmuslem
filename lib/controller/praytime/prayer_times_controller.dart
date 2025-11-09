@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rokenalmuslem/data/database/database_helper.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -90,20 +91,57 @@ class PrayerTimesController extends GetxController {
   // دالة التهيئة الجديدة التي تعيد Future
   Future<void> _initialize() async {
     try {
-      // لا نحتاج إلى تعيين isLoading = true هنا لأنها تبدأ بـ true
+      isLoading = true;
+      update();
+
       _notificationService = Get.find<NotificationService>();
       await _configureLocalTimeZone();
+
+      // 1. تحميل الإعدادات والموقع المحفوظين أولاً
       await loadPreferences();
 
-      // سنقوم بتحديث الموقع في كل مرة يتم فيها تشغيل التطبيق لضمان دقة البيانات
-      await determinePosition();
+      // 2. محاولة جلب أوقات الصلاة من قاعدة البيانات المحلية أولاً
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final dbHelper = DatabaseHelper.instance;
+      final localPrayerTimes = await dbHelper.getPrayerTimesForDate(today);
+
+      if (localPrayerTimes != null) {
+        print("Found prayer times in local DB for today. Displaying them.");
+        prayerTimesData.value = {
+          'الفجر': localPrayerTimes['fajr']!,
+          'الشروق': localPrayerTimes['sunrise']!,
+          'الظهر': localPrayerTimes['dhuhr']!,
+          'العصر': localPrayerTimes['asr']!,
+          'المغرب': localPrayerTimes['maghrib']!,
+          'العشاء': localPrayerTimes['isha']!,
+        };
+        originalPrayerTimes.value = Map.from(prayerTimesData);
+        _applyAdjustments();
+      } else {
+        // إذا لم توجد بيانات محلية، حاول حسابها إذا كان الموقع محفوظًا
+        if (latitude.value != 0.0 && longitude.value != 0.0) {
+          print(
+            "No local DB data. Calculating prayer times from saved location.",
+          );
+          fetchPrayerTimes();
+        } else {
+          // **جديد**: إذا لم يكن هناك موقع محفوظ، ابدأ عملية تحديد الموقع
+          // هذا سيحدث فقط في أول مرة يفتح فيها المستخدم التطبيق
+          if (latitude.value == 0.0 && longitude.value == 0.0) {
+            print(
+              "No saved location or local prayer times. Starting position determination...",
+            );
+            await determinePosition();
+          }
+          errorMessage.value =
+              'الموقع غير محدد. يرجى تحديث الموقع لحساب أوقات الصلاة.';
+        }
+      }
     } catch (e) {
       print("An error occurred during initialization: $e");
       errorMessage.value = 'حدث خطأ غير متوقع أثناء تهيئة التطبيق.';
     } finally {
-      // هذا الجزء سيتم تنفيذه دائمًا، سواء نجحت العملية أو فشلت
       isLoading = false;
-      // إخبار الواجهة بأن عملية التحميل قد انتهت
       update();
     }
   }
@@ -227,45 +265,65 @@ class PrayerTimesController extends GetxController {
     }
   }
 
-  Future<void> determinePosition() async {
+  Future<void> determinePosition({bool useSavedAsFallback = false}) async {
     try {
+      isLoading = true;
+      update();
       errorMessage.value = '';
       currentAddress.value = 'جاري طلب صلاحيات الموقع...';
 
       var status = await Permission.location.request();
+      Position? position;
 
       if (status.isGranted) {
         currentAddress.value = 'جاري تحديد موقعك...';
-        Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
-
-        latitude.value = position.latitude;
-        longitude.value = position.longitude;
-
-        await _updateLocationAndFetchPrayers();
+        try {
+          // محاولة الحصول على الموقع الحالي مع مهلة زمنية لتجنب التوقف
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium,
+            timeLimit: const Duration(seconds: 15),
+          );
+        } catch (e) {
+          print("Could not get current position: $e. Trying last known.");
+          // إذا فشل، حاول الحصول على آخر موقع معروف
+          position = await Geolocator.getLastKnownPosition();
+        }
       } else if (status.isDenied) {
         errorMessage.value =
             'تم رفض إذن الوصول للموقع. لا يمكن حساب أوقات الصلاة.';
       } else if (status.isPermanentlyDenied) {
         errorMessage.value =
             'تم رفض إذن الموقع بشكل دائم. يرجى تفعيله من إعدادات التطبيق.';
-        await openAppSettings();
+        openAppSettings();
+      }
+
+      if (position != null) {
+        latitude.value = position.latitude;
+        longitude.value = position.longitude;
+        // **جديد**: بعد تحديد الموقع بنجاح، قم بحفظه وجلب أوقات الصلاة وتفاصيل الموقع
+        await savePreferences();
+        fetchPrayerTimes();
+        // محاولة تحديث اسم الموقع في الخلفية
+        fetchLocationDetails(latitude.value, longitude.value).catchError((e) {
+          print("Could not update location name in background: $e");
+        });
+      } else {
+        // إذا فشلت كل المحاولات ولم يكن هناك موقع محفوظ
+        if (!useSavedAsFallback ||
+            (latitude.value == 0.0 && longitude.value == 0.0)) {
+          errorMessage.value = 'فشل تحديد الموقع. يرجى التحقق من خدمات الموقع.';
+        }
       }
     } catch (e) {
       print("Error in determinePosition: $e");
-      errorMessage.value = 'فشل في تحديد الموقع. حاول مرة أخرى.';
-      // استخدام موقع افتراضي في حالة الفشل
-      latitude.value = 15.3694; // Sana'a
-      longitude.value = 44.1910;
-      await _updateLocationAndFetchPrayers();
+      if (!useSavedAsFallback ||
+          (latitude.value == 0.0 && longitude.value == 0.0)) {
+        errorMessage.value = 'فشل في تحديد الموقع. حاول مرة أخرى.';
+      }
+    } finally {
+      isLoading = false;
+      update();
     }
-  }
-
-  Future<void> _updateLocationAndFetchPrayers() async {
-    await savePreferences();
-    await fetchLocationDetails(latitude.value, longitude.value);
-    fetchPrayerTimes();
   }
 
   Future<void> fetchLocationDetails(double lat, double lng) async {
@@ -298,9 +356,12 @@ class PrayerTimesController extends GetxController {
       }
     } catch (e) {
       print('Error fetching location details: $e');
-      currentAddress.value = 'لا يوجد اتصال بالشبكة';
-      errorMessage.value =
-          'لا يمكن تحديث اسم الموقع. يرجى التحقق من اتصالك بالإنترنت.';
+      // فقط قم بتغيير العنوان إذا لم يكن هناك عنوان محفوظ بالفعل
+      if (currentAddress.value == 'جاري تحديد الموقع...' ||
+          currentAddress.value == 'موقع محفوظ') {
+        currentAddress.value = 'لا يوجد اتصال بالشبكة';
+      }
+      // لا تقم بتعيين errorMessage هنا لمنع ظهور رسائل خطأ مزعجة في وضع عدم الاتصال
     }
     await savePreferences();
   }
@@ -312,6 +373,7 @@ class PrayerTimesController extends GetxController {
     }
 
     errorMessage.value = '';
+    isLoading = true;
     // No need for update() here, as determinePosition already called it.
     try {
       final myCoordinates = Coordinates(latitude.value, longitude.value);
@@ -332,10 +394,19 @@ class PrayerTimesController extends GetxController {
       _applyAdjustments();
 
       print("Prayer times calculated successfully for ${currentAddress.value}");
+
+      // **جديد**: تخزين أوقات الصلاة في قاعدة البيانات المحلية
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final dbHelper = DatabaseHelper.instance;
+      dbHelper.insertOrUpdatePrayerTimes(today, prayerTimesData);
+
       savePreferences();
     } catch (e) {
       print("Error calculating prayer times: $e");
       errorMessage.value = 'حدث خطأ أثناء حساب أوقات الصلاة.';
+    } finally {
+      isLoading = false;
+      update();
     }
   }
 
