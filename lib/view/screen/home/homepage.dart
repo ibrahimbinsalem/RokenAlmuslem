@@ -5,11 +5,13 @@ import 'package:get/get.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:rokenalmuslem/core/constant/appcolor.dart';
 import 'package:share_plus/share_plus.dart';
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
 import 'package:rokenalmuslem/controller/ayah_controller.dart';
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart';
+import 'package:rokenalmuslem/controller/hadith_controller.dart'; // إضافة متحكم الحديث
 import 'package:rokenalmuslem/controller/more/masbahacontroller.dart';
 import 'package:rokenalmuslem/core/constant/routes.dart';
 
@@ -23,6 +25,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TasbeehController tasbeehController = Get.put(TasbeehController());
   final AyahController ayahController = Get.put(AyahController());
+  // إضافة متحكم الحديث
+  final HadithController hadithController = Get.put(HadithController());
   // إضافة متحكم أوقات الصلاة
   final PrayerTimesController prayerController = Get.put(
     PrayerTimesController(),
@@ -325,7 +329,15 @@ class _HomePageState extends State<HomePage> {
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideX(begin: 0.1, end: 0),
-                    _buildHadithCard(primaryColor, cardColor, screenWidth)
+                    // استخدام Obx لمراقبة التغييرات في hadithController
+                    Obx(() {
+                          return _buildHadithCard(
+                            hadithController,
+                            primaryColor,
+                            cardColor,
+                            screenWidth,
+                          );
+                        })
                         .animate()
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideY(begin: 0.1, end: 0),
@@ -781,6 +793,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHadithCard(
+    HadithController controller, // استقبال المتحكم
     Color primaryColor,
     Color cardColor,
     double screenWidth, // استقبل عرض الشاشة
@@ -806,23 +819,47 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            "من سلك طريقًا يلتمس فيه علمًا سهل الله له به طريقًا إلى الجنة",
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.95),
-              fontSize: screenWidth * 0.05, // حجم خط نسبي
-              fontWeight: FontWeight.w600,
-              height: 1.6,
-              shadows: [
-                Shadow(
-                  blurRadius: 5.0,
-                  color: Colors.black.withOpacity(0.4),
-                  offset: const Offset(2, 2),
+          // التحقق من حالة التحميل والخطأ
+          if (controller.isLoading.value)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(color: AppColors.primaryColor),
+              ),
+            )
+          else if (controller.errorMessage.value.isNotEmpty &&
+              controller.currentHadith.value == null)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  controller.errorMessage.value,
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: screenWidth * 0.04,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              ],
+              ),
+            )
+          else if (controller.currentHadith.value != null)
+            Text(
+              controller.currentHadith.value!.text!,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.95),
+                fontSize: screenWidth * 0.05, // حجم خط نسبي
+                fontWeight: FontWeight.w600,
+                height: 1.6,
+                shadows: [
+                  Shadow(
+                    blurRadius: 5.0,
+                    color: Colors.black.withOpacity(0.4),
+                    offset: const Offset(2, 2),
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.right,
             ),
-            textAlign: TextAlign.right,
-          ),
           SizedBox(height: screenWidth * 0.05), // ارتفاع نسبي
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -830,11 +867,13 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   IconButton(
-                    onPressed:
-                        () => _copyToClipboard(
-                          "من سلك طريقًا يلتمس فيه علمًا سهل الله له به طريقًا إلى الجنة",
+                    onPressed: () {
+                      if (controller.currentHadith.value != null)
+                        _copyToClipboard(
+                          controller.currentHadith.value!.text!,
                           context,
-                        ),
+                        );
+                    },
                     icon: Icon(
                       Icons.copy_outlined,
                       color: primaryColor,
@@ -843,11 +882,13 @@ class _HomePageState extends State<HomePage> {
                     tooltip: 'نسخ الحديث',
                   ),
                   IconButton(
-                    onPressed:
-                        () => _shareContent(
-                          'حديث اليوم:\n\n"من سلك طريقًا يلتمس فيه علمًا سهل الله له به طريقًا إلى الجنة"\n- رواه مسلم',
+                    onPressed: () {
+                      if (controller.currentHadith.value != null)
+                        _shareContent(
+                          'حديث اليوم:\n\n"${controller.currentHadith.value!.text}"\n- ${controller.currentHadith.value!.source}',
                           context,
-                        ),
+                        );
+                    },
                     icon: Icon(
                       Icons.share_rounded,
                       color: primaryColor,
@@ -857,15 +898,16 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              Text(
-                "رواه مسلم",
-                style: TextStyle(
-                  color: primaryColor,
-                  fontStyle: FontStyle.italic,
-                  fontSize: screenWidth * 0.04, // حجم خط نسبي
-                  fontWeight: FontWeight.w500,
+              if (controller.currentHadith.value != null)
+                Text(
+                  controller.currentHadith.value!.source!,
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontStyle: FontStyle.italic,
+                    fontSize: screenWidth * 0.04, // حجم خط نسبي
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
             ],
           ),
         ],

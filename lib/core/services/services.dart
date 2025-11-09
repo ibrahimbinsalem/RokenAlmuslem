@@ -1,38 +1,9 @@
-// // import 'package:firebase_core/firebase_core.dart';
-// // import 'package:firebase_messaging/firebase_messaging.dart';
-// import 'package:get/get.dart';
-// import 'package:get/get_state_manager/get_state_manager.dart';
-// import 'package:shared_preferences/shared_preferences.dart'; // Add this import
-
-// class MyServices extends GetxService {
-//   late SharedPreferences sharedprf;
-
-//   Future<MyServices> init() async {
-//     // await Firebase.initializeApp(
-//     //   options: FirebaseOptions(
-//     //     apiKey: 'AIzaSyAKxVd_apT8ixiNzXzffV0TYDkof-m6qrw',
-//     //     appId: '1:937202513401:android:1995b3c5b340b018663928',
-//     //     messagingSenderId: '937202513401',
-//     //     projectId: 'ecooapp-fa946',
-//     //     storageBucket: 'ecooapp-fa946.firebasestorage.app',
-//     //   ),
-//     // );
-
-//     // await Firebase.initializeApp();
-//     // String? token = await FirebaseMessaging.instance.getToken();
-//     // print("Token====================== $token");
-
-//     sharedprf = await SharedPreferences.getInstance();
-//     return this;
-//   }
-// }
-
-// initialServices() async {
-//   await Get.putAsync(() => MyServices().init());
-// }
-
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:rokenalmuslem/controller/notificationcontroller.dart';
+import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart';
+import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
+import 'package:rokenalmuslem/core/services/localnotification.dart';
 
 // If you want to use Firebase in the future
 // import 'package:firebase_core/firebase_core.dart';
@@ -57,6 +28,21 @@ class MyServices extends GetxService {
 
 // This function registers MyServices in GetX
 initialServices() async {
-  // Get.putAsync is used to initialize services that require non-blocking operations (like await)
+  // تهيئة الخدمات الأساسية التي لا تعتمد على خدمات أخرى
   await Get.putAsync(() => MyServices().init());
+  // **الإصلاح**: استخدام putAsync لتهيئة خدمة الإشعارات والتأكد من اكتمالها
+  await Get.putAsync<NotificationService>(() async {
+    final service = NotificationService();
+    await service.initialize();
+    return service;
+  });
+
+  // تهيئة المتحكمات التي تعتمد على الخدمات السابقة
+  // الترتيب مهم هنا
+  Get.put(PrayerTimesController());
+  Get.put(AppSettingsController());
+
+  // NotificationsController يعتمد على كل ما سبق
+  Get.put(NotificationsController());
+  print("All core services and controllers have been initialized.");
 }

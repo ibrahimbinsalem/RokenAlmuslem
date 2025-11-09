@@ -78,19 +78,6 @@ class SignUpView extends StatelessWidget {
                 ).animate().fadeIn(delay: 500.ms).slideX(begin: 0.5),
                 const SizedBox(height: 20),
 
-                // Phone Field
-                CustomAuthTextField(
-                  controller: controller.phone,
-                  hintText: "رقم الهاتف",
-                  icon: Icons.phone_outlined,
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'الرجاء إدخال رقم الهاتف';
-                    }
-                    return null;
-                  },
-                ).animate().fadeIn(delay: 600.ms).slideX(begin: -0.5),
                 const SizedBox(height: 20),
 
                 // Password Field
@@ -113,14 +100,15 @@ class SignUpView extends StatelessWidget {
 
                 // SignUp Button
                 Obx(
-                  () => controller.isLoading.value
-                      ? const Center(child: CircularProgressIndicator())
-                      : CustomAuthButton(
-                          text: "إنشاء الحساب",
-                          onPressed: () {
-                            controller.signUp();
-                          },
-                        ).animate().fadeIn(delay: 800.ms).shake(),
+                  () =>
+                      controller.isLoading.value
+                          ? const Center(child: CircularProgressIndicator())
+                          : CustomAuthButton(
+                            text: "إنشاء الحساب",
+                            onPressed: () {
+                              controller.signup();
+                            },
+                          ).animate().fadeIn(delay: 800.ms).shake(),
                 ),
                 const SizedBox(height: 24),
 
@@ -128,7 +116,10 @@ class SignUpView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("لديك حساب بالفعل؟", style: theme.textTheme.bodyMedium),
+                    Text(
+                      "لديك حساب بالفعل؟",
+                      style: theme.textTheme.bodyMedium,
+                    ),
                     TextButton(
                       onPressed: () {
                         controller.goToLogin();

@@ -1,5 +1,6 @@
 // lib/data/database/database_helper.dart
 
+import 'package:rokenalmuslem/controller/hadith_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -34,6 +35,7 @@ class DatabaseHelper {
   static const String adayaQuraniyaTableName = 'AdayaQuraniya';
   static const String adayahNabuiaTableName =
       'AdayahNabuia'; // <--- **الجدول الجديد للأدعية النبوية**
+  static const String hadithOfTheDayTableName = 'hadith_of_the_day';
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -249,6 +251,15 @@ class DatabaseHelper {
     print('Database table "$adayahNabuiaTableName" created.');
     // <--- **نهاية إضافة جدول AdayahNabuia**
 
+    // إنشاء جدول حديث اليوم
+    await db.execute('''
+      CREATE TABLE $hadithOfTheDayTableName (
+        id INTEGER PRIMARY KEY,
+        text TEXT NOT NULL,
+        source TEXT NOT NULL
+      )
+    ''');
+
     // Populate initial data for all tables including the new ones
     await _populateInitialData(db);
   }
@@ -277,6 +288,7 @@ class DatabaseHelper {
     await db.execute(
       "DROP TABLE IF EXISTS $adayahNabuiaTableName;",
     ); // <--- **إزالة الجدول الجديد عند الترقية**
+    await db.execute("DROP TABLE IF EXISTS $hadithOfTheDayTableName;");
 
     await _onCreate(db, newVersion); // إعادة إنشاء جميع الجداول بالبنية الجديدة
   }
@@ -1220,5 +1232,37 @@ class DatabaseHelper {
       );
       print('Adayah Nabuia with ID $id count reset to its initial value.');
     }
+  }
+
+  // دالة لإضافة أو تحديث الحديث
+  Future<void> insertOrUpdateHadith(Hadith hadith) async {
+    final db = await instance.database;
+    await db.insert(
+      hadithOfTheDayTableName,
+      hadith.toJson(),
+      conflictAlgorithm:
+          ConflictAlgorithm
+              .replace, // استبدال الحديث إذا كان موجودًا بنفس الـ ID
+    );
+    print("Hadith with ID ${hadith.id} inserted/updated in the database.");
+  }
+
+  // دالة لجلب الحديث
+  Future<Hadith?> getHadith() async {
+    final db = await instance.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      hadithOfTheDayTableName,
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      final map = maps.first;
+      return Hadith(
+        id: map['id'] as int,
+        text: map['text'] as String,
+        source: map['source'] as String,
+      );
+    }
+    return null;
   }
 }

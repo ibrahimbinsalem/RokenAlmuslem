@@ -21,7 +21,9 @@ enum NotificationType {
   // أنواع إشعارات التذكير الأخرى
   tasbeeh,
   sleepAdhkar,
-  fridayReminder, generalDailyAzkar,
+  fridayReminder,
+  generalDailyAzkar,
+  update, // **تمت الإضافة هنا**
 }
 
 class NotificationItem {
@@ -33,6 +35,7 @@ class NotificationItem {
   final NotificationType type;
   final IconData icon;
   final Color color;
+  final String? payload;
 
   NotificationItem({
     required this.id,
@@ -43,14 +46,15 @@ class NotificationItem {
     this.type = NotificationType.general,
     this.icon = Icons.notifications,
     this.color = Colors.blue,
+    this.payload,
   });
 
   // Constructor لإنشاء NotificationItem من PendingNotificationRequest
   factory NotificationItem.fromPendingRequest(
-      PendingNotificationRequest request, {
-      NotificationType type = NotificationType.general,
-      IconData icon = Icons.notifications,
-      Color color = Colors.blue,
+    PendingNotificationRequest request, {
+    NotificationType type = NotificationType.general,
+    IconData icon = Icons.notifications,
+    Color color = Colors.blue,
   }) {
     // حاول استخراج وقت الجدولة من الـ payload
     DateTime? scheduledTime;
@@ -58,12 +62,16 @@ class NotificationItem {
       if (request.payload != null && request.payload!.startsWith('{')) {
         // إذا كان payload هو JSON
         final Map<String, dynamic> payloadData = json.decode(request.payload!);
-        if (payloadData.containsKey('scheduledTime') && payloadData['scheduledTime'] is String) {
+        if (payloadData.containsKey('scheduledTime') &&
+            payloadData['scheduledTime'] is String) {
           scheduledTime = DateTime.tryParse(payloadData['scheduledTime']);
         }
-      } else if (request.payload != null && request.payload!.contains('scheduled_at=')) {
+      } else if (request.payload != null &&
+          request.payload!.contains('scheduled_at=')) {
         // إذا كان payload يحتوي على سلسلة "scheduled_at=" (نمط آخر)
-        final uri = Uri.parse('http://temp.com/?' + request.payload!); // فقط لتحليل الكويري بارامترز
+        final uri = Uri.parse(
+          'http://temp.com/?' + request.payload!,
+        ); // فقط لتحليل الكويري بارامترز
         final timeString = uri.queryParameters['scheduled_at'];
         if (timeString != null) {
           scheduledTime = DateTime.tryParse(timeString);
@@ -78,7 +86,6 @@ class NotificationItem {
     // (مثال: 'payload': json.encode({'scheduledTime': scheduledDate.toIso8601String(), 'type': 'morningAzkar'}))
     scheduledTime ??= DateTime.now();
 
-
     return NotificationItem(
       id: request.id,
       title: request.title ?? 'تذكير',
@@ -88,6 +95,7 @@ class NotificationItem {
       type: type,
       icon: icon,
       color: color,
+      payload: request.payload, // تمرير الـ payload الأصلي
     );
   }
 
@@ -100,6 +108,7 @@ class NotificationItem {
     NotificationType? type,
     IconData? icon,
     Color? color,
+    String? payload,
   }) {
     return NotificationItem(
       id: id ?? this.id,
@@ -110,6 +119,7 @@ class NotificationItem {
       type: type ?? this.type,
       icon: icon ?? this.icon,
       color: color ?? this.color,
+      payload: payload ?? this.payload,
     );
   }
 }

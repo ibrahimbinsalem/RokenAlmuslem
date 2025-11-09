@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:rokenalmuslem/core/class/app_setting_mg.dart'; // استيراد AppSettingsController
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart'; // استيراد PrayerTimesController
@@ -7,6 +8,7 @@ import 'package:rokenalmuslem/core/services/localnotification.dart'
     hide
         NotificationType; // تأكد من 'hide NotificationType' لتجنب التضارب إذا كان موجودًا
 
+import 'package:url_launcher/url_launcher.dart';
 import 'notification_item.dart'; // تأكد من أن هذا الملف موجود وبه تعريف NotificationItem
 import 'dart:convert'; // لاستخدام json.decode
 
@@ -37,15 +39,57 @@ class NotificationsController extends GetxController {
     _appSettingsController = Get.find<AppSettingsController>();
     _prayerTimesController =
         Get.find<PrayerTimesController>(); // حقن PrayerTimesController
-    refreshNotifications(); // جلب الإشعارات عند تهيئة المتحكم
+    // **الإصلاح**: ضمان تنفيذ العمليات بالترتيب الصحيح لتجنب السباق الزمني
+    // أولاً، تحقق من وجود إشعار تحديث معلق، ثم قم بتحديث بقية الإشعارات.
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    await _checkForPendingUpdateNotification();
+    await refreshNotifications();
+  }
+
+  /// Checks SharedPreferences for a pending update URL and adds it as a notification.
+  Future<void> _checkForPendingUpdateNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    final updateUrl = prefs.getString('pending_update_url');
+    if (updateUrl != null) {
+      addUpdateNotification(updateUrl);
+      // Remove the key so it's not shown again on next app start.
+      await prefs.remove('pending_update_url');
+    }
+  }
+
+  /// Adds a special update notification to the top of the list.
+  void addUpdateNotification(String updateUrl) {
+    // إنشاء إشعار تحديث مخصص
+    final updateNotification = NotificationItem(
+      id: -1, // استخدام ID فريد وسالب لتمييزه
+      title: 'تحديث جديد متوفر!',
+      message: 'يتوفر إصدار جديد من التطبيق. اضغط هنا للتحديث.',
+      time: DateTime.now(),
+      isRead: false,
+      type: NotificationType.update, // نوع جديد للإشعار
+      icon: Icons.system_update_alt,
+      color: Colors.teal,
+      payload: updateUrl, // تخزين رابط التحديث في الـ payload
+    );
+
+    // إزالة أي إشعار تحديث قديم لتجنب التكرار
+    notifications.removeWhere((item) => item.type == NotificationType.update);
+
+    // إضافة الإشعار الجديد في بداية القائمة
+    notifications.insert(0, updateNotification);
+    Get.snackbar('تحديث متوفر', 'إصدار جديد من التطبيق متاح الآن!');
   }
 
   // هذه الدالة الآن ستقوم بطلب إعادة جدولة الإشعارات من المتحكمات المسؤولة
   // ثم تجلب القائمة المحدثة
   Future<void> refreshNotifications() async {
-    isLoading.value = true;
+    if (notifications.isEmpty)
+      isLoading.value = true; // أظهر التحميل فقط إذا كانت القائمة فارغة
     errorMessage.value = '';
-    notifications.clear(); // **مسح القائمة دائمًا قبل التحديث لتجنب التكرار**
+    // **الإصلاح**: لا تقم بمسح القائمة هنا، لأن إشعار التحديث قد يكون موجودًا بالفعل
     _currentPage = 0; // إعادة تعيين الصفحة عند التحديث
     hasMore.value = true; // إعادة تعيين حالة التحميل اللانهائي
 
@@ -62,7 +106,7 @@ class NotificationsController extends GetxController {
 
       // 2. بعد إعادة الجدولة (التي حدثت بفضل loadSettings/syncNotificationsState)،
       // قم بجلب قائمة الإشعارات المعلقة لعرضها
-      await _fetchNotifications();
+      await _fetchNotifications(isRefresh: true);
     } catch (e, stack) {
       errorMessage.value = 'خطأ في تحديث الإشعارات: $e';
       debugPrint('Error refreshing notifications: $e\n$stack');
@@ -78,7 +122,7 @@ class NotificationsController extends GetxController {
       notifications.clear(); // تأكيد المسح حتى عند التحميل الأولي
       _currentPage = 0;
       hasMore.value = true;
-      await _fetchNotifications();
+      await _fetchNotifications(isRefresh: true);
     } catch (e) {
       _handleError(e);
     } finally {
@@ -92,7 +136,7 @@ class NotificationsController extends GetxController {
     try {
       isLoading.value = true;
       _currentPage++; // زيادة رقم الصفحة
-      await _fetchNotifications(append: true); // أضف كمعامل
+      await _fetchNotifications(isRefresh: false); // أضف كمعامل
     } catch (e) {
       _handleError(e);
       _currentPage--; // التراجع عن رقم الصفحة في حالة الخطأ
@@ -102,7 +146,7 @@ class NotificationsController extends GetxController {
   }
 
   // دالة لجلب الإشعارات المعلقة من FlutterLocalNotificationsPlugin
-  Future<void> _fetchNotifications({bool append = false}) async {
+  Future<void> _fetchNotifications({bool isRefresh = false}) async {
     final pendingRequests =
         await _notificationService.getPendingNotifications();
 
@@ -220,24 +264,34 @@ class NotificationsController extends GetxController {
 
     final startIndex = _currentPage * _notificationsPerPage;
 
-    // إذا لم يكن هناك شيء لإضافته بعد التصفية، قم بمسح القائمة إذا لم يكن append
+    // إذا لم يكن هناك شيء لإضافته بعد التصفية، قم بتحديث الحالة
     if (startIndex >= filteredNotifications.length) {
       hasMore.value = false;
-      if (!append) notifications.value = []; // مسح إذا لم يكن append
+      if (isRefresh) {
+        // عند التحديث، احتفظ بإشعار التحديث إذا كان موجودًا
+        notifications.removeWhere(
+          (item) => item.type != NotificationType.update,
+        );
+      }
       return;
     }
 
     final endIndex = startIndex + _notificationsPerPage;
-    final paginatedNotifications = filteredNotifications.sublist(
+    final newPage = filteredNotifications.sublist(
       startIndex,
       endIndex.clamp(0, filteredNotifications.length),
     );
 
-    if (!append) {
-      notifications.value =
-          paginatedNotifications; // استبدال القائمة عند الصفحة 0
+    if (isRefresh) {
+      // عند التحديث، احتفظ بإشعار التحديث وأضف الإشعارات الجديدة
+      final updateItem = notifications.firstWhereOrNull(
+        (item) => item.type == NotificationType.update,
+      );
+      notifications.clear();
+      if (updateItem != null) notifications.add(updateItem);
+      notifications.addAll(newPage);
     } else {
-      notifications.addAll(paginatedNotifications); // إضافة المزيد
+      notifications.addAll(newPage); // إضافة المزيد عند التمرير
     }
 
     hasMore.value = endIndex < filteredNotifications.length;
@@ -430,6 +484,16 @@ class NotificationsController extends GetxController {
 
   Future<void> handleNotificationTap(int index) async {
     final notification = notifications[index];
+
+    // التعامل الخاص مع إشعار التحديث
+    if (notification.type == NotificationType.update &&
+        notification.payload != null) {
+      final uri = Uri.parse(notification.payload!);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+      return; // الخروج من الدالة بعد فتح الرابط
+    }
 
     switch (notification.type) {
       case NotificationType.morningAdhkar:

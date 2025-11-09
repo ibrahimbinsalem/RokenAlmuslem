@@ -9,6 +9,7 @@ enum NotificationType {
   general,
   resetReminder,
   prayerTime,
+  update, // <-- النوع الجديد
 }
 
 extension NotificationTypeExtension on NotificationType {
@@ -28,6 +29,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'تذكير إعادة التعيين';
       case NotificationType.prayerTime:
         return 'مواقيت الصلاة';
+      case NotificationType.update:
+        return 'تحديث التطبيق';
       default:
         return 'إشعار عام';
     }
@@ -49,6 +52,8 @@ extension NotificationTypeExtension on NotificationType {
         return Icons.refresh;
       case NotificationType.prayerTime:
         return Icons.mosque;
+      case NotificationType.update:
+        return Icons.system_update_alt;
       default:
         return Icons.notifications;
     }
@@ -70,6 +75,8 @@ extension NotificationTypeExtension on NotificationType {
         return const Color(0xFFE53935);
       case NotificationType.prayerTime:
         return const Color(0xFF3949AB);
+      case NotificationType.update:
+        return Colors.teal;
       default:
         return Colors.grey;
     }

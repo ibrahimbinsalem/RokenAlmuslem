@@ -62,19 +62,28 @@ class LoginControllerImp extends LoginController {
           if (data['status'] == 'success') {
             // تم إلغاء التحقق من حالة الحساب (active) بناءً على طلبك
             statusRequest = StatusRequist.succes;
+            print("===========${response}");
 
             String userId = data['data']['id'].toString();
             myServices.sharedprf.setString("id", userId);
             myServices.sharedprf.setString("username", data['data']['name']);
             myServices.sharedprf.setString("email", data['data']['email']);
+            myServices.sharedprf.setString(
+              "role_id",
+              data['data']['role_id'].toString(),
+            );
+            myServices.sharedprf.setString(
+              "role_name",
+              data['data']['role_name'],
+            );
             // myServices.sharedprf.setString(
             //   "userroul",
             //   data['data']['id'].toString(),
             // );
-            myServices.sharedprf.setString(
-              "userroulname",
-              data['data']['name'],
-            );
+            // myServices.sharedprf.setString(
+            //   "userroulname",
+            //   data['data']['name'],
+            // );
             // myServices.sharedprf.setString(
             //   "usersimage",
             //   data['data']['image'] ?? "",
@@ -96,6 +105,9 @@ class LoginControllerImp extends LoginController {
               " مرحبا بك :  ${myServices.sharedprf.getString("username")}",
               Colors.green,
             );
+            print(myServices.sharedprf.getString("role_id"));
+            print(myServices.sharedprf.getString("role_name"));
+
             Get.offAllNamed(AppRoute.homePage);
           } else {
             // بيانات الدخول غير صحيحة
