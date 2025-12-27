@@ -4,11 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:rokenalmuslem/core/class/app_setting_mg.dart'; // استيراد AppSettingsController
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart'; // استيراد PrayerTimesController
+import 'package:rokenalmuslem/core/services/api_service.dart';
 import 'package:rokenalmuslem/core/services/localnotification.dart'
     hide
         NotificationType; // تأكد من 'hide NotificationType' لتجنب التضارب إذا كان موجودًا
 
 import 'package:url_launcher/url_launcher.dart';
+import 'package:rokenalmuslem/core/services/services.dart';
 import 'notification_item.dart'; // تأكد من أن هذا الملف موجود وبه تعريف NotificationItem
 import 'dart:convert'; // لاستخدام json.decode
 
@@ -16,16 +18,17 @@ class NotificationsController extends GetxController {
   final RxList<NotificationItem> notifications = <NotificationItem>[].obs;
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
-  final RxBool hasMore = true.obs;
 
-  final int _notificationsPerPage = 20; // عدد الإشعارات لكل صفحة
-  int _currentPage = 0; // الصفحة الحالية للتحميل اللانهائي
+  List<NotificationItem> _remoteNotificationsCache = [];
 
   // حقن متحكمات التبعية
   final NotificationService _notificationService;
+  final ApiService _apiService = ApiService();
+  final MyServices _myServices = Get.find<MyServices>();
   late AppSettingsController _appSettingsController;
   late PrayerTimesController
   _prayerTimesController; // إضافة PrayerTimesController
+  final Set<int> _dismissedRemoteIds = {};
 
   // Constructor مع حقن التبعيات
   NotificationsController({NotificationService? notificationService})
@@ -45,8 +48,29 @@ class NotificationsController extends GetxController {
   }
 
   Future<void> _initializeNotifications() async {
+    _loadDismissedRemoteIds();
     await _checkForPendingUpdateNotification();
     await refreshNotifications();
+  }
+
+  void _loadDismissedRemoteIds() {
+    final stored = _myServices.sharedprf.getStringList(
+      "dismissed_remote_notifications",
+    );
+    if (stored != null) {
+      _dismissedRemoteIds
+        ..clear()
+        ..addAll(
+          stored.map((item) => int.tryParse(item)).whereType<int>(),
+        );
+    }
+  }
+
+  void _saveDismissedRemoteIds() {
+    _myServices.sharedprf.setStringList(
+      "dismissed_remote_notifications",
+      _dismissedRemoteIds.map((id) => id.toString()).toList(),
+    );
   }
 
   /// Checks SharedPreferences for a pending update URL and adds it as a notification.
@@ -89,9 +113,6 @@ class NotificationsController extends GetxController {
     if (notifications.isEmpty)
       isLoading.value = true; // أظهر التحميل فقط إذا كانت القائمة فارغة
     errorMessage.value = '';
-    // **الإصلاح**: لا تقم بمسح القائمة هنا، لأن إشعار التحديث قد يكون موجودًا بالفعل
-    _currentPage = 0; // إعادة تعيين الصفحة عند التحديث
-    hasMore.value = true; // إعادة تعيين حالة التحميل اللانهائي
 
     try {
       // 1. اطلب من AppSettingsController إعادة مزامنة إشعارات الأذكار
@@ -120,26 +141,9 @@ class NotificationsController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
       notifications.clear(); // تأكيد المسح حتى عند التحميل الأولي
-      _currentPage = 0;
-      hasMore.value = true;
       await _fetchNotifications(isRefresh: true);
     } catch (e) {
       _handleError(e);
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> loadMoreNotifications() async {
-    if (!hasMore.value || isLoading.value) return;
-
-    try {
-      isLoading.value = true;
-      _currentPage++; // زيادة رقم الصفحة
-      await _fetchNotifications(isRefresh: false); // أضف كمعامل
-    } catch (e) {
-      _handleError(e);
-      _currentPage--; // التراجع عن رقم الصفحة في حالة الخطأ
     } finally {
       isLoading.value = false;
     }
@@ -259,43 +263,72 @@ class NotificationsController extends GetxController {
       }
     }
 
-    // فرز الإشعارات حسب الوقت (الأحدث أولاً)
-    filteredNotifications.sort((a, b) => b.time.compareTo(a.time));
-
-    final startIndex = _currentPage * _notificationsPerPage;
-
-    // إذا لم يكن هناك شيء لإضافته بعد التصفية، قم بتحديث الحالة
-    if (startIndex >= filteredNotifications.length) {
-      hasMore.value = false;
-      if (isRefresh) {
-        // عند التحديث، احتفظ بإشعار التحديث إذا كان موجودًا
-        notifications.removeWhere(
-          (item) => item.type != NotificationType.update,
-        );
-      }
-      return;
-    }
-
-    final endIndex = startIndex + _notificationsPerPage;
-    final newPage = filteredNotifications.sublist(
-      startIndex,
-      endIndex.clamp(0, filteredNotifications.length),
+    final remoteNotifications = await _fetchRemoteNotifications(
+      forceRefresh: isRefresh,
     );
 
-    if (isRefresh) {
-      // عند التحديث، احتفظ بإشعار التحديث وأضف الإشعارات الجديدة
-      final updateItem = notifications.firstWhereOrNull(
-        (item) => item.type == NotificationType.update,
-      );
-      notifications.clear();
-      if (updateItem != null) notifications.add(updateItem);
-      notifications.addAll(newPage);
-    } else {
-      notifications.addAll(newPage); // إضافة المزيد عند التمرير
+    final allNotifications = [
+      ...remoteNotifications,
+      ...filteredNotifications,
+    ];
+
+    // فرز الإشعارات حسب الوقت (الأحدث أولاً)
+    allNotifications.sort((a, b) => b.time.compareTo(a.time));
+    notifications.assignAll(allNotifications);
+  }
+
+  Future<List<NotificationItem>> _fetchRemoteNotifications({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _remoteNotificationsCache.isNotEmpty) {
+      return _remoteNotificationsCache;
     }
 
-    hasMore.value = endIndex < filteredNotifications.length;
+    final authToken = _myServices.sharedprf.getString("token");
+    if (authToken == null || authToken.isEmpty) {
+      _remoteNotificationsCache = [];
+      return _remoteNotificationsCache;
+    }
+
+    try {
+      final items = await _apiService.fetchNotifications(
+        authToken: authToken,
+      );
+      _remoteNotificationsCache = items.map((item) {
+        final rawId = item['notification_id'];
+        final id = rawId is int ? rawId : int.tryParse("$rawId") ?? 0;
+        final createdAt = item['created_at'];
+        final parsedTime =
+            createdAt is String ? DateTime.tryParse(createdAt) : null;
+        final isRead = item['is_read'] == true || item['is_read'] == 1;
+        final url = item['notification_url']?.toString();
+        final route = item['notification_route']?.toString();
+        final type = NotificationType.general;
+
+        return NotificationItem(
+          id: id + 1000000,
+          remoteId: id,
+          title: item['notification_title']?.toString() ?? 'إشعار',
+          message: item['notification_body']?.toString() ?? '',
+          time: parsedTime ?? DateTime.now(),
+          isRead: isRead,
+          type: type,
+          icon: _getIconForType(type),
+          color: _getColorForType(type),
+          payload: url,
+          actionType: route != null && route.isNotEmpty ? 'route' : 'url',
+          actionValue: route != null && route.isNotEmpty ? route : url,
+        );
+      }).where((notification) {
+        return !_dismissedRemoteIds.contains(notification.remoteId);
+      }).toList();
+    } catch (e) {
+      debugPrint('Failed to fetch remote notifications: $e');
+    }
+
+    return _remoteNotificationsCache;
   }
+
 
   // تحديد نوع الإشعار بناءً على الـ payload (والعنوان كخيار احتياطي)
   NotificationType _determineNotificationType(
@@ -428,10 +461,10 @@ class NotificationsController extends GetxController {
 
   Future<void> clearAllNotifications() async {
     final confirmed = await _showConfirmationDialog(
-      title: "حذف الإشعارات",
-      message: "هل أنت متأكد من رغبتك في حذف جميع الإشعارات المجدولة؟",
-      confirmText: "حذف",
-      confirmColor: Colors.red,
+      title: "تمييز الكل كمقروء",
+      message: "هل تريد تمييز جميع الإشعارات كمقروءة؟",
+      confirmText: "تأكيد",
+      confirmColor: Colors.teal,
       cancelText: "تراجع",
     );
 
@@ -439,17 +472,34 @@ class NotificationsController extends GetxController {
 
     try {
       isLoading.value = true;
-      // إلغاء جميع الإشعارات المجدولة في نظام التشغيل
-      await _notificationService.cancelAllNotifications();
-      notifications.clear(); // مسح القائمة في المتحكم
-      hasMore.value = false; // لا يوجد المزيد من الإشعارات
-      // تحديث الواجهة لإظهار رسالة "لا توجد إشعارات"
-      // هذا السطر مهم لـ GetX ليعرف أن القائمة قد تغيرت بشكل جذري
-      notifications.refresh();
+      final authToken = _myServices.sharedprf.getString("token");
+      if (authToken != null) {
+        final remoteUnread = notifications.where(
+          (item) => item.isRemote && !item.isRead && item.remoteId != null,
+        );
+        for (final item in remoteUnread) {
+          try {
+            await _apiService.markNotificationRead(
+              authToken: authToken,
+              notificationId: item.remoteId!,
+            );
+            _remoteNotificationsCache.removeWhere(
+              (cached) => cached.remoteId == item.remoteId,
+            );
+          } catch (e) {
+            debugPrint('Failed to mark notification read: $e');
+          }
+        }
+      }
+
+      final updated = notifications
+          .map((item) => item.copyWith(isRead: true))
+          .toList();
+      notifications.assignAll(updated);
 
       Get.snackbar(
-        "تم الحذف",
-        "تم حذف جميع الإشعارات المجدولة بنجاح",
+        "تم التحديث",
+        "تم تمييز جميع الإشعارات كمقروءة",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -461,30 +511,70 @@ class NotificationsController extends GetxController {
     }
   }
 
-  Future<void> markAsRead(int index) async {
-    if (index >= 0 && index < notifications.length) {
-      final notificationItem = notifications[index];
-      // 1. إلغاء الإشعار من النظام لأنه تم التعامل معه
+  Future<void> markAsRead(NotificationItem notificationItem) async {
+    final index = notifications.indexWhere((item) {
+      if (notificationItem.remoteId != null) {
+        return item.remoteId == notificationItem.remoteId;
+      }
+      return item.id == notificationItem.id;
+    });
+    if (index == -1) {
+      return;
+    }
+
+    if (notificationItem.isRemote && notificationItem.remoteId != null) {
+      final authToken = _myServices.sharedprf.getString("token");
+      if (authToken != null) {
+        try {
+          await _apiService.markNotificationRead(
+            authToken: authToken,
+            notificationId: notificationItem.remoteId!,
+          );
+          _remoteNotificationsCache.removeWhere(
+            (item) => item.remoteId == notificationItem.remoteId,
+          );
+        } catch (e) {
+          debugPrint('Failed to mark remote notification read: $e');
+        }
+      }
+    }
+
+    notifications[index] = notifications[index].copyWith(isRead: true);
+    notifications.refresh();
+  }
+
+  Future<void> dismissNotification(NotificationItem notificationItem) async {
+    notifications.removeWhere((item) {
+      if (notificationItem.remoteId != null) {
+        return item.remoteId == notificationItem.remoteId;
+      }
+      return item.id == notificationItem.id;
+    });
+    notifications.refresh();
+
+    if (notificationItem.isRemote && notificationItem.remoteId != null) {
+      _dismissedRemoteIds.add(notificationItem.remoteId!);
+      _saveDismissedRemoteIds();
+      final authToken = _myServices.sharedprf.getString("token");
+      if (authToken != null) {
+        try {
+          await _apiService.deleteNotification(
+            authToken: authToken,
+            notificationId: notificationItem.remoteId!,
+          );
+          _remoteNotificationsCache.removeWhere(
+            (item) => item.remoteId == notificationItem.remoteId,
+          );
+        } catch (e) {
+          debugPrint('Failed to delete remote notification: $e');
+        }
+      }
+    } else {
       await _notificationService.cancelNotification(notificationItem.id);
-
-      // 2. إزالة الإشعار من القائمة المعروضة في الواجهة
-      notifications.removeAt(index);
-
-      // 3. تحديث الواجهة
-      notifications.refresh();
-
-      Get.snackbar(
-        "تمت المعالجة",
-        "تمت معالجة الإشعار: ${notificationItem.title}",
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
-      );
     }
   }
 
-  Future<void> handleNotificationTap(int index) async {
-    final notification = notifications[index];
-
+  Future<void> handleNotificationTap(NotificationItem notification) async {
     // التعامل الخاص مع إشعار التحديث
     if (notification.type == NotificationType.update &&
         notification.payload != null) {
@@ -493,6 +583,26 @@ class NotificationsController extends GetxController {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
       return; // الخروج من الدالة بعد فتح الرابط
+    }
+
+    if (notification.actionType == 'route' &&
+        notification.actionValue != null) {
+      if (_isAllowedRoute(notification.actionValue!)) {
+        Get.toNamed(notification.actionValue!);
+        await markAsRead(notification);
+        return;
+      }
+    }
+
+    final urlCandidate =
+        notification.actionType == 'url'
+            ? notification.actionValue
+            : notification.payload;
+    final url = _normalizeUrl(urlCandidate);
+    if (url != null) {
+      await _launchUrlSafely(url);
+      await markAsRead(notification);
+      return;
     }
 
     switch (notification.type) {
@@ -539,7 +649,56 @@ class NotificationsController extends GetxController {
         );
     }
     // بعد التعامل مع الإشعار، قم بإزالته من القائمة والنظام
-    await markAsRead(index);
+    await markAsRead(notification);
+  }
+
+  Uri? _normalizeUrl(String? value) {
+    if (value == null) {
+      return null;
+    }
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    final withScheme = trimmed.startsWith('http://') ||
+            trimmed.startsWith('https://')
+        ? trimmed
+        : 'https://$trimmed';
+    final uri = Uri.tryParse(withScheme);
+    if (uri == null) {
+      return null;
+    }
+    if (uri.scheme != 'http' && uri.scheme != 'https') {
+      return null;
+    }
+    return uri;
+  }
+
+  Future<void> _launchUrlSafely(Uri uri) async {
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        debugPrint('Failed to launch URL: $uri');
+      }
+    } catch (e) {
+      debugPrint('Failed to launch URL: $e');
+    }
+  }
+
+  bool _isAllowedRoute(String value) {
+    const allowed = {
+      '/homepage',
+      '/stories',
+      '/prophetStories',
+      '/setting',
+      '/quran',
+      '/msbaha',
+      '/about',
+    };
+    return allowed.contains(value);
   }
 
   String formatTime(DateTime time) {

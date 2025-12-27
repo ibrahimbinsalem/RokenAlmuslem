@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart'; // For TimeOfDay
 import 'package:rokenalmuslem/core/services/localnotification.dart'; // استيراد NotificationService
+import 'package:rokenalmuslem/core/services/api_service.dart';
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart'; // استيراد PrayerTimesController
 
 /// AppSettingsController
@@ -11,6 +12,8 @@ class AppSettingsController extends GetxController {
   late SharedPreferences _prefs;
   late NotificationService _notificationService;
   late PrayerTimesController _prayerTimesController;
+  final ApiService _apiService = ApiService();
+  bool _suppressRemoteSync = false;
 
   final notificationsEnabled = true.obs;
   final notificationIntervalMinutes = 60.obs;
@@ -81,6 +84,7 @@ class AppSettingsController extends GetxController {
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyCurrentTheme());
 
     _syncNotificationsState();
+    await syncFromServer();
   }
 
   Future<void> _saveSetting(String key, dynamic value) async {
@@ -99,6 +103,89 @@ class AppSettingsController extends GetxController {
     Get.changeThemeMode(
       darkModeEnabled.value ? ThemeMode.dark : ThemeMode.light,
     );
+  }
+
+  String _localeToLabel(String locale) {
+    return locale == 'en' ? 'English' : 'العربية';
+  }
+
+  String _labelToLocale(String label) {
+    return label == 'English' ? 'en' : 'ar';
+  }
+
+  Future<void> syncFromServer() async {
+    final authToken = _prefs.getString('token');
+    if (authToken == null) {
+      return;
+    }
+
+    try {
+      final data = await _apiService.fetchAppSettings(authToken: authToken);
+      if (data.isEmpty) {
+        return;
+      }
+      _suppressRemoteSync = true;
+      await _applyRemoteSettings(data);
+    } catch (e) {
+      debugPrint('Failed to sync app settings from server: $e');
+    } finally {
+      _suppressRemoteSync = false;
+    }
+  }
+
+  Future<void> _applyRemoteSettings(Map<String, dynamic> data) async {
+    final remoteNotifications = data['notifications_enabled'];
+    if (remoteNotifications is bool &&
+        remoteNotifications != notificationsEnabled.value) {
+      notificationsEnabled.value = remoteNotifications;
+      await _saveSetting('notificationsEnabled', remoteNotifications);
+      if (remoteNotifications) {
+        _syncNotificationsState();
+      } else {
+        await _notificationService.cancelAllNotifications();
+      }
+    }
+
+    final remoteLanguage = data['language'];
+    if (remoteLanguage is String &&
+        (remoteLanguage == 'ar' || remoteLanguage == 'en')) {
+      final label = _localeToLabel(remoteLanguage);
+      if (selectedLanguage.value != label) {
+        selectedLanguage.value = label;
+        await _saveSetting('selectedLanguage', label);
+        Get.updateLocale(Locale(remoteLanguage));
+      }
+    }
+
+    final remoteTheme = data['theme'];
+    if (remoteTheme is String &&
+        (remoteTheme == 'dark' || remoteTheme == 'light')) {
+      final shouldUseDark = remoteTheme == 'dark';
+      if (darkModeEnabled.value != shouldUseDark) {
+        darkModeEnabled.value = shouldUseDark;
+        await _saveSetting('darkModeEnabled', shouldUseDark);
+        _applyCurrentTheme();
+      }
+    }
+  }
+
+  Future<void> _pushRemoteUpdate(Map<String, dynamic> payload) async {
+    if (_suppressRemoteSync) {
+      return;
+    }
+    final authToken = _prefs.getString('token');
+    if (authToken == null) {
+      return;
+    }
+
+    try {
+      await _apiService.updateAppSettings(
+        authToken: authToken,
+        payload: payload,
+      );
+    } catch (e) {
+      debugPrint('Failed to update app settings on server: $e');
+    }
   }
 
   Future<void> setNotificationsEnabled(bool value) async {
@@ -139,6 +226,10 @@ class AppSettingsController extends GetxController {
         colorText: Colors.white,
       );
     }
+
+    await _pushRemoteUpdate({
+      'notifications_enabled': notificationsEnabled.value,
+    });
   }
 
   Future<void> setNotificationIntervalMinutes(int value) async {
@@ -153,12 +244,20 @@ class AppSettingsController extends GetxController {
     selectedLanguage.value = value;
     await _saveSetting('selectedLanguage', value);
     Get.updateLocale(Locale(value == 'العربية' ? 'ar' : 'en'));
+
+    await _pushRemoteUpdate({
+      'language': _labelToLocale(value),
+    });
   }
 
   Future<void> setDarkModeEnabled(bool value) async {
     darkModeEnabled.value = value;
     await _saveSetting('darkModeEnabled', value);
     _applyCurrentTheme();
+
+    await _pushRemoteUpdate({
+      'theme': value ? 'dark' : 'light',
+    });
   }
 
   Future<void> setFontSizeMultiplier(double value) async {

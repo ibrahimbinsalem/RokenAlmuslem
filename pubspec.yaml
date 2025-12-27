@@ -116,6 +116,19 @@ flutter:
     - assets/images/
     - assets/fonts/
     - assets/json/
+  fonts:
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Bold.ttf
+    - family: ArefRuqaa
+      fonts:
+        - asset: assets/fonts/ArefRuqaa-Bold.ttf
+    - family: Lemonada
+      fonts:
+        - asset: assets/fonts/Lemonada-Bold.ttf
+    - family: Ruluko
+      fonts:
+        - asset: assets/fonts/Ruluko-Regular.ttf
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

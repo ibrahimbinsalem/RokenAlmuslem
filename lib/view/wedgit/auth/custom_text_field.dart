@@ -21,6 +21,7 @@ class CustomAuthTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final inputTheme = theme.inputDecorationTheme;
     return TextFormField(
       controller: controller,
       obscureText: isPassword,
@@ -29,28 +30,14 @@ class CustomAuthTextField extends StatelessWidget {
       style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(
-          color: theme.colorScheme.onSurface.withOpacity(0.5),
-        ),
+        hintStyle: inputTheme.hintStyle,
         prefixIcon: Icon(icon, color: theme.colorScheme.primary),
-        filled: true,
-        fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.5),
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 18,
-          horizontal: 20,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.dividerColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
+        filled: inputTheme.filled,
+        fillColor: inputTheme.fillColor,
+        contentPadding: inputTheme.contentPadding,
+        border: inputTheme.border,
+        enabledBorder: inputTheme.enabledBorder,
+        focusedBorder: inputTheme.focusedBorder,
       ),
     );
   }

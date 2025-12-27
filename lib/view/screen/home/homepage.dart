@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:rokenalmuslem/core/constant/appcolor.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
 import 'package:rokenalmuslem/controller/ayah_controller.dart';
@@ -62,40 +62,37 @@ class _HomePageState extends State<HomePage> {
     // استخدم MediaQuery للحصول على أبعاد الشاشة
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     // لوحة الألوان
-    const primaryColor = Color(0xFF8FBC8F);
-    const accentColor = Color(0xFFD4AF37);
-    const bgColorStart = Color(0xFF0D1B2A);
-    const bgColorEnd = Color(0xFF0F0F1A);
-    const cardColor = Color(0xFF1A2A3A);
-    const iconBgColor = Color(0xFF2E7D32);
+    final primaryColor = scheme.primary;
+    final accentColor = scheme.secondary;
+    final cardColor = scheme.surface;
+    final iconBgColor = scheme.primary.withOpacity(isDark ? 0.2 : 0.12);
+    final textPrimary =
+        isDark ? Colors.white : scheme.onBackground;
+    final textSecondary =
+        isDark ? Colors.white70 : scheme.onBackground.withOpacity(0.7);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [bgColorStart, bgColorEnd],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-
+      body: AppBackground(
         child: SafeArea(
           child: Obx(() {
             if (!tasbeehController.isPrefsInitialized.value) {
               // هذا الشرط سيبقى كما هو لأنه يعمل بشكل صحيح
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(color: primaryColor),
-                    SizedBox(height: 20), // ارتفاع نسبي
+                    const SizedBox(height: 20), // ارتفاع نسبي
                     Text(
                       "جاري تحميل البيانات...",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textPrimary,
                         fontSize: 20, // حجم خط نسبي
                       ),
                     ),
@@ -122,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                                 fontSize: screenWidth * 0.07, // حجم خط نسبي
                                 fontWeight: FontWeight.bold,
                                 color: primaryColor,
-                                fontFamily: 'Uthmanic',
+                                fontFamily: 'Amiri',
                                 shadows: [
                                   Shadow(
                                     blurRadius: 10.0,
@@ -157,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                           Text(
                                 ": اختصارات",
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: textSecondary,
                                   fontWeight: FontWeight.w600,
                                   fontSize: screenWidth * 0.045, // حجم خط نسبي
                                 ),
@@ -261,7 +258,7 @@ class _HomePageState extends State<HomePage> {
 
                     // رسالة يوم الجمعة (تظهر فقط يوم الجمعة)
                     if (isFriday) ...[
-                      _buildSectionHeader(
+                      _buildSectionHeader(context: context, 
                             title: "رسالة يوم الجمعة",
                             onPressed: () {},
                             accentColor: accentColor,
@@ -304,7 +301,7 @@ class _HomePageState extends State<HomePage> {
                     ],
 
                     // آية اليوم
-                    _buildSectionHeader(
+                    _buildSectionHeader(context: context, 
                           title: "اية اليوم",
                           onPressed: () {},
                           accentColor: accentColor,
@@ -314,6 +311,7 @@ class _HomePageState extends State<HomePage> {
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideX(begin: -0.1, end: 0),
                     _buildAyahCard(
+                          context,
                           ayahController
                               .currentAyah, // تمرير المتغير التفاعلي مباشرة
                           primaryColor,
@@ -325,7 +323,7 @@ class _HomePageState extends State<HomePage> {
                         .slideY(begin: 0.1, end: 0),
 
                     // حديث اليوم
-                    _buildSectionHeader(
+                    _buildSectionHeader(context: context, 
                           title: "حديث اليوم",
                           onPressed: () {},
                           accentColor: accentColor,
@@ -337,6 +335,7 @@ class _HomePageState extends State<HomePage> {
                     // استخدام Obx لمراقبة التغييرات في hadithController
                     Obx(() {
                           return _buildHadithCard(
+                            context,
                             hadithController,
                             primaryColor,
                             cardColor,
@@ -348,7 +347,7 @@ class _HomePageState extends State<HomePage> {
                         .slideY(begin: 0.1, end: 0),
 
                     // أسماء الله الحسنى
-                    _buildSectionHeader(
+                    _buildSectionHeader(context: context, 
                           title: "اسماء الله الحسنى",
                           onPressed: () {},
                           accentColor: accentColor,
@@ -358,6 +357,7 @@ class _HomePageState extends State<HomePage> {
                         .fadeIn(delay: Duration(seconds: 1))
                         .slideX(begin: -0.1, end: 0),
                     _buildAsmaAllahCard(
+                          context,
                           tasbeehController
                               .currentAsmaAllah, // تمرير المتغير التفاعلي مباشرة
                           primaryColor,
@@ -376,7 +376,7 @@ class _HomePageState extends State<HomePage> {
                             color: primaryColor,
                             fontSize: screenWidth * 0.08, // حجم خط نسبي
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Uthmanic',
+                            fontFamily: 'Amiri',
                             shadows: [
                               Shadow(
                                 blurRadius: 8.0,
@@ -423,6 +423,14 @@ class _HomePageState extends State<HomePage> {
     Color accentColor,
     double screenWidth,
   ) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = scheme.surface;
+    final cardText = scheme.onSurface;
+    final cardTextSecondary = scheme.onSurface.withOpacity(0.7);
+    final textSecondary = scheme.onBackground.withOpacity(0.7);
+
     // تهيئة التقويم الهجري باللغة العربية
     HijriCalendar.setLocal('ar');
     // تهيئة التقويم الهجري والميلادي
@@ -443,16 +451,19 @@ class _HomePageState extends State<HomePage> {
               vertical: screenWidth * 0.02,
             ),
             padding: EdgeInsets.all(screenWidth * 0.04),
-            child: const Center(
+            child: Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "جاري تحميل أوقات الصلاة...",
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: textSecondary),
                   ),
-                  SizedBox(width: 10),
-                  CircularProgressIndicator(strokeWidth: 2),
+                  const SizedBox(width: 10),
+                  CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: scheme.primary,
+                  ),
                 ],
               ),
             ),
@@ -508,7 +519,7 @@ class _HomePageState extends State<HomePage> {
               ),
               padding: EdgeInsets.all(screenWidth * 0.04),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A2A3A).withOpacity(0.7),
+                color: cardColor.withOpacity(isDark ? 0.6 : 0.95),
                 borderRadius: BorderRadius.circular(screenWidth * 0.05),
                 border: Border.all(
                   color: primaryColor.withOpacity(0.3),
@@ -531,7 +542,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         hijriDate.toFormat("d MMMM yyyy"),
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: cardTextSecondary,
                           fontSize: screenWidth * 0.035,
                           fontWeight: FontWeight.w500,
                         ),
@@ -539,7 +550,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         gregorianFormatter.format(gregorianDate),
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: cardTextSecondary,
                           fontSize: screenWidth * 0.035,
                           fontWeight: FontWeight.w500,
                         ),
@@ -551,10 +562,10 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     DateFormat('hh:mm:ss a', 'ar').format(now),
                     style: TextStyle(
-                      color: Colors.white,
+                      color: cardText,
                       fontSize: screenWidth * 0.1,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'Tajawal',
+                      fontFamily: 'Amiri',
                       shadows: [
                         Shadow(
                           blurRadius: 8,
@@ -571,10 +582,10 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         countdown,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: cardText,
                           fontSize: screenWidth * 0.045,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -606,6 +617,7 @@ class _HomePageState extends State<HomePage> {
     double sizeFactor = 0.18, // عامل نسبي لحجم الأيقونة
   }) {
     final double itemSize = MediaQuery.of(context).size.width * sizeFactor;
+    final textColor = Theme.of(context).colorScheme.onSurface;
     return SizedBox(
       width: itemSize * 1.2, // لتوفير مساحة للنص تحت الأيقونة
       child: Column(
@@ -645,7 +657,7 @@ class _HomePageState extends State<HomePage> {
                 child: Image.asset(
                   icon,
                   fit: BoxFit.contain,
-                  color: Colors.white.withOpacity(0.9),
+                  color: textColor.withOpacity(0.9),
                 ),
               ),
             ),
@@ -654,7 +666,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.95),
+              color: textColor,
               fontSize: itemSize * 0.18, // حجم خط نسبي
               fontWeight: FontWeight.w600,
             ),
@@ -666,11 +678,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSectionHeader({
+    required BuildContext context,
     required String title,
     required VoidCallback onPressed,
     required Color accentColor,
     required double screenWidth, // استقبل عرض الشاشة
   }) {
+    final textColor = Theme.of(context).colorScheme.onBackground;
     return Padding(
       padding: EdgeInsets.only(
         top: screenWidth * 0.07, // حشو علوي نسبي
@@ -693,7 +707,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             ": $title",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.95),
+              color: textColor,
               fontSize: screenWidth * 0.05, // حجم خط نسبي
               fontWeight: FontWeight.bold,
               shadows: [
@@ -711,6 +725,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildAyahCard(
+    BuildContext context,
     RxMap<String, String> item, // استقبال المتغير التفاعلي
     Color primaryColor,
     Color cardColor,
@@ -719,6 +734,7 @@ class _HomePageState extends State<HomePage> {
     final String ayah =
         item.value["ayah"] ?? "جاري تحميل الآية..."; // الوصول للقيمة هنا
     final String surah = item["surah"] ?? "";
+    final textColor = Theme.of(context).colorScheme.onSurface;
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -744,10 +760,10 @@ class _HomePageState extends State<HomePage> {
           Text(
             ayah,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.95),
+              color: textColor,
               fontSize: screenWidth * 0.055, // حجم خط نسبي
               fontWeight: FontWeight.w600,
-              fontFamily: 'Uthmanic',
+              fontFamily: 'Amiri',
               height: 1.8,
               shadows: [
                 Shadow(
@@ -807,11 +823,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHadithCard(
+    BuildContext context,
     HadithController controller, // استقبال المتحكم
     Color primaryColor,
     Color cardColor,
     double screenWidth, // استقبل عرض الشاشة
   ) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.04,
@@ -860,7 +878,7 @@ class _HomePageState extends State<HomePage> {
             Text(
               controller.currentHadith.value!.text!,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.95),
+                color: textColor,
                 fontSize: screenWidth * 0.05, // حجم خط نسبي
                 fontWeight: FontWeight.w600,
                 height: 1.6,
@@ -930,6 +948,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildAsmaAllahCard(
+    BuildContext context,
     RxMap<String, String> asmaAllahData, // استقبال المتغير التفاعلي
     Color primaryColor,
     Color cardColor,
@@ -938,6 +957,7 @@ class _HomePageState extends State<HomePage> {
     final String name =
         asmaAllahData.value["name"] ?? "جاري التحميل..."; // الوصول للقيمة هنا
     final String dis = asmaAllahData.value["dis"] ?? "يرجى الانتظار.";
+    final textColor = Theme.of(context).colorScheme.onSurface;
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -970,7 +990,7 @@ class _HomePageState extends State<HomePage> {
                     color: primaryColor,
                     fontSize: screenWidth * 0.12, // حجم خط نسبي كبير للاسم
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'Uthmanic',
+                    fontFamily: 'Amiri',
                     shadows: [
                       Shadow(
                         blurRadius: 10.0,
@@ -992,7 +1012,7 @@ class _HomePageState extends State<HomePage> {
             child: Text(
                   dis,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: textColor,
                     fontSize: screenWidth * 0.045, // حجم خط نسبي
                     fontWeight: FontWeight.w500,
                     height: 1.6,
@@ -1048,13 +1068,17 @@ class _HomePageState extends State<HomePage> {
 
   void _copyToClipboard(String text, BuildContext context) {
     Clipboard.setData(ClipboardData(text: text));
+    final scheme = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: const Color(0xff8FBC8F),
-        content: const Text(
+        backgroundColor: scheme.primary,
+        content: Text(
           "تم النسخ بنجاح",
           textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: scheme.onPrimary,
+          ),
         ),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,

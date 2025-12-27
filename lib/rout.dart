@@ -29,6 +29,10 @@ import 'package:rokenalmuslem/view/screen/more/fadelaldaker.dart';
 import 'package:rokenalmuslem/view/screen/more/fadelalduaa.dart';
 import 'package:rokenalmuslem/view/screen/more/msbaha.dart';
 import 'package:rokenalmuslem/view/screen/more/praytime.dart';
+import 'package:rokenalmuslem/view/screen/more/prophet_stories.dart';
+import 'package:rokenalmuslem/view/screen/more/prophet_story_detail.dart';
+import 'package:rokenalmuslem/view/screen/more/stories.dart';
+import 'package:rokenalmuslem/view/screen/more/story_detail.dart';
 import 'package:rokenalmuslem/view/screen/more/qablah.dart';
 import 'package:rokenalmuslem/view/screen/more/setting.dart';
 import 'package:rokenalmuslem/view/screen/onbording/onbording.dart';
@@ -75,6 +79,13 @@ List<GetPage<dynamic>>? routes = [
   GetPage(name: AppRoute.fadelaldaker, page: () => FadelAlDkerView()),
   GetPage(name: AppRoute.setting, page: () => SettingsPage()),
   GetPage(name: AppRoute.prytime, page: () => PrayerTimesView()),
+  GetPage(name: AppRoute.prophetStories, page: () => const ProphetStoriesView()),
+  GetPage(
+    name: AppRoute.prophetStoryDetail,
+    page: () => const ProphetStoryDetailView(),
+  ),
+  GetPage(name: AppRoute.stories, page: () => const StoriesView()),
+  GetPage(name: AppRoute.storyDetail, page: () => const StoryDetailView()),
   GetPage(name: AppRoute.quran, page: () => SurahListPage()),
   // GetPage(name: AppRoute.surahDetail, page: () => SurahDetailPage(surah:)),
 

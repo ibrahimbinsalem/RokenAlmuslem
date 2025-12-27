@@ -139,7 +139,7 @@ class AlrugiController extends GetxController {
               title,
               textAlign: isCentered ? TextAlign.center : TextAlign.right,
               style: TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Amiri',
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
                 color: const Color(0xFFFFD700),
@@ -201,7 +201,7 @@ class AlrugiController extends GetxController {
             content,
             textAlign: isArabic ? TextAlign.right : TextAlign.left,
             style: TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Amiri',
               fontSize: fontSize,
               color: Colors.white.withOpacity(0.95),
               height: 1.7,

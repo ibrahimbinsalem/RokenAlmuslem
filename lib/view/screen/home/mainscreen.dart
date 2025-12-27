@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:rokenalmuslem/controller/mainscreencontroller.dart';
-import 'package:rokenalmuslem/core/constant/color.dart';
 import 'package:rokenalmuslem/view/wedgit/buttons/butomNpar.dart';
 import 'package:rokenalmuslem/view/wedgit/buttons/floatacctionbutom.dart';
 
@@ -17,8 +16,9 @@ class MainScreen extends StatelessWidget {
     controllerImp.curentpage = controllerImp.curentpage;
     return GetBuilder<MainScreenControllerImp>(
       builder: (controller) {
+        final theme = Theme.of(context);
         return Scaffold(
-          backgroundColor: ColorsApp.appbar,
+          backgroundColor: theme.colorScheme.background,
           body: ResponsiveBuilder(
             builder: (context, sizingInformation) {
               return PopScope(

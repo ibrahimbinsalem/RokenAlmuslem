@@ -27,7 +27,7 @@ class AlrugiView extends StatelessWidget {
               title,
               textAlign: isCentered ? TextAlign.center : TextAlign.right,
               style: TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Amiri',
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
                 color: const Color(0xFFFFD700),
@@ -93,7 +93,7 @@ class AlrugiView extends StatelessWidget {
             content,
             textAlign: isArabic ? TextAlign.right : TextAlign.left,
             style: TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Amiri',
               fontSize: fontSize,
               color: Colors.white.withValues(alpha: 0.95),
               height: 1.7,
@@ -146,7 +146,7 @@ class AlrugiView extends StatelessWidget {
           'الرقية الشرعية',
           style: TextStyle(
             color: Colors.white,
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             fontSize: 26,
             fontWeight: FontWeight.w900,
             shadows: [
@@ -310,7 +310,7 @@ class AlrugiView extends StatelessWidget {
                     "الرُّقية الشرعية من السنة النبوية",
                     style: TextStyle(
                       color: const Color(0xFFFFD700),
-                      fontFamily: 'Tajawal',
+                      fontFamily: 'Amiri',
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       shadows: [
@@ -372,7 +372,7 @@ class AlrugiView extends StatelessWidget {
                     "الرُّقية الشرعية من القرآن الكريم",
                     style: TextStyle(
                       color: const Color(0xFFFFD700),
-                      fontFamily: 'Tajawal',
+                      fontFamily: 'Amiri',
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       shadows: [

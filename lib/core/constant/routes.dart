@@ -40,6 +40,10 @@ class AppRoute {
   static const String fadelaldaker = "/fadelaldaker";
   static const String setting = "/setting";
   static const String prytime = "/prytime";
+  static const String prophetStories = "/prophetStories";
+  static const String prophetStoryDetail = "/prophetStoryDetail";
+  static const String stories = "/stories";
+  static const String storyDetail = "/storyDetail";
 
   // Quran :
   static const String quran = "/quran";

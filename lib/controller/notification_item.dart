@@ -36,6 +36,9 @@ class NotificationItem {
   final IconData icon;
   final Color color;
   final String? payload;
+  final String? actionType;
+  final String? actionValue;
+  final int? remoteId;
 
   NotificationItem({
     required this.id,
@@ -47,7 +50,12 @@ class NotificationItem {
     this.icon = Icons.notifications,
     this.color = Colors.blue,
     this.payload,
+    this.actionType,
+    this.actionValue,
+    this.remoteId,
   });
+
+  bool get isRemote => remoteId != null;
 
   // Constructor لإنشاء NotificationItem من PendingNotificationRequest
   factory NotificationItem.fromPendingRequest(
@@ -109,6 +117,9 @@ class NotificationItem {
     IconData? icon,
     Color? color,
     String? payload,
+    String? actionType,
+    String? actionValue,
+    int? remoteId,
   }) {
     return NotificationItem(
       id: id ?? this.id,
@@ -120,6 +131,9 @@ class NotificationItem {
       icon: icon ?? this.icon,
       color: color ?? this.color,
       payload: payload ?? this.payload,
+      actionType: actionType ?? this.actionType,
+      actionValue: actionValue ?? this.actionValue,
+      remoteId: remoteId ?? this.remoteId,
     );
   }
 }

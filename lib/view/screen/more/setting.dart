@@ -6,21 +6,22 @@ import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
 import 'package:rokenalmuslem/core/services/localnotification.dart';
 import 'package:rokenalmuslem/view/screen/more/aboutbage.dart';
 import 'package:url_launcher/url_launcher.dart'; // تأكد من المسار الصحيح
+import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final AppSettingsController appSettings = Get.put(AppSettingsController());
-    final NotificationService notificationService = Get.put(
-      NotificationService(),
-    );
+    final AppSettingsController appSettings = Get.find<AppSettingsController>();
+    final NotificationService notificationService =
+        Get.find<NotificationService>();
 
     final ThemeData currentTheme = Theme.of(context);
+    final scheme = currentTheme.colorScheme;
 
     return Scaffold(
-      backgroundColor: currentTheme.colorScheme.surface,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(
           'الإعدادات',
@@ -31,7 +32,10 @@ class SettingsPage extends StatelessWidget {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.teal[900]!, Colors.teal[700]!, Colors.teal[500]!],
+              colors: [
+                scheme.primary.withOpacity(0.9),
+                scheme.secondary.withOpacity(0.85),
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -39,20 +43,21 @@ class SettingsPage extends StatelessWidget {
         ),
         foregroundColor: currentTheme.appBarTheme.foregroundColor,
       ),
-      body: Obx(
-        () => ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            _buildSectionTitle(context, 'الإعدادات العامة', currentTheme),
-            _buildToggleSetting(
-              context,
-              title: 'الوضع الليلي',
-              value: appSettings.darkModeEnabled.value,
-              onChanged: (newValue) async {
-                await appSettings.setDarkModeEnabled(newValue);
-              },
-              theme: currentTheme,
-            ),
+      body: AppBackground(
+        child: Obx(
+          () => ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              _buildSectionTitle(context, 'الإعدادات العامة', currentTheme),
+              _buildToggleSetting(
+                context,
+                title: 'الوضع الليلي',
+                value: appSettings.darkModeEnabled.value,
+                onChanged: (newValue) async {
+                  await appSettings.setDarkModeEnabled(newValue);
+                },
+                theme: currentTheme,
+              ),
             _buildSliderSetting(
               context,
               title: 'حجم الخط',
@@ -240,8 +245,9 @@ class SettingsPage extends StatelessWidget {
               },
               theme: currentTheme,
             ),
-            const SizedBox(height: 16),
-          ],
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

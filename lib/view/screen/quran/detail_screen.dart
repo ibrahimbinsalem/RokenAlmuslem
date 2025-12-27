@@ -31,7 +31,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
       appBar: AppBar(
         title: Text(
           widget.surah.englishName,
-          style: TextStyle(fontFamily: 'Uthmanic', fontSize: 24),
+          style: TextStyle(fontFamily: 'Amiri', fontSize: 24),
         ),
         centerTitle: true,
         flexibleSpace: Container(
@@ -100,7 +100,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                     Text(
                       widget.surah.name,
                       style: TextStyle(
-                        fontFamily: 'Uthmanic',
+                        fontFamily: 'Amiri',
                         fontSize: 32,
                         color: Color(0xFF046A38),
                       ),
@@ -150,7 +150,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
             child: Text(
               ayah.text,
               textAlign: TextAlign.right,
-              style: TextStyle(fontFamily: 'Uthmanic', fontSize: 24),
+              style: TextStyle(fontFamily: 'Amiri', fontSize: 24),
             ),
           ),
           Container(

@@ -1,9 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:rokenalmuslem/core/theme/app_palette.dart';
 
 class AppColors {
-  static const Color primaryColor = Color(0xFF2E7D32);
+  static const Color primaryColor = AppPalette.emerald;
+  static const Color accentColor = AppPalette.gold;
   static const Color white = Colors.white;
   static const Color errorColor = Color(0xFFD32F2F);
 }
@@ -40,6 +42,6 @@ class AppElevations {
 }
 
 class AppFonts {
-  static const String arabic = 'Lemonada';
-  static const String english = 'Roboto';
+  static const String arabic = 'Amiri';
+  static const String english = 'Ruluko';
 }

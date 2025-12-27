@@ -316,7 +316,7 @@ class TasbeehController extends GetxController {
         backgroundColor: Colors.grey[900],
         title: const Text(
           "تحديد العدد المستهدف",
-          style: TextStyle(color: Colors.white, fontFamily: 'Tajawal'),
+          style: TextStyle(color: Colors.white, fontFamily: 'Amiri'),
         ),
         content: TextField(
           controller: _targetController,
@@ -378,7 +378,7 @@ class TasbeehController extends GetxController {
         backgroundColor: Colors.grey[900],
         title: const Text(
           "اختر الذكر",
-          style: TextStyle(color: Colors.white, fontFamily: 'Tajawal'),
+          style: TextStyle(color: Colors.white, fontFamily: 'Amiri'),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -392,7 +392,7 @@ class TasbeehController extends GetxController {
                         color: currentDhikr.value == dhikr
                             ? const Color(0xff8FBC8F) // لون متناسق
                             : Colors.white,
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Amiri',
                         fontWeight: currentDhikr.value == dhikr
                             ? FontWeight.bold
                             : FontWeight.normal,

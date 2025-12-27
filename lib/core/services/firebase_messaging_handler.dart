@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/notificationcontroller.dart';
+import 'package:rokenalmuslem/core/services/api_service.dart';
 import 'package:rokenalmuslem/core/services/services.dart';
 import 'package:rokenalmuslem/core/services/localnotification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,24 +40,24 @@ class FirebaseMessagingHandler {
       print('Got a message whilst in the foreground!');
       print('Message data: ${message.data}');
 
-      if (message.notification != null) {
-        print(
-          'Message also contained a notification: ${message.notification!.title}',
-        );
+      final notification = message.notification;
+      final title = notification?.title ?? message.data['title']?.toString();
+      final body = notification?.body ?? message.data['body']?.toString();
 
-        // Handle the update notification logic
-        if (_handleUpdateNotification(message)) {
-          // If it's an update notification, we've already handled it.
-          // We can choose not to show a local notification if the app is open.
-          return;
-        }
+      if (_handleUpdateNotification(message)) {
+        return;
+      }
 
-        // For other notifications, show a local notification.
+      if ((title ?? '').isNotEmpty || (body ?? '').isNotEmpty) {
         _localNotificationService.showNotification(
-          title: message.notification!.title ?? 'إشعار جديد',
-          body: message.notification!.body ?? '',
+          title: title ?? 'إشعار جديد',
+          body: body ?? '',
           payload: json.encode(message.data),
         );
+      }
+
+      if (Get.isRegistered<NotificationsController>()) {
+        Get.find<NotificationsController>().refreshNotifications();
       }
     });
 
@@ -73,6 +75,24 @@ class FirebaseMessagingHandler {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print("App opened from background state by notification.");
       _handleTappedNotification(message); // **الإصلاح**: التعامل مع النقرة
+    });
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((String token) async {
+      final myServices = Get.find<MyServices>();
+      final authToken = myServices.sharedprf.getString("token");
+      if (authToken == null) {
+        return;
+      }
+      try {
+        final platform = Platform.isIOS ? 'ios' : 'android';
+        await ApiService().sendDeviceToken(
+          authToken: authToken,
+          deviceToken: token,
+          platform: platform,
+        );
+      } catch (e) {
+        print("Device token refresh registration failed: $e");
+      }
     });
   }
 }
@@ -103,6 +123,24 @@ void _handleTappedNotification(RemoteMessage message) {
       print('Update notification tapped. Launching URL: $updateUrl');
       final uri = Uri.parse(updateUrl);
       // We don't need to check canLaunchUrl, as launchUrl does it.
+      launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+    return;
+  }
+  final route = message.data['route'];
+  if (route is String && route.trim().isNotEmpty) {
+    Get.toNamed(route);
+    return;
+  }
+  final url = message.data['url'];
+  if (url is String && url.trim().isNotEmpty) {
+    final trimmed = url.trim();
+    final withScheme = trimmed.startsWith('http://') ||
+            trimmed.startsWith('https://')
+        ? trimmed
+        : 'https://$trimmed';
+    final uri = Uri.tryParse(withScheme);
+    if (uri != null) {
       launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }

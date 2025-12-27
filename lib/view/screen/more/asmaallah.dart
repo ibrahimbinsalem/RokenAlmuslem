@@ -24,7 +24,7 @@ class AsmaAllahView extends StatelessWidget {
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
           ),
         ),
         centerTitle: true,

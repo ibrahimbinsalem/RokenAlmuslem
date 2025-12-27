@@ -1,90 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:rokenalmuslem/core/constant/routes.dart';
 import 'package:rokenalmuslem/view/wedgit/buttons/customdrawer.dart'; // تأكد من أن هذا المسار صحيح في مشروعك
+import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
 
 class MorePage extends StatelessWidget {
   const MorePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A), // خلفية أغمق قليلاً وأكثر نعومة
-      endDrawer: CustomDrawer(),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 100, // زيادة ارتفاع الشريط العلوي لإعطاء مساحة أكبر
-            pinned: true,
-            centerTitle: true,
-            floating: true,
-            elevation: 8, // إضافة ظل للشريط العلوي
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(
-                bottom: 16.0,
-              ), // مسافة سفلية للعنوان
-              title: Center(
-                child: const Text(
-                  'المزيد',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24, // حجم أكبر للعنوان
-                    letterSpacing: 1.2, // تباعد بين الحروف
-                  ),
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.teal[900]!,
-                      Colors.teal[700]!,
-                      Colors.teal[500]!,
-                    ], // تدرج لوني أغنى
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Opacity(
-                  opacity: 0.1, // تقليل شفافية الصورة أكثر
-                  child: Image.asset(
-                    'assets/images/حلقات ذكر .png',
-                    fit: BoxFit.cover,
-                    color: Colors.black.withOpacity(0.3), // لون تراكب أغمق
-                    colorBlendMode: BlendMode.dstATop, // وضع دمج لتحسين المظهر
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              Builder(
-                builder: (context) {
-                  return IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.white),
-                    onPressed: () {
-                      Scaffold.of(
-                        context,
-                      ).openEndDrawer(); // فتح القائمة الجانبية
-                    },
-                    splashRadius: 24, // حجم تأثير النقر
-                  );
-                },
-              ),
-            ],
-          ),
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 200.0, // تحديد أقصى عرض لكل عنصر
-                crossAxisSpacing: 13,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.9, // تعديل نسبة العرض إلى الارتفاع
-              ), // استخدام هذا الـ delegate يجعله متجاوبًا
-              delegate: SliverChildListDelegate([
-                _buildFeatureCard(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      endDrawer: CustomDrawer(),
+      body: AppBackground(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 110,
+              pinned: true,
+              centerTitle: true,
+              floating: true,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                titlePadding: const EdgeInsets.only(bottom: 14.0),
+                title: Center(
+                  child: Text(
+                    'المزيد',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        scheme.primary.withOpacity(0.9),
+                        scheme.secondary.withOpacity(0.9),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Opacity(
+                    opacity: isDark ? 0.1 : 0.12,
+                    child: Image.asset(
+                      'assets/images/حلقات ذكر .png',
+                      fit: BoxFit.cover,
+                      color: Colors.black.withOpacity(0.2),
+                      colorBlendMode: BlendMode.dstATop,
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                Builder(
+                  builder: (context) {
+                    return IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.white),
+                      onPressed: () {
+                        Scaffold.of(context).openEndDrawer();
+                      },
+                      splashRadius: 24,
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 200.0,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.92,
+                ),
+                delegate: SliverChildListDelegate([
+                _buildFeatureCard(context, 
                   title: "مواقيت الصلاه",
                   image: "assets/images/praytime.png",
                   color: Colors.deepPurpleAccent, // لون بنفسجي زاهي
@@ -92,7 +93,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.prytime);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "أسماء الله الحسنى",
                   image: "assets/images/اسماء الله.png",
                   color: Colors.lightBlueAccent, // لون أزرق فاتح زاهي
@@ -100,7 +101,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.asmaAllah);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "حلقات الذكر",
                   image: "assets/images/حلقات ذكر .png",
                   color: Colors.blueAccent, // لون أزرق زاهي
@@ -108,7 +109,7 @@ class MorePage extends StatelessWidget {
                     _showComingSoonDialog(context);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "المسبحة الإلكترونية",
                   image: "assets/images/الكترونية.png",
                   color: Colors.lightGreenAccent, // لون أخضر فاتح زاهي
@@ -116,13 +117,13 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.msbaha);
                   },
                 ),
-                // _buildFeatureCard(
+                // _buildFeatureCard(context, 
                 //   title: "أذكار المسلم",
                 //   image: "assets/images/دعاء.png",
                 //   color: Colors.amberAccent, // لون كهرماني زاهي
                 //   onTap: () {},
                 // ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "اتجاه القبلة",
                   image: "assets/images/القبله.png",
                   color: Colors.orangeAccent, // لون برتقالي زاهي
@@ -130,13 +131,13 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.qiblah);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "بيت الاستغفار",
                   image: "assets/images/مسبحة.png",
                   color: Colors.cyanAccent, // لون سماوي زاهي
                   onTap: () {},
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "فضل الدعاء",
                   image: "assets/images/استغفار.png",
                   color: Colors.indigoAccent, // لون نيلي زاهي
@@ -144,7 +145,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.fadelalduaa);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "الرقية الشرعية",
                   image: "assets/images/الرقية الشرعية .png",
                   color: Colors.redAccent, // لون أحمر زاهي
@@ -152,7 +153,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.alrugi);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "الأدعية القرآنية",
                   image: "assets/images/ادعية قرانية .png",
                   color: Colors.tealAccent, // لون تركوازي زاهي
@@ -160,7 +161,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.aduqyQuran);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "أدعية نبوية",
                   image: "assets/images/ادعية نبوية .png",
                   color: Colors.brown.shade300, // لون بني فاتح
@@ -168,7 +169,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.aduqyNabuia);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "أدعية الأنبياء",
                   image: "assets/images/ادعية الانبياء.png",
                   color: Colors.pinkAccent, // لون وردي زاهي
@@ -176,7 +177,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.adaytalanbya);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "الأربعين النووية",
                   image: "assets/images/الاربعون النووية .png",
                   color: Colors.deepOrangeAccent, // لون برتقالي داكن زاهي
@@ -184,7 +185,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.alarboun);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "فضل الذكر",
                   image: "assets/images/رمضان .png",
                   color: Colors.limeAccent, // لون ليموني زاهي
@@ -192,7 +193,7 @@ class MorePage extends StatelessWidget {
                     Get.toNamed(AppRoute.fadelaldaker);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "الحج والعمرة",
                   image: "assets/images/الحج والعمره .png",
                   color: Colors.purpleAccent, // لون أرجواني زاهي
@@ -200,15 +201,23 @@ class MorePage extends StatelessWidget {
                     _showComingSoonDialog(context);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
+                  title: "قصص الأنبياء",
+                  image: "assets/images/story.png",
+                  color: Colors.deepPurpleAccent, // لون أرجواني زاهي
+                  onTap: () {
+                    Get.toNamed(AppRoute.prophetStories);
+                  },
+                ),
+                _buildFeatureCard(context, 
                   title: "القصص",
                   image: "assets/images/story.png",
                   color: Colors.purpleAccent, // لون أرجواني زاهي
                   onTap: () {
-                    _showComingSoonDialog(context);
+                    Get.toNamed(AppRoute.stories);
                   },
                 ),
-                _buildFeatureCard(
+                _buildFeatureCard(context, 
                   title: "الإعدادات",
                   image: "assets/images/اعدادات.png",
                   color: Colors.grey.shade400, // لون رمادي فاتح
@@ -221,160 +230,134 @@ class MorePage extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
-  Widget _buildFeatureCard({
+  Widget _buildFeatureCard(
+    BuildContext context, {
     required String title,
     required String image,
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 6, // زيادة الظل للبطاقات
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ), // زوايا أكثر استدارة
-      clipBehavior: Clip.antiAlias, // لضمان ظهور التدرج بشكل صحيح داخل الحدود
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Material(
+      color: scheme.surface,
+      borderRadius: BorderRadius.circular(20),
+      elevation: 0,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
-        child: Ink(
-          // استخدام Ink لتطبيق التدرج اللوني
+        child: Container(
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              // تدرج لوني خفيف للبطاقة
-              colors: [
-                const Color(0xFF2B2B2B), // لون أساسي أغمق للبطاقة
-                const Color(0xFF1E1E1E).withOpacity(0.9),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: color.withOpacity(0.4),
-              width: 1.5,
-            ), // حدود أكثر بروزًا
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(
-                    18,
-                  ), // مساحة داخلية أكبر للأيقونة
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      // تدرج شعاعي لخلفية الأيقونة
-                      colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
-                      radius: 0.8,
-                    ),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: color.withOpacity(0.5), // حدود الأيقونة
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      // ظل للأيقونة
-                      BoxShadow(
-                        color: color.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Image.asset(
-                    image,
-                    width: 45,
-                    height: 45,
-                  ), // حجم أكبر للأيقونة
-                ),
-                const SizedBox(height: 16), // مسافة أكبر
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17, // حجم خط أكبر
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      // ظل خفيف للنص
-                      Shadow(
-                        color: Colors.black38,
-                        blurRadius: 2,
-                        offset: Offset(1, 1),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10), // مسافة أكبر
-                Container(
-                  height: 3, // سمك أكبر للخط الفاصل
-                  width: 60, // طول أكبر للخط الفاصل
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      // تدرج لوني للخط الفاصل
-                      colors: [
-                        color.withOpacity(0.1),
-                        color,
-                        color.withOpacity(0.1),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ],
+              color: theme.dividerColor.withOpacity(0.9),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 14,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [color.withOpacity(0.25), color.withOpacity(0.05)],
+                    radius: 0.8,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: color.withOpacity(0.45),
+                    width: 1.5,
+                  ),
+                ),
+                child: Image.asset(
+                  image,
+                  width: 42,
+                  height: 42,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: scheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Container(
+                height: 3,
+                width: 54,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      color.withOpacity(0.12),
+                      color,
+                      color.withOpacity(0.12),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.08);
   }
 
   void _showComingSoonDialog(BuildContext context) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            backgroundColor: const Color(0xFF2C2C2C), // لون خلفية أغمق للمربع
+            backgroundColor: theme.colorScheme.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(25), // زوايا أكثر استدارة
+              borderRadius: BorderRadius.circular(24),
             ),
-            title: const Column(
+            title: Column(
               children: [
                 Icon(
-                  Icons.hourglass_empty, // أيقونة "قريبًا"
-                  color: Colors.amberAccent,
+                  Icons.hourglass_empty,
+                  color: theme.colorScheme.secondary,
                   size: 40,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   "قريبا",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
-            content: const Text(
+            content: Text(
               "سيتم إضافة هذه الميزات قريباً بإذن الله",
-              style: TextStyle(color: Colors.white70, fontSize: 16),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+              ),
               textAlign: TextAlign.center,
             ),
-            actionsAlignment: MainAxisAlignment.center, // توسيط الزر
+            actionsAlignment: MainAxisAlignment.center,
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 style: TextButton.styleFrom(
-                  backgroundColor: Colors.teal, // زر بلون مميز
+                  backgroundColor: theme.colorScheme.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),

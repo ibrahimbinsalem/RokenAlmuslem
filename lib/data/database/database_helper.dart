@@ -1,6 +1,8 @@
 // lib/data/database/database_helper.dart
 
 import 'package:rokenalmuslem/controller/hadith_model.dart';
+import 'package:rokenalmuslem/data/models/prophet_story_model.dart';
+import 'package:rokenalmuslem/data/models/story_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,7 +16,7 @@ class DatabaseHelper {
 
   static const String dbName = 'adkar_database.db';
   static const int dbVersion =
-      20; // <--- **تمت زيادة الرقم لتحديث قاعدة البيانات**
+      23; // <--- **تمت زيادة الرقم لتحديث قاعدة البيانات**
 
   // Existing table names
   static const String morningAdkarTableName = 'MorningAdkar';
@@ -38,6 +40,10 @@ class DatabaseHelper {
       'AdayahNabuia'; // <--- **الجدول الجديد للأدعية النبوية**
   static const String hadithOfTheDayTableName = 'hadith_of_the_day';
   static const String prayerTimesTableName = 'prayer_times';
+  static const String storiesTableName = 'stories';
+  static const String storyLinksTableName = 'story_links';
+  static const String prophetStoriesTableName = 'prophet_stories';
+  static const String prophetStoryLinksTableName = 'prophet_story_links';
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -275,38 +281,110 @@ class DatabaseHelper {
       )
     ''');
 
+    await db.execute('''
+      CREATE TABLE $storiesTableName (
+        id INTEGER PRIMARY KEY,
+        story_title TEXT NOT NULL,
+        story_content TEXT,
+        date_added TEXT,
+        updated_at TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE $storyLinksTableName (
+        id INTEGER PRIMARY KEY,
+        story_id INTEGER NOT NULL,
+        youtube_link TEXT NOT NULL,
+        link_title TEXT,
+        updated_at TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE $prophetStoriesTableName (
+        id INTEGER PRIMARY KEY,
+        prophet_name TEXT NOT NULL,
+        story_content TEXT,
+        date_added TEXT,
+        updated_at TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE $prophetStoryLinksTableName (
+        id INTEGER PRIMARY KEY,
+        story_id INTEGER NOT NULL,
+        youtube_link TEXT NOT NULL,
+        link_title TEXT,
+        updated_at TEXT
+      )
+    ''');
+
     // Populate initial data for all tables including the new ones
     await _populateInitialData(db);
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     print('Database upgrading from version $oldVersion to $newVersion');
-    // Drop all existing tables (for simplicity in development)
-    // في بيئة الإنتاج، يجب أن تكون هذه الترقية أكثر دقة (مثلاً، إضافة أعمدة بدلاً من حذف الجداول)
-    await db.execute("DROP TABLE IF EXISTS $morningAdkarTableName;");
-    await db.execute("DROP TABLE IF EXISTS $eveningAdkarTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarSalatTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarAfterSalatTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarAlnomTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarAladanTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarAlmasjidTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarAlastygadTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarHomeTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarAlwswiTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarAlkhlaTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adkarEatTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adayahForDeadTableName;");
-    await db.execute("DROP TABLE IF EXISTS $asmaAllahTableName;");
-    await db.execute("DROP TABLE IF EXISTS $fadelAlDuaaTableName;");
-    await db.execute("DROP TABLE IF EXISTS $ruqyahsTableName;");
-    await db.execute("DROP TABLE IF EXISTS $adayaQuraniyaTableName;");
-    await db.execute(
-      "DROP TABLE IF EXISTS $adayahNabuiaTableName;",
-    ); // <--- **إزالة الجدول الجديد عند الترقية**
-    await db.execute("DROP TABLE IF EXISTS $hadithOfTheDayTableName;");
-    await db.execute("DROP TABLE IF EXISTS $prayerTimesTableName;");
+    if (oldVersion < 21) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $prophetStoriesTableName (
+          id INTEGER PRIMARY KEY,
+          prophet_name TEXT NOT NULL,
+          story_content TEXT,
+          date_added TEXT,
+          updated_at TEXT
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $prophetStoryLinksTableName (
+          id INTEGER PRIMARY KEY,
+          story_id INTEGER NOT NULL,
+          youtube_link TEXT NOT NULL,
+          link_title TEXT,
+          updated_at TEXT
+        )
+      ''');
+    }
 
-    await _onCreate(db, newVersion); // إعادة إنشاء جميع الجداول بالبنية الجديدة
+    if (oldVersion < 22) {
+      try {
+        await db.execute(
+          "ALTER TABLE $prophetStoryLinksTableName ADD COLUMN link_title TEXT",
+        );
+      } catch (_) {
+        // Column might already exist.
+      }
+    }
+
+    if (oldVersion < 23) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $storiesTableName (
+          id INTEGER PRIMARY KEY,
+          story_title TEXT NOT NULL,
+          story_content TEXT,
+          date_added TEXT,
+          updated_at TEXT
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $storyLinksTableName (
+          id INTEGER PRIMARY KEY,
+          story_id INTEGER NOT NULL,
+          youtube_link TEXT NOT NULL,
+          link_title TEXT,
+          updated_at TEXT
+        )
+      ''');
+      try {
+        await db.execute(
+          "ALTER TABLE $storyLinksTableName ADD COLUMN link_title TEXT",
+        );
+      } catch (_) {
+        // Column might already exist.
+      }
+    }
   }
 
   Future<void> _populateInitialData(Database db) async {
@@ -1318,5 +1396,109 @@ class DatabaseHelper {
       return maps.first as Map<String, String>;
     }
     return null;
+  }
+
+  Future<void> upsertProphetStories(List<ProphetStoryModel> stories) async {
+    final db = await instance.database;
+    await db.transaction((txn) async {
+      for (final story in stories) {
+        await txn.insert(
+          prophetStoriesTableName,
+          story.toDb(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        await txn.delete(
+          prophetStoryLinksTableName,
+          where: 'story_id = ?',
+          whereArgs: [story.id],
+        );
+
+        for (final link in story.links) {
+          await txn.insert(
+            prophetStoryLinksTableName,
+            link.toDb(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      }
+    });
+  }
+
+  Future<List<ProphetStoryModel>> getProphetStories() async {
+    final db = await instance.database;
+    final List<Map<String, dynamic>> storyRows = await db.query(
+      prophetStoriesTableName,
+      orderBy: 'date_added DESC',
+    );
+    final List<Map<String, dynamic>> linkRows =
+        await db.query(prophetStoryLinksTableName);
+
+    final Map<int, List<ProphetStoryLinkModel>> linksByStory = {};
+    for (final row in linkRows) {
+      final link = ProphetStoryLinkModel.fromDb(row);
+      linksByStory.putIfAbsent(link.storyId, () => []).add(link);
+    }
+
+    return storyRows
+        .map(
+          (row) => ProphetStoryModel.fromDb(
+            row,
+            linksByStory[row['id'] as int] ?? [],
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> upsertStories(List<StoryModel> stories) async {
+    final db = await instance.database;
+    await db.transaction((txn) async {
+      for (final story in stories) {
+        await txn.insert(
+          storiesTableName,
+          story.toDb(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        await txn.delete(
+          storyLinksTableName,
+          where: 'story_id = ?',
+          whereArgs: [story.id],
+        );
+
+        for (final link in story.links) {
+          await txn.insert(
+            storyLinksTableName,
+            link.toDb(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      }
+    });
+  }
+
+  Future<List<StoryModel>> getStories() async {
+    final db = await instance.database;
+    final List<Map<String, dynamic>> storyRows = await db.query(
+      storiesTableName,
+      orderBy: 'date_added DESC',
+    );
+    final List<Map<String, dynamic>> linkRows =
+        await db.query(storyLinksTableName);
+
+    final Map<int, List<StoryLinkModel>> linksByStory = {};
+    for (final row in linkRows) {
+      final link = StoryLinkModel.fromDb(row);
+      linksByStory.putIfAbsent(link.storyId, () => []).add(link);
+    }
+
+    return storyRows
+        .map(
+          (row) => StoryModel.fromDb(
+            row,
+            linksByStory[row['id'] as int] ?? [],
+          ),
+        )
+        .toList();
   }
 }

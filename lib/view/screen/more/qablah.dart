@@ -14,7 +14,7 @@ class QiblaView extends GetView<QiblaController> {
         title: const Text(
           'بوصلة القبلة',
           style: TextStyle(
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             color: Colors.white,
             fontWeight: FontWeight.w800,
             fontSize: 24,
@@ -69,7 +69,7 @@ class QiblaView extends GetView<QiblaController> {
                   Text(
                     'تحديد موقعك الدقيق...',
                     style: TextStyle(
-                      fontFamily: 'Tajawal',
+                      fontFamily: 'Amiri',
                       fontSize: 22,
                       color: Colors.white.withOpacity(0.9),
                       fontWeight: FontWeight.w600,
@@ -79,7 +79,7 @@ class QiblaView extends GetView<QiblaController> {
                   Text(
                     'يرجى التأكد من تشغيل خدمات الموقع.',
                     style: TextStyle(
-                      fontFamily: 'Tajawal',
+                      fontFamily: 'Amiri',
                       fontSize: 17,
                       color: Colors.white.withOpacity(0.6),
                     ),
@@ -106,7 +106,7 @@ class QiblaView extends GetView<QiblaController> {
                     Text(
                       controller.errorMessage.value,
                       style: const TextStyle(
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Amiri',
                         fontSize: 21,
                         color: Color(0xFFFF7043),
                         fontWeight: FontWeight.w700,
@@ -142,7 +142,7 @@ class QiblaView extends GetView<QiblaController> {
                       label: const Text(
                         'إعادة المحاولة',
                         style: TextStyle(
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                           fontSize: 19,
                           color: Color(0xFF0F3443),
                           fontWeight: FontWeight.bold,
@@ -218,7 +218,7 @@ class QiblaView extends GetView<QiblaController> {
                             ? 'أنت الآن تتجه للقبلة!'
                             : 'قم بتحريك جهازك نحو القبلة',
                         style: const TextStyle(
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
@@ -475,7 +475,7 @@ class QiblaView extends GetView<QiblaController> {
           child: Text(
             text,
             style: TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Amiri',
               fontSize: isNorth ? 20 : 18,
               fontWeight: FontWeight.w900,
               color: Colors.white,
@@ -528,7 +528,7 @@ class QiblaView extends GetView<QiblaController> {
                     Text(
                       title,
                       style: TextStyle(
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Amiri',
                         color: Colors.white.withOpacity(0.7),
                         fontSize: 15,
                       ),
@@ -538,7 +538,7 @@ class QiblaView extends GetView<QiblaController> {
                     Text(
                       value,
                       style: const TextStyle(
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Amiri',
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         fontSize: 16,
@@ -555,7 +555,7 @@ class QiblaView extends GetView<QiblaController> {
                     Text(
                       '$title: ',
                       style: TextStyle(
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Amiri',
                         fontSize: 20,
                         color: Colors.white.withOpacity(0.8),
                         fontWeight: FontWeight.w500,
@@ -564,7 +564,7 @@ class QiblaView extends GetView<QiblaController> {
                     Text(
                       value,
                       style: const TextStyle(
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Amiri',
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

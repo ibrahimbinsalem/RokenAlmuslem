@@ -22,7 +22,7 @@ class AdkarAfterSalatView extends StatelessWidget {
           'أذكار بعد الصلاة',
           style: TextStyle(
             color: Colors.white,
-            fontFamily: 'Tajawal', // تأكد من وجود هذا الخط
+            fontFamily: 'Amiri', // تأكد من وجود هذا الخط
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -125,7 +125,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.white.withOpacity(0.7),
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Amiri',
                         height: 1.5,
                       ),
                       textAlign: TextAlign.right,
@@ -138,7 +138,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    fontFamily: 'Tajawal',
+                    fontFamily: 'Amiri',
                   ),
                   textAlign: TextAlign.right,
                   textDirection: TextDirection.rtl,
@@ -157,7 +157,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF388E3C),
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                           ),
                           textAlign: TextAlign.right,
                           textDirection: TextDirection.rtl,
@@ -168,7 +168,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white.withOpacity(0.8),
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                           height: 1.6,
                         ),
                         textAlign: TextAlign.right,
@@ -189,7 +189,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withOpacity(0.5),
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                           ),
                           textAlign: TextAlign.right,
                           textDirection: TextDirection.rtl,
@@ -326,7 +326,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 19,
                             color: Colors.black.withOpacity(0.7),
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                             height: 1.5,
                           ),
                           textAlign: TextAlign.right,
@@ -339,7 +339,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Amiri',
                       ),
                       textAlign: TextAlign.right,
                       textDirection: TextDirection.rtl,
@@ -355,7 +355,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                               fontSize: 19,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1B5E20),
-                              fontFamily: 'Tajawal',
+                              fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.right,
                             textDirection: TextDirection.rtl,
@@ -366,7 +366,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 17,
                               color: Colors.black.withOpacity(0.85),
-                              fontFamily: 'Tajawal',
+                              fontFamily: 'Amiri',
                               height: 1.6,
                             ),
                             textAlign: TextAlign.right,
@@ -384,7 +384,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.grey[700],
-                              fontFamily: 'Tajawal',
+                              fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.right,
                             textDirection: TextDirection.rtl,
@@ -404,7 +404,7 @@ class AdkarAfterSalatView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF1B5E20),
-                              fontFamily: 'Tajawal',
+                              fontFamily: 'Amiri',
                               fontWeight: FontWeight.w600,
                             ),
                             textDirection: TextDirection.rtl,

@@ -20,7 +20,7 @@ class FadelAlDuaaPage extends StatelessWidget {
         title: const Text(
           "فضل الدعاء",
           style: TextStyle(
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             fontSize: 26,
             fontWeight: FontWeight.w900,
             color: Colors.white,
@@ -110,7 +110,7 @@ class FadelAlDuaaContent extends StatelessWidget {
               title,
               textAlign: TextAlign.right,
               style: TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Amiri',
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
                 color: const Color(0xFFFFD700),
@@ -172,7 +172,7 @@ class FadelAlDuaaContent extends StatelessWidget {
             content,
             textAlign: TextAlign.right,
             style: TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Amiri',
               fontSize: 18,
               color: Colors.white.withOpacity(0.95),
               height: 1.7,
@@ -224,7 +224,7 @@ class FadelAlDuaaContent extends StatelessWidget {
           child: Text(
             "لا توجد بيانات لعرضها.",
             style: TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Amiri',
               color: Colors.white,
               fontSize: 18,
             ),

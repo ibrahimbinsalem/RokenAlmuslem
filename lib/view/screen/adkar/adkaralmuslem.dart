@@ -240,77 +240,94 @@ class AdkarAlmuslam extends StatelessWidget {
               width: 1.5,
             ), // حدود أكثر بروزًا
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(
-                    18,
-                  ), // مساحة داخلية أكبر للأيقونة
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      // تدرج شعاعي لخلفية الأيقونة
-                      colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
-                      radius: 0.8,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxHeight = constraints.maxHeight;
+              final iconBox = (maxHeight * 0.46).clamp(58.0, 84.0);
+              final iconPadding = (iconBox * 0.24).clamp(10.0, 18.0);
+              final spacing = (maxHeight * 0.06).clamp(6.0, 12.0);
+              final showDivider = maxHeight > 145;
+
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Container(
+                      width: iconBox,
+                      height: iconBox,
+                      padding: EdgeInsets.all(iconPadding),
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [
+                            color.withOpacity(0.2),
+                            color.withOpacity(0.05),
+                          ],
+                          radius: 0.8,
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: color.withOpacity(0.5),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        icon,
+                        size: iconBox * 0.5,
+                        color: color,
+                      ),
                     ),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: color.withOpacity(0.5), // حدود الأيقونة
-                      width: 2,
+                    SizedBox(height: spacing),
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black38,
+                              blurRadius: 2,
+                              offset: Offset(1, 1),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    boxShadow: [
-                      // ظل للأيقونة
-                      BoxShadow(
-                        color: color.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                    if (showDivider) ...[
+                      SizedBox(height: spacing),
+                      Container(
+                        height: 3,
+                        width: 54,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              color.withOpacity(0.1),
+                              color,
+                              color.withOpacity(0.1),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ],
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 45,
-                    color: color,
-                  ), // حجم أكبر للأيقونة
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  // استخدام نمط من Theme.of(context).textTheme
-                  style: theme.textTheme.titleLarge!.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black38,
-                        blurRadius: 2,
-                        offset: const Offset(1, 1),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  height: 3,
-                  width: 60,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        color.withOpacity(0.1),
-                        color,
-                        color.withOpacity(0.1),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),

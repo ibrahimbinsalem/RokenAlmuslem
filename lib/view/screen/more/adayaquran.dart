@@ -26,7 +26,7 @@ class AdayaQuraniyaView extends StatelessWidget {
               title,
               textAlign: isCentered ? TextAlign.center : TextAlign.right,
               style: TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Amiri',
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
                 color: const Color(0xFFFFD700), // لون ذهبي مميز
@@ -102,7 +102,7 @@ class AdayaQuraniyaView extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
-                    fontFamily: 'Tajawal',
+                    fontFamily: 'Amiri',
                   ),
                   textAlign: TextAlign.right,
                   textDirection: TextDirection.rtl,
@@ -115,7 +115,7 @@ class AdayaQuraniyaView extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Amiri',
                   height: 1.7,
                 ),
                 textAlign: TextAlign.right,
@@ -128,7 +128,7 @@ class AdayaQuraniyaView extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Amiri',
                 ),
                 textAlign: TextAlign.right,
                 textDirection: TextDirection.rtl,
@@ -158,7 +158,7 @@ class AdayaQuraniyaView extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 14,
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                         ),
                       ),
                     ),
@@ -195,7 +195,7 @@ class AdayaQuraniyaView extends StatelessWidget {
                                           color: Colors.white,
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
-                                          fontFamily: 'Tajawal',
+                                          fontFamily: 'Amiri',
                                         ),
                                         textAlign: TextAlign.right,
                                       ),
@@ -204,7 +204,7 @@ class AdayaQuraniyaView extends StatelessWidget {
                                         style: TextStyle(
                                           color: Colors.white70,
                                           fontSize: 14,
-                                          fontFamily: 'Tajawal',
+                                          fontFamily: 'Amiri',
                                         ),
                                         textAlign: TextAlign.right,
                                       ),
@@ -241,7 +241,7 @@ class AdayaQuraniyaView extends StatelessWidget {
                                 color: Colors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                fontFamily: 'Tajawal',
+                                fontFamily: 'Amiri',
                               ),
                               textDirection: TextDirection.rtl,
                             ),
@@ -256,7 +256,7 @@ class AdayaQuraniyaView extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                         ),
                         textDirection: TextDirection.rtl,
                       ),
@@ -292,7 +292,7 @@ class AdayaQuraniyaView extends StatelessWidget {
           'الْأدْعِيَةُ القرآنية',
           style: TextStyle(
             color: Colors.white,
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             fontSize: 26,
             fontWeight: FontWeight.w900,
             shadows: [
@@ -387,7 +387,7 @@ class AdayaQuraniyaView extends StatelessWidget {
         label: const Text(
           "تصفير العدادات",
           style: TextStyle(
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             fontSize: 16,
             color: Colors.white,
           ),

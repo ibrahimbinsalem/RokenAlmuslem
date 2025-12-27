@@ -27,7 +27,7 @@ class FadelAlDkerView extends StatelessWidget {
               title,
               textAlign: isCentered ? TextAlign.center : TextAlign.right,
               style: TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Amiri',
                 fontSize: fontSize,
                 fontWeight: FontWeight.w900,
                 color: color,
@@ -74,7 +74,7 @@ class FadelAlDkerView extends StatelessWidget {
       style: TextStyle(
         color: color,
         fontSize: fontSize,
-        fontFamily: 'Tajawal',
+        fontFamily: 'Amiri',
         fontWeight: fontWeight,
         height: height,
       ),
@@ -107,7 +107,7 @@ class FadelAlDkerView extends StatelessWidget {
           'فضل الذكر',
           style: TextStyle(
             color: Colors.white,
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             fontSize: 26,
             fontWeight: FontWeight.w900,
             shadows: [

@@ -16,12 +16,14 @@ import 'package:rokenalmuslem/core/localization/changelocal.dart';
 import 'package:rokenalmuslem/core/localization/translation.dart';
 import 'package:rokenalmuslem/core/services/localnotification.dart';
 import 'package:rokenalmuslem/core/services/services.dart';
+import 'package:rokenalmuslem/core/theme/app_theme.dart';
 import 'package:rokenalmuslem/data/database/database_helper.dart';
 import 'package:rokenalmuslem/rout.dart'; // هذا الملف يجب أن يحتوي على قائمة المسارات
 import 'package:rokenalmuslem/view/screen/more/aboutbage.dart'; // استيراد صفحة حول التطبيق والمطورين
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart'; // **استيراد PrayerTimesController**
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:rokenalmuslem/core/services/firebase_messaging_handler.dart';
 import 'firebase_options.dart';
 
 @pragma('vm:entry-point')
@@ -60,6 +62,8 @@ Future<void> _initializeApp() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
     // جعل عمليات Firebase Messaging غير معرقلة لبدء التشغيل
     try {
       final fcmToken = await FirebaseMessaging.instance.getToken();
@@ -95,6 +99,17 @@ Future<void> _initializeApp() async {
     final notificationService = NotificationService();
     await notificationService.initialize();
     Get.put(notificationService, permanent: true);
+
+    try {
+      await FirebaseMessaging.instance.requestPermission();
+      await notificationService.requestPermissions();
+    } catch (e) {
+      debugPrint("Notification permission request failed: $e");
+    }
+
+    final messagingHandler = FirebaseMessagingHandler();
+    await messagingHandler.initialize();
+    Get.put(messagingHandler, permanent: true);
 
     // **2. Initialize PrayerTimesController using Get.putAsync**
     // This ensures its async onInit (location, prayer times fetch) completes
@@ -191,8 +206,8 @@ class MyApp extends StatelessWidget {
             final fontSizeMultiplier = appSettings.fontSizeMultiplier.value;
 
             // بناء الثيمات باستخدام القيم الديناميكية
-            final lightTheme = _buildTheme(fontSizeMultiplier, false);
-            final darkTheme = _buildTheme(fontSizeMultiplier, true);
+            final lightTheme = AppTheme.light(fontSizeMultiplier);
+            final darkTheme = AppTheme.dark(fontSizeMultiplier);
 
             return GetMaterialApp(
               debugShowCheckedModeBanner: false,
@@ -227,156 +242,5 @@ class MyApp extends StatelessWidget {
 
   String _getInitialRoute(MyServices services) {
     return "/"; // دع الوسيط (Middleware) يقرر المسار الصحيح
-  }
-
-  ThemeData _buildTheme(double fontSizeMultiplier, bool isDark) {
-    // الألوان الرئيسية التي تم اختيارها
-    const Color primaryColor = Color(0xFF0A84FF); // لون أزرق زاهي
-    const Color darkSurface = Color(0xFF1C1C1E); // خلفية أسطح داكنة
-    const Color lightSurface = Colors.white; // خلفية أسطح فاتحة
-    const Color darkBackground = Color(0xFF121212); // خلفية أغمق
-    const Color lightBackground = Color(0xFFF2F2F7); // خلفية فاتحة جداً
-    const Color cardColorDark = Color(0xFF282828); // لون بطاقات في الوضع الداكن
-
-    final Brightness brightness = isDark ? Brightness.dark : Brightness.light;
-    final Color onSurfaceColor = isDark ? Colors.white70 : Colors.black87;
-    final Color onBackgroundColor = isDark ? Colors.white : Colors.black;
-    final Color textColor = isDark ? Colors.white : Colors.black;
-
-    final TextTheme customTextTheme = TextTheme(
-      displayLarge: TextStyle(
-        fontSize: 32 * fontSizeMultiplier,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      displayMedium: TextStyle(
-        fontSize: 28 * fontSizeMultiplier,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      displaySmall: TextStyle(
-        fontSize: 24 * fontSizeMultiplier,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      headlineLarge: TextStyle(
-        fontSize: 22 * fontSizeMultiplier,
-        fontWeight: FontWeight.w700,
-        color: textColor,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: 20 * fontSizeMultiplier,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      headlineSmall: TextStyle(
-        fontSize: 18 * fontSizeMultiplier,
-        fontWeight: FontWeight.w500,
-        color: textColor,
-      ),
-      titleLarge: TextStyle(
-        fontSize: 17 * fontSizeMultiplier,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 16 * fontSizeMultiplier,
-        fontWeight: FontWeight.w500,
-        color: textColor,
-      ),
-      titleSmall: TextStyle(
-        fontSize: 15 * fontSizeMultiplier,
-        fontWeight: FontWeight.w400,
-        color: textColor,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: 16 * fontSizeMultiplier,
-        color: onSurfaceColor,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 14 * fontSizeMultiplier,
-        color: onSurfaceColor,
-      ),
-      bodySmall: TextStyle(
-        fontSize: 12 * fontSizeMultiplier,
-        color: onSurfaceColor,
-      ),
-      labelLarge: TextStyle(
-        fontSize: 14 * fontSizeMultiplier,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      labelMedium: TextStyle(
-        fontSize: 12 * fontSizeMultiplier,
-        fontWeight: FontWeight.w500,
-        color: textColor,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 10 * fontSizeMultiplier,
-        fontWeight: FontWeight.w400,
-        color: textColor,
-      ),
-    );
-
-    return ThemeData(
-      brightness: brightness,
-      colorScheme: ColorScheme(
-        brightness: brightness,
-        primary: primaryColor,
-        onPrimary: Colors.white,
-        secondary: const Color(0xFF34C759),
-        onSecondary: Colors.white,
-        error: Colors.redAccent,
-        onError: Colors.white,
-        background: isDark ? darkBackground : lightBackground,
-        onBackground: onBackgroundColor,
-        surface: isDark ? darkSurface : lightSurface,
-        onSurface: onSurfaceColor,
-      ),
-      cardColor: isDark ? cardColorDark : Colors.white,
-      appBarTheme: AppBarTheme(
-        elevation: 8,
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        titleTextStyle: customTextTheme.headlineLarge!.copyWith(
-          color: Colors.white,
-          fontSize: 24 * fontSizeMultiplier,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-        ),
-      ),
-      textTheme: customTextTheme,
-      cardTheme: CardThemeData(
-        elevation: 2,
-        margin: const EdgeInsets.all(8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: isDark ? cardColorDark : Colors.white,
-      ),
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return primaryColor;
-          }
-          return (isDark ? Colors.white : Colors.black).withOpacity(0.6);
-        }),
-        trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return primaryColor.withOpacity(0.5);
-          }
-          return (isDark ? Colors.white : Colors.black).withOpacity(0.2);
-        }),
-      ),
-      sliderTheme: SliderThemeData(
-        activeTrackColor: primaryColor,
-        inactiveTrackColor: (isDark ? Colors.white : Colors.black).withOpacity(
-          0.3,
-        ),
-        thumbColor: primaryColor,
-        overlayColor: primaryColor.withOpacity(0.2),
-        valueIndicatorColor: primaryColor,
-        valueIndicatorTextStyle: const TextStyle(color: Colors.white),
-      ),
-    );
   }
 }

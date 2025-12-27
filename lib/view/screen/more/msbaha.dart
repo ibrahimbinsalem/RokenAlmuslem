@@ -50,7 +50,7 @@ class TasbeehView extends StatelessWidget {
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontFamily: 'Tajawal', // أو أي خط عربي عصري
+              fontFamily: 'Amiri', // أو أي خط عربي عصري
               fontSize: 28,
               letterSpacing: 1.5,
               shadows: [
@@ -227,7 +227,7 @@ class TasbeehView extends StatelessWidget {
                           'تذكير التسبيح', // نص واضح للزر
                           style: TextStyle(
                             color: Get.theme.colorScheme.onSecondary,
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
@@ -365,7 +365,7 @@ class TasbeehView extends StatelessWidget {
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.8),
                             fontSize: 18,
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -375,7 +375,7 @@ class TasbeehView extends StatelessWidget {
                             color: Colors.yellowAccent, // لون مميز للعدد
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                             shadows: [
                               Shadow(
                                 blurRadius: 8.0,
@@ -491,7 +491,7 @@ class TasbeehView extends StatelessWidget {
                                           fontWeight:
                                               FontWeight.w900, // خط سميك جداً
                                           fontFamily:
-                                              'Tajawal', // أو خط رقمي عصري
+                                              'Amiri', // أو خط رقمي عصري
                                           shadows: [
                                             Shadow(
                                               blurRadius: 10.0,
@@ -525,7 +525,7 @@ class TasbeehView extends StatelessWidget {
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(0.7),
                                         fontSize: 24,
-                                        fontFamily: 'Tajawal',
+                                        fontFamily: 'Amiri',
                                         shadows: const [
                                           Shadow(
                                             blurRadius: 5.0,
@@ -561,7 +561,7 @@ class TasbeehView extends StatelessWidget {
                             "تغيير الذكر",
                             style: TextStyle(
                               color: Colors.white,
-                              fontFamily: 'Tajawal',
+                              fontFamily: 'Amiri',
                               fontSize: 22,
                               fontWeight: FontWeight.w600,
                             ),

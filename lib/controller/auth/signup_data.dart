@@ -8,7 +8,7 @@ class SignUpData {
 
   postData(String username, String email, String password) async {
     var response = await crud.postData(AppLink.signUp, {
-      "username": username,
+      "name": username,
       "email": email,
       "password": password,
     });

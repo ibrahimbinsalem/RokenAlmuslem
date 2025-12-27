@@ -173,7 +173,7 @@ class AsmaAllahController extends GetxController {
                   color: Colors.white,
                   fontSize: 28, // Larger font size for the name
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Amiri',
                 ),
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
@@ -187,7 +187,7 @@ class AsmaAllahController extends GetxController {
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 18,
-                    fontFamily: 'Tajawal',
+                    fontFamily: 'Amiri',
                     height: 1.5,
                   ),
                   textAlign: TextAlign.justify, // Justify text for better appearance

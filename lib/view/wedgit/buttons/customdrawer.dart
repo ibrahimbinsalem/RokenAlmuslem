@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/core/constant/routes.dart';
 import 'package:rokenalmuslem/core/services/services.dart';
+import 'package:rokenalmuslem/linkapi.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -31,8 +32,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
     try {
       // الإصدار الحالي للتطبيق (قيمة ثابتة كما طلبت سابقًا)
       const String currentVersion = '1.0.0';
-      final String checkUrl =
-          'https://tasks.arabwaredos.com/rouknalmuslam//setting/check_update.php';
+      final String checkUrl = AppLink.appVersionCheck;
 
       final dio = Dio();
       final response = await dio.get('$checkUrl?version=$currentVersion');
@@ -63,7 +63,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             'التحديثات',
             'أنت تستخدم أحدث إصدار بالفعل.',
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.teal,
+            backgroundColor: Get.theme.colorScheme.primary,
             colorText: Colors.white,
           );
         }
@@ -76,7 +76,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         'خطأ',
         'فشل التحقق من التحديثات. يرجى المحاولة مرة أخرى.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: Get.theme.colorScheme.error,
         colorText: Colors.white,
       );
     } finally {
@@ -107,12 +107,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     MyServices myServices = Get.find();
     bool isLoggedIn = myServices.sharedprf.getString("step") == "2";
 
     return Drawer(
       child: Container(
-        color: const Color(0xFF1A1A1A),
+        color: scheme.background,
         child: Column(
           children: [
             Expanded(
@@ -140,8 +141,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         Get.toNamed(AppRoute.setting);
                       },
                     ),
-                  const Divider(
-                    color: Colors.white24,
+                  Divider(
+                    color: scheme.outline.withOpacity(0.4),
                     indent: 16,
                     endIndent: 16,
                   ),
@@ -165,8 +166,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   ),
                   if (isLoggedIn) ...[
-                    const Divider(
-                      color: Colors.white24,
+                    Divider(
+                      color: scheme.outline.withOpacity(0.4),
                       indent: 16,
                       endIndent: 16,
                     ),
@@ -190,7 +191,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 left: 16.0,
                 right: 16.0,
               ),
-              child: _buildUpdateSection(),
+              child: _buildUpdateSection(theme),
             ),
           ],
         ),
@@ -198,30 +199,32 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
   }
 
-  Widget _buildUpdateSection() {
+  Widget _buildUpdateSection(ThemeData theme) {
+    final scheme = theme.colorScheme;
     if (_isCheckingForUpdate) {
-      return const Center(
+      return Center(
         child: SizedBox(
           height: 28,
           width: 28,
           child: CircularProgressIndicator(
             strokeWidth: 2.5,
-            color: Colors.teal,
+            color: scheme.primary,
           ),
         ),
       );
     }
 
     if (_updateAvailable) {
-      return _buildUpdateButton();
+      return _buildUpdateButton(theme);
     }
 
-    return _buildCheckForUpdateButton();
+    return _buildCheckForUpdateButton(theme);
   }
 
-  Widget _buildCheckForUpdateButton() {
+  Widget _buildCheckForUpdateButton(ThemeData theme) {
+    final scheme = theme.colorScheme;
     return Material(
-      color: Colors.teal.withOpacity(0.2),
+      color: scheme.primary.withOpacity(0.12),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -230,16 +233,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.teal.withOpacity(0.5)),
+            border: Border.all(color: scheme.primary.withOpacity(0.45)),
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.sync, color: Colors.white70, size: 16),
-              SizedBox(width: 8),
+              Icon(Icons.sync, color: scheme.primary, size: 16),
+              const SizedBox(width: 8),
               Text(
                 'التحقق من وجود تحديث',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -248,9 +254,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
   }
 
-  Widget _buildUpdateButton() {
+  Widget _buildUpdateButton(ThemeData theme) {
+    final scheme = theme.colorScheme;
     return Material(
-      color: Colors.green.withOpacity(0.3),
+      color: scheme.secondary.withOpacity(0.18),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -259,22 +266,21 @@ class _CustomDrawerState extends State<CustomDrawer> {
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.green.withOpacity(0.6)),
+            border: Border.all(color: scheme.secondary.withOpacity(0.7)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.system_update_alt,
-                color: Colors.greenAccent,
+                color: scheme.secondary,
                 size: 18,
               ),
               const SizedBox(width: 8),
               Text(
                 'تحديث إلى $_latestVersion',
-                style: const TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 14,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.secondary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -286,6 +292,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
   }
 
   Widget _buildUserHeader(ThemeData theme) {
+    final scheme = theme.colorScheme;
     MyServices myServices2 = Get.find();
 
     // بيانات المستخدم - في التطبيق الفعلي، يجب أن تأتي هذه من متحكم المستخدم (User Controller)
@@ -303,7 +310,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.teal[900]!, Colors.teal[700]!, Colors.teal[500]!],
+          colors: [
+            scheme.primary.withOpacity(0.95),
+            scheme.secondary.withOpacity(0.9),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -320,29 +330,27 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   children: [
                     Text(
                       userName,
-                      style: const TextStyle(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        fontFamily: 'Tajawal',
                       ),
                     ),
                     const SizedBox(width: 16),
                     Container(
                       height: 20,
                       width: 60,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(20),
+                        ),
                       ),
                       child: Center(
                         child: Text(
                           userroul,
-                          style: const TextStyle(
-                            color: Colors.black,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: scheme.primary,
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            fontFamily: 'Tajawal',
                           ),
                         ),
                       ),
@@ -361,10 +369,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
           ),
           const SizedBox(width: 16),
-          const CircleAvatar(
+          CircleAvatar(
             radius: 30,
             backgroundColor: Colors.white,
-            child: Icon(Icons.person, size: 40, color: Colors.teal),
+            child: Icon(
+              Icons.person,
+              size: 40,
+              color: scheme.primary,
+            ),
           ),
         ],
       ),
@@ -372,6 +384,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
   }
 
   Widget _buildGuestHeader(ThemeData theme) {
+    final scheme = theme.colorScheme;
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(Get.context!).padding.top + 16,
@@ -381,7 +394,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.teal[900]!, Colors.teal[700]!, Colors.teal[500]!],
+          colors: [
+            scheme.primary.withOpacity(0.95),
+            scheme.secondary.withOpacity(0.9),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -412,7 +428,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 onPressed: () => Get.toNamed(AppRoute.login),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: Colors.teal.shade800,
+                  foregroundColor: scheme.primary,
                 ),
                 child: const Text('تسجيل الدخول'),
               ),
@@ -437,21 +453,25 @@ class _CustomDrawerState extends State<CustomDrawer> {
     required String text,
     required GestureTapCallback onTap,
   }) {
+    final theme = Theme.of(Get.context!);
+    final scheme = theme.colorScheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        splashColor: Colors.teal.withOpacity(0.3),
-        highlightColor: Colors.teal.withOpacity(0.1),
+        splashColor: scheme.primary.withOpacity(0.2),
+        highlightColor: scheme.primary.withOpacity(0.08),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Row(
             children: <Widget>[
-              Icon(icon, color: Colors.white70, size: 24),
+              Icon(icon, color: scheme.onSurface.withOpacity(0.7), size: 24),
               const SizedBox(width: 20),
               Text(
                 text,
-                style: const TextStyle(color: Colors.white, fontSize: 18),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: scheme.onSurface,
+                ),
               ),
             ],
           ),

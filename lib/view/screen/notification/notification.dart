@@ -2,43 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/notification_item.dart';
 import 'package:rokenalmuslem/controller/notificationcontroller.dart';
+import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
 
-class NotificationsView extends StatefulWidget {
-  @override
-  _NotificationsViewState createState() => _NotificationsViewState();
-}
+class NotificationsView extends StatelessWidget {
+  NotificationsView({super.key});
 
-class _NotificationsViewState extends State<NotificationsView> {
   final NotificationsController controller = Get.put(NotificationsController());
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     final bool isDarkMode = theme.brightness == Brightness.dark;
+    final bool isRtl = Directionality.of(context) == TextDirection.rtl;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text('الإشعارات', style: theme.appBarTheme.titleTextStyle),
+        title: Text('الرسائل', style: theme.appBarTheme.titleTextStyle),
         centerTitle: true,
-        elevation: 4,
+        elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.teal[900]!, Colors.teal[700]!, Colors.teal[500]!],
+              colors: [
+                theme.colorScheme.primary.withOpacity(0.9),
+                theme.colorScheme.secondary.withOpacity(0.85),
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
-        foregroundColor: theme.appBarTheme.foregroundColor,
+        foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: controller.clearAllNotifications,
-            tooltip: 'حذف الكل',
-            color: Colors.white,
-          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: controller.refreshNotifications,
@@ -47,163 +43,253 @@ class _NotificationsViewState extends State<NotificationsView> {
           ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value && controller.notifications.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      body: AppBackground(
+        child: Obx(() {
+          final items = controller.notifications;
+          if (controller.isLoading.value && items.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (controller.errorMessage.value.isNotEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  color: theme.colorScheme.error,
-                  size: 60,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  controller.errorMessage.value,
-                  style: theme.textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: controller.refreshNotifications,
-                  child: const Text('إعادة المحاولة'),
-                ),
-              ],
-            ),
-          );
-        }
+          if (controller.errorMessage.value.isNotEmpty) {
+            return _buildErrorState(theme);
+          }
 
-        if (controller.notifications.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.notifications_off_outlined,
-                  size: 80,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'لا توجد إشعارات مجدولة حالياً',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.grey[600],
+          return RefreshIndicator(
+            onRefresh: controller.refreshNotifications,
+            child: items.isEmpty
+                ? _buildEmptyState(theme)
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final notification = items[index];
+                      return Dismissible(
+                        key: ValueKey(
+                          notification.remoteId ?? notification.id,
+                        ),
+                        direction: DismissDirection.horizontal,
+                        background: _buildDismissBackground(
+                          alignRight: false,
+                          theme: theme,
+                        ),
+                        secondaryBackground: _buildDismissBackground(
+                          alignRight: true,
+                          theme: theme,
+                        ),
+                        confirmDismiss: (direction) async {
+                          final allowRightSwipe = isRtl
+                              ? direction == DismissDirection.endToStart
+                              : direction == DismissDirection.startToEnd;
+                          return allowRightSwipe;
+                        },
+                        onDismissed: (_) {
+                          controller.dismissNotification(notification);
+                        },
+                        child: _buildNotificationCard(
+                          notification,
+                          theme,
+                          isDarkMode,
+                        ),
+                      );
+                    },
                   ),
-                ),
-              ],
-            ),
           );
-        }
-
-        return NotificationListener<ScrollNotification>(
-          onNotification: (scrollNotification) {
-            if (scrollNotification.metrics.pixels ==
-                scrollNotification.metrics.maxScrollExtent) {
-              controller.loadMoreNotifications();
-            }
-            return false;
-          },
-          child: ListView.builder(
-            itemCount:
-                controller.notifications.length +
-                (controller.hasMore.value ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= controller.notifications.length) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final notification = controller.notifications[index];
-              return _buildNotificationTile(
-                notification,
-                index,
-                theme,
-                isDarkMode,
-              );
-            },
-          ),
-        );
-      }),
+        }),
+      ),
     );
   }
 
-  Widget _buildNotificationTile(
+  Widget _buildNotificationCard(
     NotificationItem notification,
-    int index,
     ThemeData theme,
     bool isDarkMode,
   ) {
-    final cardColor =
-        notification.isRead
-            ? (isDarkMode
-                ? Colors.blueGrey.shade900.withOpacity(0.5)
-                : Colors.grey.shade200)
-            : (isDarkMode ? Colors.blueGrey.shade800 : Colors.white);
+    final scheme = theme.colorScheme;
+    final Color cardColor = scheme.surface;
+    final Color borderColor = theme.dividerColor;
+    final Color iconColor = notification.color;
 
-    final titleStyle = theme.textTheme.titleMedium!.copyWith(
-      fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
-      color:
-          notification.isRead
-              ? (isDarkMode ? Colors.white70 : Colors.black54)
-              : (isDarkMode ? Colors.white : Colors.black87),
-    );
-
-    final subtitleStyle = theme.textTheme.bodyMedium!.copyWith(
-      color:
-          notification.isRead
-              ? (isDarkMode ? Colors.white60 : Colors.black45)
-              : (isDarkMode ? Colors.white70 : Colors.black54),
-    );
-
-    return Card(
-      elevation: notification.isRead ? 1 : 4,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(
-          color:
-              notification.isRead
-                  ? Colors.transparent
-                  : notification.color.withOpacity(0.5),
-          width: 1,
+    return InkWell(
+      onTap: () => controller.handleNotificationTap(notification),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-      ),
-      color: cardColor,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: notification.color.withOpacity(0.2),
-          child: Icon(notification.icon, color: notification.color),
-        ),
-        title: Text(notification.title, style: titleStyle),
-        subtitle: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            Text(notification.message, style: subtitleStyle),
-            const SizedBox(height: 4),
-            Text(
-              controller.formatTime(notification.time),
-              style: theme.textTheme.bodySmall!.copyWith(
-                color: Colors.grey[500],
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: iconColor.withOpacity(0.12),
+              child: Icon(notification.icon, color: iconColor),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification.title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (_hasAction(notification))
+                        Icon(
+                          notification.actionType == 'route'
+                              ? Icons.open_in_new
+                              : Icons.link,
+                          size: 16,
+                          color: Colors.grey.shade500,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    notification.message,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.72),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        controller.formatTime(notification.time),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        trailing:
-            notification.isRead
-                ? null
-                : Icon(
-                  Icons.circle,
-                  size: 12,
-                  color: theme.colorScheme.primary,
-                ),
-        onTap: () => controller.handleNotificationTap(index),
       ),
     );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 120),
+      children: [
+        Icon(Icons.inbox_outlined, size: 80, color: Colors.grey.shade400),
+        const SizedBox(height: 16),
+        Text(
+          'لا توجد رسائل حالياً',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'اسحب للأسفل للتحديث',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: Colors.grey.shade500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, color: theme.colorScheme.error, size: 60),
+          const SizedBox(height: 16),
+          Text(
+            controller.errorMessage.value,
+            style: theme.textTheme.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: controller.refreshNotifications,
+            child: const Text('إعادة المحاولة'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDismissBackground({
+    required bool alignRight,
+    required ThemeData theme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.error,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      alignment: alignRight ? Alignment.centerRight : Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.delete_outline, color: Colors.white),
+          SizedBox(width: 8),
+          Text(
+            'حذف',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _hasAction(NotificationItem notification) {
+    if (notification.actionType == 'route' &&
+        notification.actionValue != null &&
+        notification.actionValue!.trim().isNotEmpty) {
+      return true;
+    }
+
+    final payload = notification.actionValue ?? notification.payload;
+    if (payload == null) {
+      return false;
+    }
+    final trimmed = payload.trim();
+    if (trimmed.isEmpty) {
+      return false;
+    }
+    final withScheme = trimmed.startsWith('http://') ||
+            trimmed.startsWith('https://')
+        ? trimmed
+        : 'https://$trimmed';
+    final uri = Uri.tryParse(withScheme);
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
   }
 }

@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:rokenalmuslem/core/theme/app_palette.dart';
 
 class ColorsApp {
-  static const Color primer = Colors.deepPurple;
-
-  static const Color appbar = Colors.black87;
-
-  static const Color appbartext = Colors.white70;
-
-  static const Color second = Color(0xffc67C4A7);
-
-  static const Color titles = Color(0xffc393F42);
-
-  static const Color subtitles = Color(0xffc9393932);
-
+  static const Color primer = AppPalette.emerald;
+  static const Color appbar = AppPalette.emeraldDeep;
+  static const Color appbartext = AppPalette.nightInk;
+  static const Color second = AppPalette.gold;
+  static const Color titles = AppPalette.ink;
+  static const Color subtitles = AppPalette.muted;
   static const Color black12 = Colors.black12;
-
-  static const Color redapp = Color(0xffcD65B5B);
-  static const Color secondredapp = Color(0xffcff7675);
-
+  static const Color redapp = Color(0xFFC65A5A);
+  static const Color secondredapp = Color(0xFFF77675);
   static const Color white = Colors.white;
 }

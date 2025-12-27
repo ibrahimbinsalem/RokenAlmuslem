@@ -12,7 +12,7 @@ class SurahListPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'القرآن الكريم',
-          style: TextStyle(fontFamily: 'Uthmanic', fontSize: 24),
+          style: TextStyle(fontFamily: 'Amiri', fontSize: 24),
         ),
         centerTitle: true,
         flexibleSpace: Container(
@@ -88,7 +88,7 @@ class SurahListPage extends StatelessWidget {
                         Text(
                           surah.name,
                           style: TextStyle(
-                            fontFamily: 'Uthmanic',
+                            fontFamily: 'Amiri',
                             fontSize: 20,
                           ),
                         ),

@@ -188,7 +188,7 @@ class AdkarAladanController extends GetxController {
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                         ),
                       ),
                     ),

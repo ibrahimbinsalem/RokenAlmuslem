@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/mainscreencontroller.dart';
-import 'package:rokenalmuslem/core/constant/color.dart';
-import 'package:rokenalmuslem/view/wedgit/buttons/custom_tetx.dart';
 
 class CosmicNavBar extends StatelessWidget {
   const CosmicNavBar({super.key});
@@ -10,7 +8,10 @@ class CosmicNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MainScreenControllerImp>();
-    final size = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final barColor = isDark ? scheme.surface : scheme.surface;
 
     return Container(
       height: 90,
@@ -19,13 +20,13 @@ class CosmicNavBar extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            ColorsApp.appbar.withOpacity(0.95),
-            ColorsApp.appbar.withOpacity(0.98),
+            barColor.withOpacity(0.96),
+            barColor.withOpacity(0.99),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: ColorsApp.primer.withOpacity(0.3),
+            color: scheme.primary.withOpacity(0.18),
             blurRadius: 20,
             spreadRadius: 2,
           ),
@@ -33,7 +34,6 @@ class CosmicNavBar extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // تأثير الضوء السفلي
           Positioned(
             bottom: 0,
             left: 0,
@@ -43,15 +43,14 @@ class CosmicNavBar extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    ColorsApp.primer.withOpacity(0),
-                    ColorsApp.primer.withOpacity(0.7),
-                    ColorsApp.primer.withOpacity(0),
+                    scheme.primary.withOpacity(0),
+                    scheme.primary.withOpacity(0.45),
+                    scheme.primary.withOpacity(0),
                   ],
                 ),
               ),
             ),
           ),
-
           Row(
             children: [
               _buildNavItem(
@@ -60,7 +59,7 @@ class CosmicNavBar extends StatelessWidget {
                 "الرئيسية",
                 0,
                 controller,
-                size,
+                theme,
               ),
               _buildNavItem(
                 Icons.notifications_outlined,
@@ -68,7 +67,7 @@ class CosmicNavBar extends StatelessWidget {
                 "الرسائل",
                 1,
                 controller,
-                size,
+                theme,
               ),
               _buildNavItem(
                 Icons.menu_book_outlined,
@@ -76,7 +75,7 @@ class CosmicNavBar extends StatelessWidget {
                 "أذكار المسلم",
                 2,
                 controller,
-                size,
+                theme,
               ),
               _buildNavItem(
                 Icons.more_vert_outlined,
@@ -84,7 +83,7 @@ class CosmicNavBar extends StatelessWidget {
                 "المزيد",
                 3,
                 controller,
-                size,
+                theme,
               ),
             ],
           ),
@@ -99,17 +98,18 @@ class CosmicNavBar extends StatelessWidget {
     String label,
     int index,
     MainScreenControllerImp controller,
-    Size size,
+    ThemeData theme,
   ) {
     final isActive = controller.curentpage == index;
     final iconSize = 28.0;
+    final scheme = theme.colorScheme;
 
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          splashColor: ColorsApp.primer.withOpacity(0.2),
+          splashColor: scheme.primary.withOpacity(0.2),
           highlightColor: Colors.transparent,
           onTap: () => controller.changePage(index),
           child: Column(
@@ -120,17 +120,16 @@ class CosmicNavBar extends StatelessWidget {
                 height: isActive ? 50 : 40,
                 width: isActive ? 50 : 40,
                 decoration: BoxDecoration(
-                  gradient:
-                      isActive
-                          ? LinearGradient(
-                            colors: [
-                              Colors.greenAccent.withValues(alpha: 0.3),
-                              Colors.greenAccent.withValues(alpha: 0.1),
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          )
-                          : null,
+                  gradient: isActive
+                      ? LinearGradient(
+                          colors: [
+                            scheme.primary.withOpacity(0.25),
+                            scheme.secondary.withOpacity(0.12),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        )
+                      : null,
                   shape: BoxShape.circle,
                 ),
                 child: Stack(
@@ -143,11 +142,11 @@ class CosmicNavBar extends StatelessWidget {
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: Colors.greenAccent,
+                            color: scheme.secondary,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.greenAccent,
+                                color: scheme.secondary.withOpacity(0.6),
                                 blurRadius: 8,
                                 spreadRadius: 2,
                               ),
@@ -158,7 +157,9 @@ class CosmicNavBar extends StatelessWidget {
                     Icon(
                       isActive ? filledIcon : outlineIcon,
                       size: iconSize,
-                      color: isActive ? Colors.greenAccent : Colors.grey[400],
+                      color: isActive
+                          ? scheme.primary
+                          : theme.colorScheme.onSurface.withOpacity(0.4),
                     ),
                   ],
                 ),
@@ -169,7 +170,9 @@ class CosmicNavBar extends StatelessWidget {
                 style: TextStyle(
                   fontSize: isActive ? 14 : 12,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  color: isActive ? Colors.greenAccent : Colors.grey[400],
+                  color: isActive
+                      ? scheme.primary
+                      : theme.colorScheme.onSurface.withOpacity(0.4),
                 ),
                 child: Text(label),
               ),
@@ -180,11 +183,11 @@ class CosmicNavBar extends StatelessWidget {
                     width: 20,
                     height: 3,
                     decoration: BoxDecoration(
-                      color: Colors.greenAccent,
+                      color: scheme.secondary,
                       borderRadius: BorderRadius.circular(2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.greenAccent,
+                          color: scheme.secondary.withOpacity(0.6),
                           blurRadius: 5,
                           spreadRadius: 1,
                         ),

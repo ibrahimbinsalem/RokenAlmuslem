@@ -24,7 +24,7 @@ class FortyHadithView extends StatelessWidget {
               title,
               textAlign: isCentered ? TextAlign.center : TextAlign.right,
               style: TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Amiri',
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
                 color: const Color(0xFFFFD700), // Golden color
@@ -115,7 +115,7 @@ class FortyHadithView extends StatelessWidget {
                     color: Color(0xFFFFD700), // Golden color
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'Tajawal',
+                    fontFamily: 'Amiri',
                     height: 1.5,
                     shadows: [
                       BoxShadow(
@@ -138,7 +138,7 @@ class FortyHadithView extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
-                    fontFamily: 'Tajawal',
+                    fontFamily: 'Amiri',
                     height: 1.7,
                   ),
                   textAlign: TextAlign.right,
@@ -155,7 +155,7 @@ class FortyHadithView extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
-                    fontFamily: 'Tajawal',
+                    fontFamily: 'Amiri',
                     fontStyle: FontStyle.italic,
                   ),
                   textAlign: TextAlign.right,
@@ -209,7 +209,7 @@ class FortyHadithView extends StatelessWidget {
                             color: Color(0xFFFFD700), // Golden color
                             fontSize: 24,
                             fontWeight: FontWeight.w900,
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                             height: 1.5,
                             shadows: [
                               BoxShadow(
@@ -232,7 +232,7 @@ class FortyHadithView extends StatelessWidget {
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 19,
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                             height: 1.8,
                           ),
                           textAlign: TextAlign.right,
@@ -246,7 +246,7 @@ class FortyHadithView extends StatelessWidget {
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 15,
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                             fontStyle: FontStyle.italic,
                           ),
                           textAlign: TextAlign.right,
@@ -262,7 +262,7 @@ class FortyHadithView extends StatelessWidget {
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 17,
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Amiri',
                             height: 1.7,
                           ),
                           textAlign: TextAlign.right,
@@ -305,7 +305,7 @@ class FortyHadithView extends StatelessWidget {
           'الأربعون النووية',
           style: TextStyle(
             color: Colors.white,
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             fontSize: 26,
             fontWeight: FontWeight.w900,
             shadows: [

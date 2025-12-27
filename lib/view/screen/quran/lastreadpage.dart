@@ -14,7 +14,7 @@ class LastReadPage extends StatelessWidget {
         title: Text(
           'آخر قراءة',
           style: TextStyle(
-            fontFamily: 'Uthmanic',
+            fontFamily: 'Amiri',
             fontSize: 24,
           ),
         ),
@@ -89,7 +89,7 @@ class LastReadPage extends StatelessWidget {
                           Text(
                             surah.name,
                             style: TextStyle(
-                              fontFamily: 'Uthmanic',
+                              fontFamily: 'Amiri',
                               fontSize: 28,
                               color: Color(0xFF046A38),
                             ),

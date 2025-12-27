@@ -24,7 +24,7 @@ class AdayahNabuiaView extends StatelessWidget {
               title,
               textAlign: isCentered ? TextAlign.center : TextAlign.right,
               style: TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Amiri',
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
                 color: const Color(0xFFFFD700), // لون ذهبي مميز
@@ -100,7 +100,7 @@ class AdayahNabuiaView extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
-                    fontFamily: 'Tajawal',
+                    fontFamily: 'Amiri',
                   ),
                   textAlign: TextAlign.right,
                   textDirection: TextDirection.rtl,
@@ -113,7 +113,7 @@ class AdayahNabuiaView extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Amiri',
                   height: 1.7,
                 ),
                 textAlign: TextAlign.right,
@@ -126,7 +126,7 @@ class AdayahNabuiaView extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Amiri',
                 ),
                 textAlign: TextAlign.right,
                 textDirection: TextDirection.rtl,
@@ -138,7 +138,7 @@ class AdayahNabuiaView extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
-                    fontFamily: 'Tajawal',
+                    fontFamily: 'Amiri',
                   ),
                   textAlign: TextAlign.right,
                   textDirection: TextDirection.rtl,
@@ -168,7 +168,7 @@ class AdayahNabuiaView extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 14,
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                         ),
                       ),
                     ),
@@ -205,7 +205,7 @@ class AdayahNabuiaView extends StatelessWidget {
                                           color: Colors.white,
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
-                                          fontFamily: 'Tajawal',
+                                          fontFamily: 'Amiri',
                                         ),
                                         textAlign: TextAlign.right,
                                       ),
@@ -214,7 +214,7 @@ class AdayahNabuiaView extends StatelessWidget {
                                         style: TextStyle(
                                           color: Colors.white70,
                                           fontSize: 14,
-                                          fontFamily: 'Tajawal',
+                                          fontFamily: 'Amiri',
                                         ),
                                         textAlign: TextAlign.right,
                                       ),
@@ -251,7 +251,7 @@ class AdayahNabuiaView extends StatelessWidget {
                                 color: Colors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                fontFamily: 'Tajawal',
+                                fontFamily: 'Amiri',
                               ),
                               textDirection: TextDirection.rtl,
                             ),
@@ -266,7 +266,7 @@ class AdayahNabuiaView extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Amiri',
                         ),
                         textDirection: TextDirection.rtl,
                       ),
@@ -302,7 +302,7 @@ class AdayahNabuiaView extends StatelessWidget {
           'الْأدْعِيَةُ النبوية',
           style: TextStyle(
             color: Colors.white,
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             fontSize: 26,
             fontWeight: FontWeight.w900,
             shadows: [
@@ -397,7 +397,7 @@ class AdayahNabuiaView extends StatelessWidget {
         label: const Text(
           "تصفير العدادات",
           style: TextStyle(
-            fontFamily: 'Tajawal',
+            fontFamily: 'Amiri',
             fontSize: 16,
             color: Colors.white,
           ),

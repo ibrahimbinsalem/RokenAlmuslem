@@ -1,14 +1,12 @@
 import 'dart:convert';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'package:rokenalmuslem/linkapi.dart';
 
 class UpdateService {
   // تم تحديث الرابط إلى الـ API الجديد
-  final String _checkUrl =
-      'https://tasks.arabwaredos.com/rouknalmuslam//setting/check_update.php';
-
   /// Checks for a new version and shows a mandatory update dialog if available.
   Future<void> checkVersionOnStartup() async {
     try {
@@ -17,18 +15,11 @@ class UpdateService {
       const String currentVersion = '1.0.0';
 
       // 2. Get latest version from API
-      final dio = Dio();
-      // تم إضافة رقم الإصدار الحالي كـ query parameter للرابط
-      final response = await dio.get('$_checkUrl?version=$currentVersion');
+      final uri = Uri.parse('${AppLink.appVersionCheck}?version=$currentVersion');
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        // **الإصلاح**: تحويل الاستجابة النصية إلى خريطة
-        final Map<String, dynamic> data;
-        if (response.data is String) {
-          data = json.decode(response.data);
-        } else {
-          data = response.data;
-        }
+        final Map<String, dynamic> data = json.decode(response.body);
 
         final bool updateAvailable = data['update_available'] ?? false;
         // نفترض أن الـ API يرجع update_url عند وجود تحديث
