@@ -143,20 +143,23 @@ class LoginView extends StatelessWidget {
                         const SizedBox(height: 20),
 
                         // Login Button
-                        Obx(
-                          () => controller.isLoading.value
-                              ? const Center(
-                                  child: CircularProgressIndicator(),
+                        GetX<LoginControllerImp>(
+                          builder: (controller) {
+                            if (controller.isLoading.value) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            return CustomAuthButton(
+                                  text: "تسجيل الدخول",
+                                  onPressed: () {
+                                    controller.login();
+                                  },
                                 )
-                              : CustomAuthButton(
-                                    text: "تسجيل الدخول",
-                                    onPressed: () {
-                                      controller.login();
-                                    },
-                                  )
-                                  .animate()
-                                  .fadeIn(delay: 800.ms)
-                                  .slideY(begin: 0.2),
+                                .animate()
+                                .fadeIn(delay: 800.ms)
+                                .slideY(begin: 0.2);
+                          },
                         ),
                         const SizedBox(height: 28),
 

@@ -1,5 +1,5 @@
 class AppLink {
-  static const String baseUrl = "http://197.167.67.161:8000";
+  static const String baseUrl = "http://197.167.67.165:8000";
   static const String apiBase = "$baseUrl/api";
 
   // ============== Auth ==================

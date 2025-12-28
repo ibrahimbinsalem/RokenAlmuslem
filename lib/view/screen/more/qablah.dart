@@ -1,51 +1,19 @@
 import 'dart:math';
-import 'dart:ui'; // For BackdropFilter and ImageFilter
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rokenalmuslem/controller/more/qiblahcontroller.dart'; // تأكد من أن هذا المسار صحيح
+import 'package:rokenalmuslem/controller/more/qiblahcontroller.dart';
+import 'package:rokenalmuslem/view/wedgit/layout/modern_scaffold.dart';
 
 class QiblaView extends GetView<QiblaController> {
   @override
   Widget build(BuildContext context) {
-    QiblaController controller = Get.put(QiblaController());
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text(
-          'بوصلة القبلة',
-          style: TextStyle(
-            fontFamily: 'Amiri',
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: 24,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF0F1F2C),
-              Color(0xFF283A4A),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Obx(() {
+    final controller = Get.put(QiblaController());
+    final scheme = Theme.of(context).colorScheme;
+
+    return ModernScaffold(
+      title: 'بوصلة القبلة',
+      body: GetX<QiblaController>(
+        builder: (controller) {
           if (controller.isLoading.value) {
             return Center(
               child: Column(
@@ -59,29 +27,29 @@ class QiblaView extends GetView<QiblaController> {
                       angle: value * 4 * pi,
                       child: Icon(
                         Icons.sync_rounded,
-                        color: Color(0xFF8DFFCD)
-                            .withOpacity(0.8 + 0.2 * sin(value * pi)),
-                        size: 80,
+                        color: scheme.primary
+                            .withOpacity(0.7 + 0.2 * sin(value * pi)),
+                        size: 70,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
                   Text(
                     'تحديد موقعك الدقيق...',
                     style: TextStyle(
                       fontFamily: 'Amiri',
-                      fontSize: 22,
-                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 20,
+                      color: scheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 10),
                   Text(
                     'يرجى التأكد من تشغيل خدمات الموقع.',
                     style: TextStyle(
                       fontFamily: 'Amiri',
-                      fontSize: 17,
-                      color: Colors.white.withOpacity(0.6),
+                      fontSize: 15,
+                      color: scheme.onSurface.withOpacity(0.7),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -93,58 +61,51 @@ class QiblaView extends GetView<QiblaController> {
           if (controller.errorMessage.value.isNotEmpty) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(32.0),
+                padding: const EdgeInsets.all(28.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.location_off_rounded,
-                      color: Color(0xFFFF7043),
-                      size: 80,
+                      color: scheme.error,
+                      size: 72,
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
                     Text(
                       controller.errorMessage.value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Amiri',
-                        fontSize: 21,
-                        color: Color(0xFFFF7043),
+                        fontSize: 18,
+                        color: scheme.error,
                         fontWeight: FontWeight.w700,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 24),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF34E89E),
+                        backgroundColor: scheme.primary,
+                        foregroundColor: scheme.onPrimary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(35),
+                          borderRadius: BorderRadius.circular(18),
                         ),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 45,
-                          vertical: 18,
+                          horizontal: 28,
+                          vertical: 14,
                         ),
-                        elevation: 10,
-                        shadowColor: Color(0xFF34E89E).withOpacity(0.5),
-                        overlayColor: Colors.white.withOpacity(0.2),
+                        elevation: 0,
                       ),
                       onPressed: () {
                         controller.isLoading.value = true;
                         controller.errorMessage.value = '';
-                        controller
-                            .getCurrentLocation(); // تم تعديل اسم الدالة هنا
+                        controller.getCurrentLocation();
                       },
-                      icon: const Icon(
-                        Icons.cached,
-                        color: Color(0xFF0F3443),
-                        size: 24,
-                      ),
+                      icon: const Icon(Icons.cached, size: 22),
                       label: const Text(
                         'إعادة المحاولة',
                         style: TextStyle(
                           fontFamily: 'Amiri',
-                          fontSize: 19,
-                          color: Color(0xFF0F3443),
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -155,315 +116,267 @@ class QiblaView extends GetView<QiblaController> {
             );
           }
 
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          return ListView(
+            padding: const EdgeInsets.all(20),
             children: [
-              // مؤشر العثور على القبلة - هذا هو الجزء الذي سيتم تحسينه كإشعار مرئي
-              Obx(
-                () => AnimatedContainer(
-                  duration: const Duration(milliseconds: 700),
-                  curve: Curves.elasticOut,
-                  // Padding ديناميكي لجعلها تتوسع/تنقبض
-                  padding: EdgeInsets.symmetric(
-                    vertical: controller.isFacingQibla.value ? 25 : 20,
-                    horizontal: controller.isFacingQibla.value ? 40 : 35,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: controller.isFacingQibla.value
-                        ? const LinearGradient(
-                            colors: [
-                              Color(0xFF8DFFCD),
-                              Color(0xFF34E89E),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : const LinearGradient(
-                            colors: [
-                              Color(0xFF4A6572),
-                              Color(0xFF34495E),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                    borderRadius: BorderRadius.circular(40),
-                    boxShadow: [
-                      BoxShadow(
-                        color: controller.isFacingQibla.value
-                            ? Color(0xFF8DFFCD)
-                                .withOpacity(0.8) // توهج أقوى عند مواجهة القبلة
-                            : Colors.black.withOpacity(0.4),
-                        blurRadius: controller.isFacingQibla.value ? 30 : 15,
-                        offset: const Offset(0, 10),
-                        spreadRadius:
-                            controller.isFacingQibla.value ? 5 : 0, // انتشار التوهج
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AnimatedOpacity(
-                        opacity: controller.isFacingQibla.value ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 400),
-                        child: const Icon(
-                          Icons.done_all_rounded,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                      SizedBox(width: controller.isFacingQibla.value ? 15 : 0),
-                      Text(
-                        controller.isFacingQibla.value
-                            ? 'أنت الآن تتجه للقبلة!'
-                            : 'قم بتحريك جهازك نحو القبلة',
-                        style: const TextStyle(
-                          fontFamily: 'Amiri',
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              blurRadius: 8.0,
-                              color: Colors.black45,
-                              offset: Offset(2.0, 2.0),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              _buildFacingIndicator(controller, scheme),
+              const SizedBox(height: 24),
+              Center(child: _buildCompass(controller, scheme)),
+              const SizedBox(height: 24),
+              _buildInfoCard(
+                icon: Icons.explore,
+                title: 'اتجاه القبلة',
+                value: '${controller.qiblaDirection.value.toStringAsFixed(1)}°',
+                scheme: scheme,
+                highlight: scheme.secondary,
               ),
-
-              // بوصلة القبلة - قرص ثابت ومؤشر متحرك
-              Stack(
-                alignment: Alignment.center,
+              const SizedBox(height: 16),
+              Row(
                 children: [
-                  // Deep space background for the compass
-                  Container(
-                    width: 350,
-                    height: 350,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Color(0xFF1A2A3A),
-                          Color(0xFF0F1F2C),
-                        ],
-                        stops: [0.3, 1.0],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.6),
-                          blurRadius: 40,
-                          spreadRadius: 8,
-                          offset: const Offset(0, 15),
-                        ),
-                      ],
+                  Expanded(
+                    child: _buildInfoCard(
+                      icon: Icons.public,
+                      title: 'خط العرض',
+                      value: controller.latitude.value.toStringAsFixed(4),
+                      scheme: scheme,
+                      isCompact: true,
                     ),
                   ),
-                  // Glowing outer ring (border)
-                  Container(
-                    width: 330,
-                    height: 330,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Color(0xFF34E89E).withOpacity(0.7),
-                        width: 5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0xFF34E89E).withOpacity(0.5),
-                          blurRadius: 40,
-                          spreadRadius: -10,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Compass Dial: Fixed lines and text (DOES NOT ROTATE WITH HEADING)
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Major Degree Markers
-                      ...List.generate(12, (index) {
-                        double angle = index * 30.0;
-                        return Transform.rotate(
-                          angle: angle * pi / 180,
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 20),
-                              child: Container(
-                                width: 3,
-                                height: 25,
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF8DFFCD).withOpacity(0.9),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0xFF8DFFCD).withOpacity(0.7),
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                      // Minor Degree Markers
-                      ...List.generate(36, (index) {
-                        double angle = index * 10.0;
-                        if (angle % 30 != 0) {
-                          return Transform.rotate(
-                            angle: angle * pi / 180,
-                            child: Align(
-                              alignment: Alignment.topCenter,
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 20),
-                                child: Container(
-                                  width: 1.5,
-                                  height: 15,
-                                  color: Colors.white.withOpacity(0.5),
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      }),
-
-                      // Cardinal Directions
-                      _buildCompassDirection(
-                        'شمال',
-                        0,
-                        glowColor: Color(0xFF8DFFCD),
-                        isNorth: true,
-                      ),
-                      _buildCompassDirection('شرق', 90),
-                      _buildCompassDirection('جنوب', 180),
-                      _buildCompassDirection('غرب', 270),
-                    ],
-                  ),
-
-                  // Qibla Pointer: A dynamic, glowing arrow (ROTATES BASED ON QIBLA - HEADING)
-                  Obx(
-                    () => Transform.rotate(
-                      angle: (controller.qiblaDirection.value -
-                              controller.heading.value) *
-                          pi /
-                          180,
-                      alignment: Alignment.center,
-                      child: CustomPaint(
-                        painter: RadiantQiblaPointerPainter(
-                          isFacingQibla: controller.isFacingQibla.value,
-                        ),
-                        size: const Size(220, 220),
-                      ),
-                    ),
-                  ),
-
-                  // Central Hub
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeOutBack,
-                    width: controller.isFacingQibla.value ? 55 : 45,
-                    height: controller.isFacingQibla.value ? 55 : 45,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          controller.isFacingQibla.value
-                              ? Color(0xFF8DFFCD)
-                              : Color(0xFF4A6572),
-                          controller.isFacingQibla.value
-                              ? Color(0xFF34E89E)
-                              : Color(0xFF2C3E50),
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: controller.isFacingQibla.value
-                              ? Color(0xFF8DFFCD).withOpacity(0.8)
-                              : Colors.black.withOpacity(0.4),
-                          blurRadius: controller.isFacingQibla.value ? 30 : 15,
-                          spreadRadius:
-                              controller.isFacingQibla.value ? 5 : 0,
-                          offset: const Offset(0, 0),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 300),
-                        opacity: controller.isFacingQibla.value ? 1.0 : 0.7,
-                        child: Icon(
-                          controller.isFacingQibla.value
-                              ? Icons.mosque_rounded
-                              : Icons.vpn_key_rounded,
-                          color: Colors.white,
-                          size: controller.isFacingQibla.value ? 30 : 25,
-                        ),
-                      ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildInfoCard(
+                      icon: Icons.place,
+                      title: 'خط الطول',
+                      value: controller.longitude.value.toStringAsFixed(4),
+                      scheme: scheme,
+                      isCompact: true,
                     ),
                   ),
                 ],
               ),
-              // Information Panel
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: Column(
-                  children: [
-                    _buildInfoCard(
-                      icon: Icons.alt_route_rounded,
-                      title: 'اتجاه القبلة',
-                      value:
-                          '${controller.qiblaDirection.value.toStringAsFixed(1)}°',
-                      color: Color(0xFF8DFFCD),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child: _buildInfoCard(
-                            icon: Icons.latitude,
-                            title: 'خط العرض',
-                            value: controller.latitude.value.toStringAsFixed(4),
-                            isCompact: true,
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildInfoCard(
-                            icon: Icons.longitude,
-                            title: 'خط الطول',
-                            value: controller.longitude.value.toStringAsFixed(
-                              4,
-                            ),
-                            isCompact: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
             ],
           );
-        }),
+        },
       ),
     );
   }
 
-  // Helper widget to build compass directions with glow
+  Widget _buildFacingIndicator(
+    QiblaController controller,
+    ColorScheme scheme,
+  ) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutBack,
+      padding: EdgeInsets.symmetric(
+        vertical: controller.isFacingQibla.value ? 18 : 16,
+        horizontal: controller.isFacingQibla.value ? 28 : 22,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: controller.isFacingQibla.value
+              ? [scheme.primary, scheme.secondary]
+              : [
+                  scheme.surface.withOpacity(0.9),
+                  scheme.surface.withOpacity(0.7),
+                ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: controller.isFacingQibla.value
+                ? scheme.primary.withOpacity(0.4)
+                : Colors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedOpacity(
+            opacity: controller.isFacingQibla.value ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: Icon(
+              Icons.done_all_rounded,
+              color: scheme.onPrimary,
+              size: 26,
+            ),
+          ),
+          SizedBox(width: controller.isFacingQibla.value ? 10 : 0),
+          Text(
+            controller.isFacingQibla.value
+                ? 'أنت الآن تتجه للقبلة!'
+                : 'قم بتحريك جهازك نحو القبلة',
+            style: TextStyle(
+              fontFamily: 'Amiri',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: controller.isFacingQibla.value
+                  ? scheme.onPrimary
+                  : scheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompass(QiblaController controller, ColorScheme scheme) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 320,
+          height: 320,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                scheme.surface.withOpacity(0.95),
+                scheme.background.withOpacity(0.9),
+              ],
+              stops: const [0.3, 1.0],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.18),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          width: 300,
+          height: 300,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: scheme.primary.withOpacity(0.7),
+              width: 4,
+            ),
+          ),
+        ),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            ...List.generate(12, (index) {
+              double angle = index * 30.0;
+              return Transform.rotate(
+                angle: angle * pi / 180,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 18),
+                    child: Container(
+                      width: 3,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withOpacity(0.7),
+                        boxShadow: [
+                          BoxShadow(
+                            color: scheme.primary.withOpacity(0.35),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+            ...List.generate(36, (index) {
+              double angle = index * 10.0;
+              if (angle % 30 != 0) {
+                return Transform.rotate(
+                  angle: angle * pi / 180,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 18),
+                      child: Container(
+                        width: 1.5,
+                        height: 14,
+                        color: scheme.onSurface.withOpacity(0.35),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
+            _buildCompassDirection('شمال', 0, scheme: scheme, isNorth: true),
+            _buildCompassDirection('شرق', 90, scheme: scheme),
+            _buildCompassDirection('جنوب', 180, scheme: scheme),
+            _buildCompassDirection('غرب', 270, scheme: scheme),
+          ],
+        ),
+        Transform.rotate(
+          angle:
+              (controller.qiblaDirection.value - controller.heading.value) *
+              pi /
+              180,
+          alignment: Alignment.center,
+          child: CustomPaint(
+            painter: RadiantQiblaPointerPainter(
+              isFacingQibla: controller.isFacingQibla.value,
+              scheme: scheme,
+            ),
+            size: const Size(210, 210),
+          ),
+        ),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutBack,
+          width: controller.isFacingQibla.value ? 52 : 44,
+          height: controller.isFacingQibla.value ? 52 : 44,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: controller.isFacingQibla.value
+                  ? [scheme.primary, scheme.secondary]
+                  : [
+                      scheme.surface.withOpacity(0.9),
+                      scheme.surface.withOpacity(0.7),
+                    ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: scheme.primary.withOpacity(
+                  controller.isFacingQibla.value ? 0.35 : 0.15,
+                ),
+                blurRadius: 16,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Center(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 250),
+              opacity: controller.isFacingQibla.value ? 1.0 : 0.7,
+              child: Icon(
+                controller.isFacingQibla.value
+                    ? Icons.navigation
+                    : Icons.explore,
+                color: scheme.onPrimary,
+                size: controller.isFacingQibla.value ? 26 : 22,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCompassDirection(
     String text,
     double angle, {
-    Color? glowColor,
+    required ColorScheme scheme,
     bool isNorth = false,
   }) {
     return Transform.rotate(
@@ -478,11 +391,12 @@ class QiblaView extends GetView<QiblaController> {
               fontFamily: 'Amiri',
               fontSize: isNorth ? 20 : 18,
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: scheme.onSurface,
               shadows: [
                 Shadow(
                   blurRadius: isNorth ? 15.0 : 8.0,
-                  color: glowColor ?? Colors.white.withOpacity(0.5),
+                  color: (isNorth ? scheme.secondary : scheme.primary)
+                      .withOpacity(0.45),
                   offset: const Offset(0, 0),
                 ),
               ],
@@ -493,103 +407,99 @@ class QiblaView extends GetView<QiblaController> {
     );
   }
 
-  // A more versatile info card widget
   Widget _buildInfoCard({
     required IconData icon,
     required String title,
     required String value,
-    Color color = Colors.white,
+    required ColorScheme scheme,
+    Color? highlight,
     bool isCompact = false,
   }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: EdgeInsets.all(isCompact ? 15 : 20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
+    final accent = highlight ?? scheme.primary;
+    return Container(
+      padding: EdgeInsets.all(isCompact ? 14 : 18),
+      decoration: BoxDecoration(
+        color: scheme.surface.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: scheme.primary.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
-          child: isCompact
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, color: color, size: 28),
-                    const SizedBox(height: 10),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontFamily: 'Amiri',
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 15,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      value,
-                      style: const TextStyle(
-                        fontFamily: 'Amiri',
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, color: color, size: 32),
-                    const SizedBox(width: 15),
-                    Text(
-                      '$title: ',
-                      style: TextStyle(
-                        fontFamily: 'Amiri',
-                        fontSize: 20,
-                        color: Colors.white.withOpacity(0.8),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      value,
-                      style: const TextStyle(
-                        fontFamily: 'Amiri',
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
+        ],
       ),
+      child: isCompact
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: accent, size: 26),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'Amiri',
+                    color: scheme.onSurface.withOpacity(0.7),
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontFamily: 'Amiri',
+                    fontWeight: FontWeight.bold,
+                    color: scheme.onSurface,
+                    fontSize: 15,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: accent, size: 28),
+                const SizedBox(width: 12),
+                Text(
+                  '$title: ',
+                  style: TextStyle(
+                    fontFamily: 'Amiri',
+                    fontSize: 18,
+                    color: scheme.onSurface.withOpacity(0.7),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontFamily: 'Amiri',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
 
-// Radiant Qibla Pointer Painter
 class RadiantQiblaPointerPainter extends CustomPainter {
   final bool isFacingQibla;
+  final ColorScheme scheme;
 
-  RadiantQiblaPointerPainter({required this.isFacingQibla});
+  RadiantQiblaPointerPainter({
+    required this.isFacingQibla,
+    required this.scheme,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final baseColor =
-        isFacingQibla ? const Color(0xFF8DFFCD) : const Color(0xFFFF5252);
-    final accentColor =
-        isFacingQibla ? const Color(0xFF34E89E) : const Color(0xFFD32F2F);
+    final baseColor = isFacingQibla ? scheme.primary : scheme.error;
+    final accentColor = isFacingQibla ? scheme.secondary : scheme.error;
 
     final arrowPaint = Paint()
       ..shader = LinearGradient(
@@ -599,7 +509,6 @@ class RadiantQiblaPointerPainter extends CustomPainter {
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
 
-    // Arrowhead
     final Path path = Path()
       ..moveTo(size.width / 2, 0)
       ..lineTo(size.width / 2 - 25, size.height * 0.20)
@@ -608,73 +517,33 @@ class RadiantQiblaPointerPainter extends CustomPainter {
 
     canvas.drawPath(path, arrowPaint);
 
-    // Arrow body
     final bodyRect = Rect.fromCenter(
       center: Offset(size.width / 2, size.height * 0.6),
       width: 15,
       height: size.height * 0.7,
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(bodyRect, Radius.circular(5)),
+      RRect.fromRectAndRadius(bodyRect, const Radius.circular(5)),
       arrowPaint,
     );
 
-    // Glow effect
     if (isFacingQibla) {
       final glowPaint = Paint()
         ..color = baseColor.withOpacity(0.8)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 25.0);
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 25.0);
       canvas.drawPath(path, glowPaint);
       canvas.drawRRect(
-        RRect.fromRectAndRadius(bodyRect, Radius.circular(5)),
+        RRect.fromRectAndRadius(bodyRect, const Radius.circular(5)),
         glowPaint,
       );
     }
 
-    // Small indicator at the tip
     final tipPaint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
+      ..color = scheme.onSurface.withOpacity(0.8)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(size.width / 2, size.height * 0.05), 5, tipPaint);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-// Placeholder for missing icons if Material 3 is not fully implemented or custom icons are needed
-class Icons {
-  static const IconData latitude = IconData(
-    0xe0b7,
-    fontFamily: 'MaterialIcons',
-  );
-  static const IconData longitude = IconData(
-    0xe0b8,
-    fontFamily: 'MaterialIcons',
-  );
-  static const IconData mosque_rounded = IconData(
-    0xe472,
-    fontFamily: 'MaterialIcons',
-  );
-  static const IconData vpn_key_rounded = IconData(
-    0xe66e,
-    fontFamily: 'MaterialIcons',
-  );
-  static const IconData sync_rounded = IconData(
-    0xe577,
-    fontFamily: 'MaterialIcons',
-  );
-  static const IconData location_off_rounded = IconData(
-    0xe360,
-    fontFamily: 'MaterialIcons',
-  );
-  static const IconData done_all_rounded = IconData(
-    0xe231,
-    fontFamily: 'MaterialIcons',
-  );
-  static const IconData alt_route_rounded = IconData(
-    0xe07f,
-    fontFamily: 'MaterialIcons',
-  );
-  static const IconData cached = IconData(0xe0b8, fontFamily: 'MaterialIcons');
 }

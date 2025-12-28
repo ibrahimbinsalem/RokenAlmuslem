@@ -88,7 +88,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "مواقيت الصلاه",
                   image: "assets/images/praytime.png",
-                  color: Colors.deepPurpleAccent, // لون بنفسجي زاهي
+                  color: scheme.primary,
                   onTap: () {
                     Get.toNamed(AppRoute.prytime);
                   },
@@ -96,7 +96,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "أسماء الله الحسنى",
                   image: "assets/images/اسماء الله.png",
-                  color: Colors.lightBlueAccent, // لون أزرق فاتح زاهي
+                  color: scheme.secondary,
                   onTap: () {
                     Get.toNamed(AppRoute.asmaAllah);
                   },
@@ -104,7 +104,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "حلقات الذكر",
                   image: "assets/images/حلقات ذكر .png",
-                  color: Colors.blueAccent, // لون أزرق زاهي
+                  color: scheme.tertiary,
                   onTap: () {
                     _showComingSoonDialog(context);
                   },
@@ -112,7 +112,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "المسبحة الإلكترونية",
                   image: "assets/images/الكترونية.png",
-                  color: Colors.lightGreenAccent, // لون أخضر فاتح زاهي
+                  color: scheme.primary.withOpacity(0.8),
                   onTap: () {
                     Get.toNamed(AppRoute.msbaha);
                   },
@@ -126,7 +126,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "اتجاه القبلة",
                   image: "assets/images/القبله.png",
-                  color: Colors.orangeAccent, // لون برتقالي زاهي
+                  color: scheme.secondary.withOpacity(0.8),
                   onTap: () {
                     Get.toNamed(AppRoute.qiblah);
                   },
@@ -134,13 +134,13 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "بيت الاستغفار",
                   image: "assets/images/مسبحة.png",
-                  color: Colors.cyanAccent, // لون سماوي زاهي
+                  color: scheme.tertiary.withOpacity(0.8),
                   onTap: () {},
                 ),
                 _buildFeatureCard(context, 
                   title: "فضل الدعاء",
                   image: "assets/images/استغفار.png",
-                  color: Colors.indigoAccent, // لون نيلي زاهي
+                  color: scheme.primary.withOpacity(0.7),
                   onTap: () {
                     Get.toNamed(AppRoute.fadelalduaa);
                   },
@@ -148,7 +148,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "الرقية الشرعية",
                   image: "assets/images/الرقية الشرعية .png",
-                  color: Colors.redAccent, // لون أحمر زاهي
+                  color: scheme.secondary.withOpacity(0.7),
                   onTap: () {
                     Get.toNamed(AppRoute.alrugi);
                   },
@@ -156,7 +156,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "الأدعية القرآنية",
                   image: "assets/images/ادعية قرانية .png",
-                  color: Colors.tealAccent, // لون تركوازي زاهي
+                  color: scheme.tertiary.withOpacity(0.7),
                   onTap: () {
                     Get.toNamed(AppRoute.aduqyQuran);
                   },
@@ -164,7 +164,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "أدعية نبوية",
                   image: "assets/images/ادعية نبوية .png",
-                  color: Colors.brown.shade300, // لون بني فاتح
+                  color: scheme.primary.withOpacity(0.6),
                   onTap: () {
                     Get.toNamed(AppRoute.aduqyNabuia);
                   },
@@ -172,7 +172,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "أدعية الأنبياء",
                   image: "assets/images/ادعية الانبياء.png",
-                  color: Colors.pinkAccent, // لون وردي زاهي
+                  color: scheme.secondary.withOpacity(0.6),
                   onTap: () {
                     Get.toNamed(AppRoute.adaytalanbya);
                   },
@@ -180,7 +180,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "الأربعين النووية",
                   image: "assets/images/الاربعون النووية .png",
-                  color: Colors.deepOrangeAccent, // لون برتقالي داكن زاهي
+                  color: scheme.tertiary.withOpacity(0.6),
                   onTap: () {
                     Get.toNamed(AppRoute.alarboun);
                   },
@@ -188,7 +188,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "فضل الذكر",
                   image: "assets/images/رمضان .png",
-                  color: Colors.limeAccent, // لون ليموني زاهي
+                  color: scheme.primary.withOpacity(0.5),
                   onTap: () {
                     Get.toNamed(AppRoute.fadelaldaker);
                   },
@@ -196,7 +196,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "الحج والعمرة",
                   image: "assets/images/الحج والعمره .png",
-                  color: Colors.purpleAccent, // لون أرجواني زاهي
+                  color: scheme.secondary.withOpacity(0.5),
                   onTap: () {
                     _showComingSoonDialog(context);
                   },
@@ -204,7 +204,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "قصص الأنبياء",
                   image: "assets/images/story.png",
-                  color: Colors.deepPurpleAccent, // لون أرجواني زاهي
+                  color: scheme.tertiary.withOpacity(0.5),
                   onTap: () {
                     Get.toNamed(AppRoute.prophetStories);
                   },
@@ -212,7 +212,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "القصص",
                   image: "assets/images/story.png",
-                  color: Colors.purpleAccent, // لون أرجواني زاهي
+                  color: scheme.primary.withOpacity(0.55),
                   onTap: () {
                     Get.toNamed(AppRoute.stories);
                   },
@@ -220,7 +220,7 @@ class MorePage extends StatelessWidget {
                 _buildFeatureCard(context, 
                   title: "الإعدادات",
                   image: "assets/images/اعدادات.png",
-                  color: Colors.grey.shade400, // لون رمادي فاتح
+                  color: scheme.onSurface.withOpacity(0.4),
                   onTap: () {
                     Get.toNamed(AppRoute.setting);
                   },

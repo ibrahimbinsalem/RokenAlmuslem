@@ -22,6 +22,14 @@ class AppSettingsController extends GetxController {
   final fontSizeMultiplier = 1.0.obs;
   final vibrateOnNotification = true.obs;
   final randomAzkarOrder = true.obs;
+  final shortcutsLoaded = false.obs;
+  final enabledShortcuts = <String>[].obs;
+
+  static const List<String> defaultShortcuts = [
+    'asma_allah',
+    'tasbeeh',
+    'forty_hadith',
+  ];
 
   final generalDailyAzkarEnabled = false.obs;
   final morningAzkarReminderEnabled = false.obs;
@@ -63,6 +71,10 @@ class AppSettingsController extends GetxController {
     vibrateOnNotification.value =
         _prefs.getBool('vibrateOnNotification') ?? true;
     randomAzkarOrder.value = _prefs.getBool('randomAzkarOrder') ?? true;
+    enabledShortcuts.assignAll(
+      _prefs.getStringList('enabledShortcuts') ?? defaultShortcuts,
+    );
+    shortcutsLoaded.value = true;
 
     generalDailyAzkarEnabled.value =
         _prefs.getBool('generalDailyAzkarEnabled') ?? false;
@@ -97,6 +109,27 @@ class AppSettingsController extends GetxController {
     } else if (value is int) {
       await _prefs.setInt(key, value);
     }
+  }
+
+  Future<void> _saveShortcuts(List<String> shortcuts) async {
+    await _prefs.setStringList('enabledShortcuts', shortcuts);
+  }
+
+  bool isShortcutEnabled(String id) {
+    return enabledShortcuts.contains(id);
+  }
+
+  Future<void> setShortcutEnabled(String id, bool enabled) async {
+    final updated = List<String>.from(enabledShortcuts);
+    if (enabled) {
+      if (!updated.contains(id)) {
+        updated.add(id);
+      }
+    } else {
+      updated.remove(id);
+    }
+    enabledShortcuts.assignAll(updated);
+    await _saveShortcuts(updated);
   }
 
   void _applyCurrentTheme() {

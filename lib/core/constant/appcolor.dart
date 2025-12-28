@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:rokenalmuslem/core/theme/app_palette.dart';
 
 class AppColors {
-  static const Color primaryColor = AppPalette.emerald;
+  static const Color primaryColor = AppPalette.green;
   static const Color accentColor = AppPalette.gold;
   static const Color white = Colors.white;
   static const Color errorColor = Color(0xFFD32F2F);

@@ -1,51 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:rokenalmuslem/view/wedgit/layout/modern_scaffold.dart';
 
 class AboutUsPage extends StatelessWidget {
   const AboutUsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final AppSettingsController appSettings = Get.find<AppSettingsController>();
     final ThemeData currentTheme = Theme.of(context);
-    final bool isDarkMode = currentTheme.brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: currentTheme.colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'حول التطبيق والمطورين',
-          style: currentTheme.appBarTheme.titleTextStyle?.copyWith(
-            fontSize: currentTheme.textTheme.headlineSmall?.fontSize,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 4,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.teal.shade900,
-                Colors.teal.shade700,
-                Colors.teal.shade500,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.teal.shade800.withOpacity(0.5),
-                blurRadius: 10,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-        ),
-        iconTheme: IconThemeData(color: currentTheme.colorScheme.onPrimary),
-      ),
+    return ModernScaffold(
+      title: 'حول التطبيق والمطورين',
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -1,32 +1,34 @@
 import 'package:flutter/material.dart';
 
 class AppPalette {
-  static const Color sand = Color(0xFFF7F2EA);
-  static const Color sandSoft = Color(0xFFF1EAE0);
-  static const Color mint = Color(0xFF63C1A2);
-  static const Color emerald = Color(0xFF1D6B5A);
-  static const Color emeraldDeep = Color(0xFF134C41);
-  static const Color gold = Color(0xFFD9B76C);
-  static const Color goldSoft = Color(0xFFE9D6A3);
-  static const Color ink = Color(0xFF0E2A24);
-  static const Color muted = Color(0xFF6F7F77);
-  static const Color outline = Color(0xFFE2D9C9);
+  static const Color lightBackground = Color(0xFFF0F2F6);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightSurfaceAlt = Color(0xFFF7F9FC);
+  static const Color lightInk = Color(0xFF1B262C);
+  static const Color lightMuted = Color(0xFF6A7B83);
+  static const Color lightOutline = Color(0xFFE3E8EF);
 
-  static const Color night = Color(0xFF0B1A17);
-  static const Color nightSurface = Color(0xFF132622);
-  static const Color nightSurfaceAlt = Color(0xFF0F201D);
-  static const Color nightInk = Color(0xFFE6F3EE);
-  static const Color nightMuted = Color(0xFF9CB0A7);
-  static const Color nightOutline = Color(0xFF1F3B34);
+  static const Color darkBackground = Color(0xFF0F151A);
+  static const Color darkSurface = Color(0xFF182127);
+  static const Color darkSurfaceAlt = Color(0xFF1E2A31);
+  static const Color darkInk = Color(0xFFE6EEF2);
+  static const Color darkMuted = Color(0xFF9FB0B8);
+  static const Color darkOutline = Color(0xFF24313A);
 
-  static const LinearGradient lightBackground = LinearGradient(
-    colors: [Color(0xFFF7F2EA), Color(0xFFEAF4EE)],
+  static const Color green = Color(0xFF2FB36B);
+  static const Color greenSoft = Color(0xFF5AD889);
+  static const Color gold = Color(0xFFE4C067);
+  static const Color goldSoft = Color(0xFFF2D79A);
+  static const Color accentBlue = Color(0xFF8FB5FF);
+
+  static const LinearGradient lightCanvas = LinearGradient(
+    colors: [Color(0xFFF0F2F6), Color(0xFFE9EDF3)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
-  static const LinearGradient darkBackground = LinearGradient(
-    colors: [Color(0xFF0B1A17), Color(0xFF0F2420)],
+  static const LinearGradient darkCanvas = LinearGradient(
+    colors: [Color(0xFF0F151A), Color(0xFF121C22)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );

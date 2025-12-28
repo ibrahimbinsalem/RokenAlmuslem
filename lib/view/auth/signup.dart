@@ -119,20 +119,23 @@ class SignUpView extends StatelessWidget {
                         const SizedBox(height: 24),
 
                         // SignUp Button
-                        Obx(
-                          () => controller.isLoading.value
-                              ? const Center(
-                                  child: CircularProgressIndicator(),
+                        GetX<SignUpControllerImp>(
+                          builder: (controller) {
+                            if (controller.isLoading.value) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            return CustomAuthButton(
+                                  text: "إنشاء الحساب",
+                                  onPressed: () {
+                                    controller.signup();
+                                  },
                                 )
-                              : CustomAuthButton(
-                                    text: "إنشاء الحساب",
-                                    onPressed: () {
-                                      controller.signup();
-                                    },
-                                  )
-                                  .animate()
-                                  .fadeIn(delay: 800.ms)
-                                  .slideY(begin: 0.2),
+                                .animate()
+                                .fadeIn(delay: 800.ms)
+                                .slideY(begin: 0.2);
+                          },
                         ),
                         const SizedBox(height: 18),
 

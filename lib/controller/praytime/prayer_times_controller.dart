@@ -99,11 +99,33 @@ class PrayerTimesController extends GetxController {
 
       // 1. تحميل الإعدادات والموقع المحفوظين أولاً
       await loadPreferences();
+      final prefs = await SharedPreferences.getInstance();
+      final prayerTimesEnabled =
+          prefs.getBool('prayerTimesNotificationsEnabled') ?? false;
+      if (!prayerTimesEnabled) {
+        errorMessage.value = '';
+        isLoading = false;
+        update();
+        return;
+      }
+      if (!latitude.value.isFinite ||
+          !longitude.value.isFinite ||
+          latitude.value.abs() > 90 ||
+          longitude.value.abs() > 180) {
+        latitude.value = 0.0;
+        longitude.value = 0.0;
+        currentAddress.value = 'موقع غير صالح';
+      }
 
       // 2. محاولة جلب أوقات الصلاة من قاعدة البيانات المحلية أولاً
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final dbHelper = DatabaseHelper.instance;
-      final localPrayerTimes = await dbHelper.getPrayerTimesForDate(today);
+      Map<String, String>? localPrayerTimes;
+      try {
+        localPrayerTimes = await dbHelper.getPrayerTimesForDate(today);
+      } catch (e) {
+        print("Failed to read prayer times from DB: $e");
+      }
 
       if (localPrayerTimes != null) {
         print("Found prayer times in local DB for today. Displaying them.");
@@ -123,7 +145,7 @@ class PrayerTimesController extends GetxController {
           print(
             "No local DB data. Calculating prayer times from saved location.",
           );
-          fetchPrayerTimes();
+          fetchPrayerTimes(suppressErrors: true);
         } else {
           // **جديد**: إذا لم يكن هناك موقع محفوظ، ابدأ عملية تحديد الموقع
           // هذا سيحدث فقط في أول مرة يفتح فيها المستخدم التطبيق
@@ -139,7 +161,7 @@ class PrayerTimesController extends GetxController {
       }
     } catch (e) {
       print("An error occurred during initialization: $e");
-      errorMessage.value = 'حدث خطأ غير متوقع أثناء تهيئة التطبيق.';
+      errorMessage.value = '';
     } finally {
       isLoading = false;
       update();
@@ -366,13 +388,17 @@ class PrayerTimesController extends GetxController {
     await savePreferences();
   }
 
-  void fetchPrayerTimes() {
+  void fetchPrayerTimes({bool suppressErrors = false}) {
     if (latitude.value == 0.0 && longitude.value == 0.0) {
-      errorMessage.value = 'الموقع غير محدد. لا يمكن حساب أوقات الصلاة.';
+      if (!suppressErrors) {
+        errorMessage.value = 'الموقع غير محدد. لا يمكن حساب أوقات الصلاة.';
+      }
       return;
     }
 
-    errorMessage.value = '';
+    if (!suppressErrors) {
+      errorMessage.value = '';
+    }
     isLoading = true;
     // No need for update() here, as determinePosition already called it.
     try {
@@ -403,7 +429,9 @@ class PrayerTimesController extends GetxController {
       savePreferences();
     } catch (e) {
       print("Error calculating prayer times: $e");
-      errorMessage.value = 'حدث خطأ أثناء حساب أوقات الصلاة.';
+      if (!suppressErrors) {
+        errorMessage.value = 'حدث خطأ أثناء حساب أوقات الصلاة.';
+      }
     } finally {
       isLoading = false;
       update();

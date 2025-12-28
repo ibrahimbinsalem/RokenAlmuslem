@@ -22,311 +22,395 @@ class SettingsPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Text(
-          'الإعدادات',
-          style: currentTheme.appBarTheme.titleTextStyle,
-        ),
-        centerTitle: true,
-        elevation: currentTheme.appBarTheme.elevation,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                scheme.primary.withOpacity(0.9),
-                scheme.secondary.withOpacity(0.85),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        foregroundColor: currentTheme.appBarTheme.foregroundColor,
-      ),
       body: AppBackground(
-        child: Obx(
-          () => ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              _buildSectionTitle(context, 'الإعدادات العامة', currentTheme),
-              _buildToggleSetting(
-                context,
-                title: 'الوضع الليلي',
-                value: appSettings.darkModeEnabled.value,
-                onChanged: (newValue) async {
-                  await appSettings.setDarkModeEnabled(newValue);
-                },
-                theme: currentTheme,
-              ),
-            _buildSliderSetting(
-              context,
-              title: 'حجم الخط',
-              value: appSettings.fontSizeMultiplier.value,
-              min: 0.8,
-              max: 1.5,
-              divisions: 7,
-              label: '${(appSettings.fontSizeMultiplier.value * 100).round()}%',
-              onChanged: (newValue) async {
-                await appSettings.setFontSizeMultiplier(newValue);
-              },
-              theme: currentTheme,
-            ),
-            _buildDropdownSetting(
-              context,
-              title: 'اللغة',
-              value: appSettings.selectedLanguage.value,
-              items: const ['العربية', 'English'],
-              onChanged: (newValue) async {
-                if (newValue != null) {
-                  await appSettings.setSelectedLanguage(newValue);
-                }
-              },
-              theme: currentTheme,
-            ),
-            const SizedBox(height: 24),
-
-            _buildSectionTitle(context, 'إعدادات التنبيهات', currentTheme),
-            _buildToggleSetting(
-              context,
-              title: 'تفعيل كل التنبيهات', // مفتاح رئيسي لجميع التنبيهات
-              value: appSettings.notificationsEnabled.value,
-              onChanged: (newValue) async {
-                await appSettings.setNotificationsEnabled(newValue);
-              },
-              theme: currentTheme,
-            ),
-            // مفاتيح التفعيل الفردية للتنبيهات (تظهر فقط إذا كان المفتاح الرئيسي مفعل)
-            if (appSettings.notificationsEnabled.value) ...[
-              // **جديد: مفتاح التحكم بإشعارات أوقات الصلاة**
-              _buildToggleSetting(
-                context,
-                title: 'تنبيهات أوقات الصلاة',
-                value: appSettings.prayerTimesNotificationsEnabled.value,
-                onChanged: (newValue) async {
-                  await appSettings.setPrayerTimesNotificationsEnabled(
-                    newValue,
-                  );
-                },
-                theme: currentTheme,
-              ),
-              _buildToggleSetting(
-                context,
-                title: 'تذكير أذكار عامة (8:00 صباحًا)',
-                value: appSettings.generalDailyAzkarEnabled.value,
-                onChanged: (newValue) async {
-                  await appSettings.setGeneralDailyAzkarEnabled(newValue);
-                },
-                theme: currentTheme,
-              ),
-              _buildToggleSetting(
-                context,
-                title: 'تذكير أذكار الصباح (6:00 صباحًا)',
-                value: appSettings.morningAzkarReminderEnabled.value,
-                onChanged: (newValue) async {
-                  await appSettings.setMorningAzkarReminderEnabled(newValue);
-                },
-                theme: currentTheme,
-              ),
-              _buildToggleSetting(
-                context,
-                title: 'تذكير أذكار المساء (6:00 مساءً)',
-                value: appSettings.eveningAzkarReminderEnabled.value,
-                onChanged: (newValue) async {
-                  await appSettings.setEveningAzkarReminderEnabled(newValue);
-                },
-                theme: currentTheme,
-              ),
-              _buildToggleSetting(
-                context,
-                title: 'تذكير أذكار النوم (10:00 مساءً)',
-                value: appSettings.sleepAzkarReminderEnabled.value,
-                onChanged: (newValue) async {
-                  await appSettings.setSleepAzkarReminderEnabled(newValue);
-                },
-                theme: currentTheme,
-              ),
-              _buildToggleSetting(
-                context,
-                title: 'تذكير التسبيح (12:00 ظهرًا)',
-                value: appSettings.tasbeehReminderEnabled.value,
-                onChanged: (newValue) async {
-                  await appSettings.setTasbeehReminderEnabled(newValue);
-                },
-                theme: currentTheme,
-              ),
-              _buildToggleSetting(
-                context,
-                title: 'تذكير الجمعة (10:00 صباحًا)',
-                value: appSettings.weeklyFridayReminderEnabled.value,
-                onChanged: (newValue) async {
-                  await appSettings.setWeeklyFridayReminderEnabled(newValue);
-                },
-                theme: currentTheme,
-              ),
-            ],
-            const SizedBox(height: 24),
-
-            _buildSectionTitle(context, 'محتوى الأذكار', currentTheme),
-            _buildToggleSetting(
-              context,
-              title: 'ترتيب عشوائي للأذكار',
-              value: appSettings.randomAzkarOrder.value,
-              onChanged: (newValue) async {
-                await appSettings.setRandomAzkarOrder(newValue);
-              },
-              theme: currentTheme,
-            ),
-            const SizedBox(height: 24),
-
-            _buildSectionTitle(context, 'إضافي', currentTheme),
-            _buildListTile(
-              context,
-              title: 'إدارة التنبيهات المجدولة',
-              icon: Icons.notifications_none_outlined,
-              onTap:
-                  () =>
-                      _showScheduledNotificationsDialog(context, currentTheme),
-              theme: currentTheme,
-            ),
-            _buildListTile(
-              context,
-              title: 'مشاركة التطبيق',
-              icon: Icons.share_outlined,
-              onTap: () {
-                _showSnackBar(
-                  context,
-                  'ميزة المشاركة قيد التطوير!',
-                  currentTheme,
-                );
-              },
-              theme: currentTheme,
-            ),
-            _buildListTile(
-              context,
-              title: 'تقييم التطبيق',
-              icon: Icons.star_rate_outlined,
-              onTap: () {
-                _showSnackBar(
-                  context,
-                  'ميزة التقييم قيد التطوير!',
-                  currentTheme,
-                );
-              },
-              theme: currentTheme,
-            ),
-            _buildListTile(
-              context,
-              title: 'سياسة الخصوصية',
-              icon: Icons.policy_outlined,
-              onTap: () {
-                launchUrl(
-                  Uri.parse(
-                    "https://newbalignearab.arabwaredos.com/baligneback/rokenalmuslam.html",
+        child: GetX<AppSettingsController>(
+          builder: (appSettings) {
+            return CustomScrollView(
+              slivers: [
+              SliverAppBar(
+                expandedHeight: 120,
+                pinned: true,
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  titlePadding: const EdgeInsets.only(bottom: 16),
+                  centerTitle: true,
+                  title: Text(
+                    'الإعدادات',
+                    style: currentTheme.textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                );
-              },
-              theme: currentTheme,
-            ),
-            _buildListTile(
-              context,
-              title: 'حول التطبيق والمطورين',
-              icon: Icons.info_outline,
-              onTap: () {
-                Get.to(() => const AboutUsPage());
-              },
-              theme: currentTheme,
-            ),
-            _buildListTile(
-              context,
-              title: 'إعادة تعيين الإعدادات',
-              icon: Icons.refresh_outlined,
-              onTap: () {
-                _showConfirmResetDialog(context, currentTheme);
-              },
-              theme: currentTheme,
-            ),
-              const SizedBox(height: 16),
-            ],
-          ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          scheme.primary.withOpacity(0.95),
+                          scheme.secondary.withOpacity(0.9),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: Text(
+                          'تخصيص تجربة ركن المسلم حسب تفضيلاتك',
+                          style: currentTheme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withOpacity(0.85),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    _buildSectionCard(
+                      context,
+                      title: 'الإعدادات العامة',
+                      children: [
+                        _buildSwitchRow(
+                          context,
+                          icon: Icons.dark_mode_outlined,
+                          title: 'الوضع الداكن',
+                          subtitle: 'تفعيل المظهر الليلي العصري',
+                          value: appSettings.darkModeEnabled.value,
+                          onChanged: (newValue) async {
+                            await appSettings.setDarkModeEnabled(newValue);
+                          },
+                        ),
+                        _buildSliderRow(
+                          context,
+                          icon: Icons.text_fields,
+                          title: 'حجم الخط',
+                          value: appSettings.fontSizeMultiplier.value,
+                          min: 0.8,
+                          max: 1.5,
+                          divisions: 7,
+                          label:
+                              '${(appSettings.fontSizeMultiplier.value * 100).round()}%',
+                          onChanged: (newValue) async {
+                            await appSettings.setFontSizeMultiplier(newValue);
+                          },
+                        ),
+                        _buildDropdownRow(
+                          context,
+                          icon: Icons.language,
+                          title: 'اللغة',
+                          value: appSettings.selectedLanguage.value,
+                          items: const ['العربية', 'English'],
+                          onChanged: (newValue) async {
+                            if (newValue != null) {
+                              await appSettings.setSelectedLanguage(newValue);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionCard(
+                      context,
+                      title: 'إعدادات التنبيهات',
+                      children: [
+                        _buildSwitchRow(
+                          context,
+                          icon: Icons.notifications_active_outlined,
+                          title: 'تفعيل كل التنبيهات',
+                          subtitle: 'تشغيل أو إيقاف جميع التنبيهات',
+                          value: appSettings.notificationsEnabled.value,
+                          onChanged: (newValue) async {
+                            await appSettings.setNotificationsEnabled(newValue);
+                          },
+                        ),
+                        if (appSettings.notificationsEnabled.value) ...[
+                          _buildSwitchRow(
+                            context,
+                            icon: Icons.access_time,
+                            title: 'تنبيهات أوقات الصلاة',
+                            subtitle: 'إشعار تلقائي لكل صلاة',
+                            value: appSettings
+                                .prayerTimesNotificationsEnabled
+                                .value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setPrayerTimesNotificationsEnabled(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
+                            icon: Icons.auto_awesome,
+                            title: 'تذكير أذكار عامة',
+                            subtitle: '8:00 صباحًا',
+                            value: appSettings.generalDailyAzkarEnabled.value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setGeneralDailyAzkarEnabled(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
+                            icon: Icons.wb_sunny_outlined,
+                            title: 'تذكير أذكار الصباح',
+                            subtitle: '6:00 صباحًا',
+                            value: appSettings.morningAzkarReminderEnabled.value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setMorningAzkarReminderEnabled(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
+                            icon: Icons.nights_stay_outlined,
+                            title: 'تذكير أذكار المساء',
+                            subtitle: '6:00 مساءً',
+                            value: appSettings.eveningAzkarReminderEnabled.value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setEveningAzkarReminderEnabled(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
+                            icon: Icons.bedtime_outlined,
+                            title: 'تذكير أذكار النوم',
+                            subtitle: '10:00 مساءً',
+                            value: appSettings.sleepAzkarReminderEnabled.value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setSleepAzkarReminderEnabled(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
+                            icon: Icons.refresh,
+                            title: 'تذكير التسبيح',
+                            subtitle: '12:00 ظهرًا',
+                            value: appSettings.tasbeehReminderEnabled.value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setTasbeehReminderEnabled(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
+                            icon: Icons.calendar_today_outlined,
+                            title: 'تذكير الجمعة',
+                            subtitle: '10:00 صباحًا',
+                            value: appSettings.weeklyFridayReminderEnabled.value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setWeeklyFridayReminderEnabled(newValue);
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionCard(
+                      context,
+                      title: 'محتوى الأذكار',
+                      children: [
+                        _buildSwitchRow(
+                          context,
+                          icon: Icons.shuffle,
+                          title: 'ترتيب عشوائي للأذكار',
+                          subtitle: 'يعرض الأذكار بترتيب متجدد',
+                          value: appSettings.randomAzkarOrder.value,
+                          onChanged: (newValue) async {
+                            await appSettings.setRandomAzkarOrder(newValue);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionCard(
+                      context,
+                      title: 'إجراءات إضافية',
+                      children: [
+                        _buildActionRow(
+                          context,
+                          icon: Icons.notifications_none_outlined,
+                          title: 'إدارة التنبيهات المجدولة',
+                          subtitle: 'عرض التنبيهات القادمة',
+                          onTap: () => _showScheduledNotificationsDialog(
+                            context,
+                            currentTheme,
+                          ),
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.share_outlined,
+                          title: 'مشاركة التطبيق',
+                          subtitle: 'أرسل التطبيق لمن تحب',
+                          onTap: () => _showSnackBar(
+                            context,
+                            'ميزة المشاركة قيد التطوير!',
+                            currentTheme,
+                          ),
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.star_rate_outlined,
+                          title: 'تقييم التطبيق',
+                          subtitle: 'شارك رأيك لتطوير التطبيق',
+                          onTap: () => _showSnackBar(
+                            context,
+                            'ميزة التقييم قيد التطوير!',
+                            currentTheme,
+                          ),
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.policy_outlined,
+                          title: 'سياسة الخصوصية',
+                          subtitle: 'اطلع على سياسة البيانات',
+                          onTap: () {
+                            launchUrl(
+                              Uri.parse(
+                                "https://newbalignearab.arabwaredos.com/baligneback/rokenalmuslam.html",
+                              ),
+                            );
+                          },
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.info_outline,
+                          title: 'حول التطبيق والمطورين',
+                          subtitle: 'تعرف على فريق العمل',
+                          onTap: () {
+                            Get.to(() => const AboutUsPage());
+                          },
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.refresh_outlined,
+                          title: 'إعادة تعيين الإعدادات',
+                          subtitle: 'العودة للقيم الافتراضية',
+                          onTap: () => _showConfirmResetDialog(
+                            context,
+                            currentTheme,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
+                ),
+              ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(
-    BuildContext context,
-    String title,
-    ThemeData theme,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+  Widget _buildSectionCard(
+    BuildContext context, {
+    required String title,
+    required List<Widget> children,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.dividerColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: theme.textTheme.headlineLarge!.copyWith(
-              color: theme.colorScheme.onSurface,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
-          Container(
-            height: 2,
-            width: 80,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.7),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          const SizedBox(height: 12),
+          ..._withDividers(children, theme),
         ],
       ),
     );
   }
 
-  Widget _buildToggleSetting(
+  List<Widget> _withDividers(List<Widget> children, ThemeData theme) {
+    final items = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      items.add(children[i]);
+      if (i != children.length - 1) {
+        items.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Divider(color: theme.dividerColor),
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  Widget _buildSwitchRow(
     BuildContext context, {
+    required IconData icon,
     required String title,
+    required String subtitle,
     required bool value,
     required ValueChanged<bool> onChanged,
-    required ThemeData theme,
   }) {
-    return Card(
-      color: theme.cardColor,
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(
-          color: theme.colorScheme.primary.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Row(
+      children: [
+        _buildIconBadge(theme, icon),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
                 title,
-                style: theme.textTheme.titleMedium!.copyWith(
-                  color: theme.colorScheme.onSurface,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            ),
-            CupertinoSwitch(
-              value: value,
-              onChanged: onChanged,
-              activeColor: theme.colorScheme.primary,
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurface.withOpacity(0.65),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+        CupertinoSwitch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: scheme.primary,
+        ),
+      ],
     );
   }
 
-  Widget _buildSliderSetting(
+  Widget _buildSliderRow(
     BuildContext context, {
+    required IconData icon,
     required String title,
     required double value,
     required double min,
@@ -334,111 +418,140 @@ class SettingsPage extends StatelessWidget {
     required int divisions,
     required String label,
     required ValueChanged<double> onChanged,
-    required ThemeData theme,
   }) {
-    return Card(
-      color: theme.cardColor,
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(
-          color: theme.colorScheme.primary.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Column(
+      children: [
+        Row(
           children: [
-            Text(
-              title,
-              style: theme.textTheme.titleMedium!.copyWith(
-                color: theme.colorScheme.onSurface,
+            _buildIconBadge(theme, icon),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            Slider.adaptive(
-              value: value,
-              min: min,
-              max: max,
-              divisions: divisions,
-              label: label,
-              onChanged: onChanged,
-              activeColor: theme.colorScheme.primary,
-              thumbColor: theme.colorScheme.primary,
-              inactiveColor: theme.colorScheme.onSurface.withOpacity(0.3),
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                label,
-                style: theme.textTheme.bodyMedium!.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
-                ),
+            Text(
+              label,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: scheme.primary,
               ),
             ),
           ],
         ),
-      ),
+        Slider.adaptive(
+          value: value,
+          min: min,
+          max: max,
+          divisions: divisions,
+          label: label,
+          onChanged: onChanged,
+          activeColor: scheme.primary,
+          thumbColor: scheme.primary,
+          inactiveColor: scheme.onSurface.withOpacity(0.2),
+        ),
+      ],
     );
   }
 
-  Widget _buildDropdownSetting(
+  Widget _buildDropdownRow(
     BuildContext context, {
+    required IconData icon,
     required String title,
     required String value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
-    required ThemeData theme,
   }) {
-    return Card(
-      color: theme.cardColor,
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(
-          color: theme.colorScheme.primary.withOpacity(0.2),
-          width: 1,
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Row(
+      children: [
+        _buildIconBadge(theme, icon),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
-      ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: scheme.surface.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: DropdownButton<String>(
+            value: value,
+            onChanged: onChanged,
+            dropdownColor: scheme.surface,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurface,
+            ),
+            items:
+                items.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+            underline: const SizedBox.shrink(),
+            icon: Icon(Icons.expand_more, color: scheme.primary),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionRow(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: theme.textTheme.titleMedium!.copyWith(
-                color: theme.colorScheme.onSurface,
+            _buildIconBadge(theme, icon),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurface.withOpacity(0.65),
+                    ),
+                  ),
+                ],
               ),
             ),
-            DropdownButton<String>(
-              value: value,
-              onChanged: onChanged,
-              dropdownColor: theme.cardColor,
-              style: theme.textTheme.titleMedium!.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-              items:
-                  items.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value,
-                        style: theme.textTheme.titleMedium!.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-              underline: const SizedBox.shrink(),
-              icon: Icon(
-                Icons.arrow_drop_down,
-                color: theme.colorScheme.primary,
-              ),
+            Icon(
+              Icons.chevron_left,
+              color: scheme.onSurface.withOpacity(0.4),
             ),
           ],
         ),
@@ -446,40 +559,16 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildListTile(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required VoidCallback onTap,
-    required ThemeData theme,
-  }) {
-    return Card(
-      color: theme.cardColor,
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(
-          color: theme.colorScheme.primary.withOpacity(0.2),
-          width: 1,
-        ),
+  Widget _buildIconBadge(ThemeData theme, IconData icon) {
+    final scheme = theme.colorScheme;
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: scheme.primary.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: ListTile(
-        leading: Icon(icon, color: theme.colorScheme.primary),
-        title: Text(
-          title,
-          style: theme.textTheme.titleMedium!.copyWith(
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 18,
-          color: theme.colorScheme.onSurface.withOpacity(0.6),
-        ),
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      ),
+      child: Icon(icon, color: scheme.primary, size: 20),
     );
   }
 

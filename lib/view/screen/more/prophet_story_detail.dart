@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:rokenalmuslem/data/models/prophet_story_model.dart';
+import 'package:rokenalmuslem/view/wedgit/layout/modern_scaffold.dart';
 
 class ProphetStoryDetailView extends StatelessWidget {
   const ProphetStoryDetailView({super.key});
@@ -9,46 +10,42 @@ class ProphetStoryDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final story = Get.arguments as ProphetStoryModel?;
+    final scheme = Theme.of(context).colorScheme;
 
     if (story == null) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF1A1A1A),
+      return Scaffold(
+        backgroundColor: scheme.background,
         body: Center(
           child: Text(
             'لا توجد بيانات للعرض',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: scheme.onSurface),
           ),
         ),
       );
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
-      appBar: AppBar(
-        backgroundColor: Colors.teal[800],
-        title: Text(
-          story.prophetName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
+    return ModernScaffold(
+      title: story.prophetName,
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
             story.storyContent ?? '',
-            style: const TextStyle(color: Colors.white70, fontSize: 16),
+            style: TextStyle(
+              color: scheme.onSurface.withOpacity(0.8),
+              fontSize: 16,
+            ),
             textAlign: TextAlign.right,
             textDirection: TextDirection.rtl,
           ),
           if (story.links.isNotEmpty) ...[
             const SizedBox(height: 20),
-            const Divider(color: Colors.white24),
+            Divider(color: scheme.onSurface.withOpacity(0.12)),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'روابط الفيديو',
               style: TextStyle(
-                color: Colors.white,
+                color: scheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -70,18 +67,18 @@ class ProphetStoryDetailView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF232323),
+                        color: scheme.surface,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.tealAccent.withOpacity(0.4),
+                          color: scheme.primary.withOpacity(0.25),
                         ),
                       ),
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.play_circle_outline,
-                            color: Colors.tealAccent,
+                            color: scheme.primary,
                             size: 30,
                           ),
                           const SizedBox(width: 12),
@@ -91,8 +88,8 @@ class ProphetStoryDetailView extends StatelessWidget {
                               children: [
                                 Text(
                                   label,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: scheme.onSurface,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -101,8 +98,8 @@ class ProphetStoryDetailView extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   url,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
+                                  style: TextStyle(
+                                    color: scheme.onSurface.withOpacity(0.6),
                                     fontSize: 12,
                                   ),
                                   textAlign: TextAlign.right,

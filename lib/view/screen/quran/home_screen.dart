@@ -8,25 +8,30 @@ class SurahListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'القرآن الكريم',
-          style: TextStyle(fontFamily: 'Amiri', fontSize: 24),
+          style: TextStyle(
+            fontFamily: 'Amiri',
+            fontSize: 24,
+            color: scheme.onPrimary,
+          ),
         ),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF046A38), Color(0xFF028A0F)],
+              colors: [scheme.primary, scheme.secondary],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
       ),
-      body: Obx(() {
-        if (quranController.isLoading.value) {
+      body: GetX<QuranController>(builder: (controller) {
+        if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator());
         }
         return Container(
@@ -40,23 +45,26 @@ class SurahListPage extends StatelessWidget {
             ),
           ),
           child: ListView.builder(
-            itemCount: quranController.surahs.length,
+            itemCount: controller.surahs.length,
             itemBuilder: (context, index) {
-              final surah = quranController.surahs[index];
+              final surah = controller.surahs[index];
               return InkWell(
                 onTap: () {
                   Get.to(() => SurahDetailPage(surah: surah));
                 },
                 child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: scheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black12,
+                        color: Colors.black.withOpacity(0.08),
                         blurRadius: 4,
-                        offset: Offset(0, 2),
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
@@ -65,14 +73,14 @@ class SurahListPage extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Color(0xFF046A38),
+                        color: scheme.primary,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
                         child: Text(
                           surah.number.toString(),
                           style: TextStyle(
-                            color: Colors.white,
+                            color: scheme.onPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -96,8 +104,15 @@ class SurahListPage extends StatelessWidget {
                     ),
                     subtitle: Text(
                       '${surah.englishNameTranslation} • ${surah.numberOfAyahs} verses',
+                      style: TextStyle(
+                        color: scheme.onSurface.withOpacity(0.6),
+                      ),
                     ),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: scheme.onSurface.withOpacity(0.5),
+                    ),
                   ),
                 ),
               );

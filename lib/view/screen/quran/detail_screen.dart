@@ -27,29 +27,34 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(
           widget.surah.englishName,
-          style: TextStyle(fontFamily: 'Amiri', fontSize: 24),
+          style: TextStyle(
+            fontFamily: 'Amiri',
+            fontSize: 24,
+            color: scheme.onPrimary,
+          ),
         ),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF046A38), Color(0xFF028A0F)],
+              colors: [scheme.primary, scheme.secondary],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
       ),
-      body: Obx(() {
-        if (quranController.isLoading.value) {
+      body: GetX<QuranController>(builder: (controller) {
+        if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (quranController.currentAyahs.isEmpty) {
+        if (controller.currentAyahs.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -59,8 +64,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                 Text('لا توجد آيات متاحة', style: TextStyle(fontSize: 18)),
                 SizedBox(height: 8),
                 ElevatedButton(
-                  onPressed:
-                      () => quranController.loadAyahsForSurah(widget.surah),
+                  onPressed: () => controller.loadAyahsForSurah(widget.surah),
                   child: Text('إعادة المحاولة'),
                 ),
               ],
@@ -85,11 +89,11 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                 padding: EdgeInsets.all(16),
                 margin: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Color(0xFFF8F1E6),
+                  color: scheme.surface,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black12,
+                      color: Colors.black.withOpacity(0.08),
                       blurRadius: 4,
                       offset: Offset(0, 2),
                     ),
@@ -102,7 +106,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                       style: TextStyle(
                         fontFamily: 'Amiri',
                         fontSize: 32,
-                        color: Color(0xFF046A38),
+                        color: scheme.primary,
                       ),
                     ),
                     SizedBox(height: 8),
@@ -116,14 +120,16 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                     SizedBox(height: 8),
                     Text(
                       '${widget.surah.revelationType} • ${widget.surah.numberOfAyahs} verses',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(
+                        color: scheme.onSurface.withOpacity(0.6),
+                      ),
                     ),
                   ],
                 ),
               ),
               // Ayahs List
-              ...quranController.currentAyahs
-                  .map((ayah) => _buildAyahItem(ayah))
+              ...controller.currentAyahs
+                  .map((ayah) => _buildAyahItem(context, ayah))
                   .toList(),
             ],
           ),
@@ -132,33 +138,42 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
     );
   }
 
-  Widget _buildAyahItem(AyahData ayah) {
+  Widget _buildAyahItem(BuildContext context, AyahData ayah) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
               ayah.text,
               textAlign: TextAlign.right,
-              style: TextStyle(fontFamily: 'Amiri', fontSize: 24),
+              style: TextStyle(
+                fontFamily: 'Amiri',
+                fontSize: 24,
+                color: scheme.onSurface,
+              ),
             ),
           ),
           Container(
             width: 32,
             height: 32,
-            margin: EdgeInsets.symmetric(horizontal: 16),
+            margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: Color(0xFF046A38),
+              color: scheme.primary,
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -166,16 +181,19 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                 quranController.convertToArabicNumber(
                   ayah.numberInSurah.toString(),
                 ),
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: scheme.onPrimary, fontSize: 14),
               ),
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Text(
               ayah.translate?.translates[TranslateID.indonesia] ?? '',
               textAlign: TextAlign.left,
-              style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+              style: TextStyle(
+                fontSize: 16,
+                color: scheme.onSurface.withOpacity(0.8),
+              ),
             ),
           ),
         ],

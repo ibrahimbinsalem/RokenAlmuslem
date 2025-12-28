@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/adkar/alastagadcontroller.dart';
+import 'package:rokenalmuslem/view/wedgit/layout/modern_scaffold.dart';
 
 class AdkarAlastygadView extends StatelessWidget {
   final AdkarAlastygadController _controller = Get.put(
@@ -13,40 +14,16 @@ class AdkarAlastygadView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[800],
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text(
-          'أذكار الاستيقاظ',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Amiri',
-            fontWeight: FontWeight.bold,
-          ),
+    return ModernScaffold(
+      title: 'أذكار الاستيقاظ',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: _controller.resetAllCounters,
+          tooltip: 'إعادة تعيين كل العدادات',
+          color: Colors.white,
         ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF1B5E20), Color(0xFF388E3C)],
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _controller.resetAllCounters,
-            tooltip: 'إعادة تعيين كل العدادات',
-            color: Colors.white,
-          ),
-        ],
-      ),
+      ],
       body: Stack(
         children: [
           Positioned.fill(
@@ -59,8 +36,8 @@ class AdkarAlastygadView extends StatelessWidget {
               ),
             ),
           ),
-          Obx(
-            () => ListView.builder(
+          GetX<AdkarAlastygadController>(
+            builder: (_) => ListView.builder(
               padding: const EdgeInsets.only(
                 top: kToolbarHeight + 40,
                 bottom: 20,
@@ -82,20 +59,22 @@ class AdkarAlastygadView extends StatelessWidget {
   }
 
   Widget _buildDhikrCard(Map<String, dynamic> dhikr, int index) {
+    final theme = Get.theme;
+    final scheme = theme.colorScheme;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
+        border: Border.all(color: theme.dividerColor, width: 0.5),
       ),
       child: Material(
         color: Colors.transparent,
@@ -114,7 +93,7 @@ class AdkarAlastygadView extends StatelessWidget {
                       dhikr['start'],
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.white.withOpacity(0.7),
+                        color: scheme.onSurface.withOpacity(0.7),
                         fontFamily: 'Amiri',
                         height: 1.5,
                       ),
@@ -124,17 +103,17 @@ class AdkarAlastygadView extends StatelessWidget {
                   ),
                 Text(
                   dhikr['name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: scheme.onSurface,
                     fontFamily: 'Amiri',
                   ),
                   textAlign: TextAlign.right,
                   textDirection: TextDirection.rtl,
                 ),
                 const SizedBox(height: 20),
-                Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
+                Divider(color: scheme.onSurface.withOpacity(0.15), thickness: 1),
                 if (dhikr['meaning'].toString().isNotEmpty &&
                     dhikr['meaning'] != "مرة واحدة")
                   Column(
@@ -144,10 +123,10 @@ class AdkarAlastygadView extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         child: Text(
                           'معنى وفضل الذكر:',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF388E3C),
+                            color: scheme.secondary,
                             fontFamily: 'Amiri',
                           ),
                           textAlign: TextAlign.right,
@@ -158,7 +137,7 @@ class AdkarAlastygadView extends StatelessWidget {
                         dhikr['meaning'],
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.white.withOpacity(0.8),
+                          color: scheme.onSurface.withOpacity(0.8),
                           fontFamily: 'Amiri',
                           height: 1.6,
                         ),
@@ -179,7 +158,7 @@ class AdkarAlastygadView extends StatelessWidget {
                           dhikr['ayah'],
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.5),
+                            color: scheme.onSurface.withOpacity(0.5),
                             fontFamily: 'Amiri',
                           ),
                           textAlign: TextAlign.right,
@@ -199,14 +178,16 @@ class AdkarAlastygadView extends StatelessWidget {
   }
 
   Widget _buildCounter(Map<String, dynamic> dhikr, int index) {
-    return Obx(
-      () => Row(
+    final theme = Get.theme;
+    final scheme = theme.colorScheme;
+    return GetX<AdkarAlastygadController>(
+      builder: (_) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             icon: const Icon(Icons.undo_rounded, size: 22),
             onPressed: () => _controller.resetCount(index),
-            color: Colors.white.withOpacity(0.7),
+            color: scheme.onSurface.withOpacity(0.7),
             tooltip: 'إعادة تعيين العداد',
           ),
           GestureDetector(
@@ -220,8 +201,11 @@ class AdkarAlastygadView extends StatelessWidget {
                 gradient: LinearGradient(
                   colors:
                       dhikr['count'].value > 0
-                          ? [const Color(0xFF388E3C), const Color(0xFF1B5E20)]
-                          : [Colors.grey[700]!, Colors.grey[600]!],
+                          ? [scheme.primary, scheme.secondary]
+                          : [
+                            scheme.onSurface.withOpacity(0.25),
+                            scheme.onSurface.withOpacity(0.18),
+                          ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -230,8 +214,8 @@ class AdkarAlastygadView extends StatelessWidget {
                   BoxShadow(
                     color:
                         dhikr['count'].value > 0
-                            ? const Color(0xFF1B5E20).withOpacity(0.5)
-                            : Colors.black.withOpacity(0.3),
+                            ? scheme.primary.withOpacity(0.4)
+                            : Colors.black.withOpacity(0.25),
                     spreadRadius: 1,
                     blurRadius: 5,
                     offset: const Offset(0, 3),
@@ -265,6 +249,8 @@ class AdkarAlastygadView extends StatelessWidget {
   }
 
   void _showDhikrDetails(Map<String, dynamic> dhikr) {
+    final theme = Get.theme;
+    final scheme = theme.colorScheme;
     Get.bottomSheet(
       ClipRRect(
         borderRadius: const BorderRadius.only(
@@ -272,9 +258,9 @@ class AdkarAlastygadView extends StatelessWidget {
           topRight: Radius.circular(30),
         ),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(30),
               topRight: Radius.circular(30),
             ),
@@ -302,7 +288,7 @@ class AdkarAlastygadView extends StatelessWidget {
                         height: 5,
                         margin: const EdgeInsets.only(bottom: 25),
                         decoration: BoxDecoration(
-                          color: Colors.grey[400],
+                          color: scheme.onSurface.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(5),
                         ),
                       ),
@@ -314,7 +300,7 @@ class AdkarAlastygadView extends StatelessWidget {
                           dhikr['start'],
                           style: TextStyle(
                             fontSize: 19,
-                            color: Colors.black.withOpacity(0.7),
+                            color: scheme.onSurface.withOpacity(0.75),
                             fontFamily: 'Amiri',
                             height: 1.5,
                           ),
@@ -324,10 +310,10 @@ class AdkarAlastygadView extends StatelessWidget {
                       ),
                     Text(
                       dhikr['name'],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: scheme.onSurface,
                         fontFamily: 'Amiri',
                       ),
                       textAlign: TextAlign.right,
@@ -339,12 +325,12 @@ class AdkarAlastygadView extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
+                          Text(
                             'معنى وفضل الذكر:',
                             style: TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1B5E20),
+                              color: scheme.secondary,
                               fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.right,
@@ -355,7 +341,7 @@ class AdkarAlastygadView extends StatelessWidget {
                             dhikr['meaning'],
                             style: TextStyle(
                               fontSize: 17,
-                              color: Colors.black.withOpacity(0.85),
+                              color: scheme.onSurface.withOpacity(0.85),
                               fontFamily: 'Amiri',
                               height: 1.6,
                             ),
@@ -373,7 +359,7 @@ class AdkarAlastygadView extends StatelessWidget {
                             dhikr['ayah'],
                             style: TextStyle(
                               fontSize: 15,
-                              color: Colors.grey[700],
+                              color: scheme.onSurface.withOpacity(0.6),
                               fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.right,
@@ -386,14 +372,14 @@ class AdkarAlastygadView extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF388E3C).withOpacity(0.1),
+                            color: scheme.primary.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          child: const Text(
+                          child: Text(
                             'أذكار الاستيقاظ',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF1B5E20),
+                              color: scheme.primary,
                               fontFamily: 'Amiri',
                               fontWeight: FontWeight.w600,
                             ),

@@ -16,8 +16,7 @@ class AppBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final gradient =
-        isDark ? AppPalette.darkBackground : AppPalette.lightBackground;
+    final gradient = isDark ? AppPalette.darkCanvas : AppPalette.lightCanvas;
 
     return Container(
       decoration: BoxDecoration(gradient: gradient),
@@ -28,8 +27,8 @@ class AppBackground extends StatelessWidget {
               top: -80,
               left: -60,
               child: _OrnamentCircle(
-                size: 180,
-                color: AppPalette.gold.withOpacity(isDark ? 0.12 : 0.2),
+                size: 170,
+                color: AppPalette.gold.withOpacity(isDark ? 0.08 : 0.18),
               ),
             ),
             Positioned(
@@ -37,7 +36,7 @@ class AppBackground extends StatelessWidget {
               right: -40,
               child: _OrnamentCircle(
                 size: 220,
-                color: AppPalette.mint.withOpacity(isDark ? 0.14 : 0.22),
+                color: AppPalette.greenSoft.withOpacity(isDark ? 0.1 : 0.2),
               ),
             ),
             Positioned(
@@ -45,7 +44,7 @@ class AppBackground extends StatelessWidget {
               right: -70,
               child: _OrnamentCircle(
                 size: 140,
-                color: AppPalette.emerald.withOpacity(isDark ? 0.12 : 0.16),
+                color: AppPalette.accentBlue.withOpacity(isDark ? 0.1 : 0.16),
               ),
             ),
           ],

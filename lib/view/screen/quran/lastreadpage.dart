@@ -9,6 +9,7 @@ class LastReadPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -16,38 +17,46 @@ class LastReadPage extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'Amiri',
             fontSize: 24,
+            color: scheme.onPrimary,
           ),
         ),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF046A38), Color(0xFF028A0F)],
+              colors: [scheme.primary, scheme.secondary],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
       ),
-      body: Obx(() {
-        if (quranController.lastReadSurahNumber.value == 0) {
+      body: GetX<QuranController>(builder: (controller) {
+        if (controller.lastReadSurahNumber.value == 0) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.menu_book, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
+                Icon(
+                  Icons.menu_book,
+                  size: 64,
+                  color: scheme.onSurface.withOpacity(0.4),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'لا يوجد سجل للقراءة الأخيرة',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: scheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
               ],
             ),
           );
         }
 
-        final surah = quranController.surahs.firstWhere(
-          (s) => s.number == quranController.lastReadSurahNumber.value,
+        final surah = controller.surahs.firstWhere(
+          (s) => s.number == controller.lastReadSurahNumber.value,
           // orElse: () => SurahData.empty(),
         );
 
@@ -68,9 +77,10 @@ class LastReadPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: scheme.onSurface,
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
@@ -78,11 +88,11 @@ class LastReadPage extends StatelessWidget {
                   ),
                   child: InkWell(
                     onTap: () async {
-                      await quranController.loadAyahsForSurah(surah);
+                      await controller.loadAyahsForSurah(surah);
                       Get.to(() => SurahDetailPage(surah: surah));
                     },
                     child: Container(
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       width: MediaQuery.of(context).size.width * 0.8,
                       child: Column(
                         children: [
@@ -91,10 +101,10 @@ class LastReadPage extends StatelessWidget {
                             style: TextStyle(
                               fontFamily: 'Amiri',
                               fontSize: 28,
-                              color: Color(0xFF046A38),
+                              color: scheme.primary,
                             ),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Text(
                             surah.englishName,
                             style: TextStyle(
@@ -102,16 +112,16 @@ class LastReadPage extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Text(
-                            'آية رقم ${quranController.lastReadPosition.value}',
+                            'آية رقم ${controller.lastReadPosition.value}',
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey[600],
+                              color: scheme.onSurface.withOpacity(0.6),
                             ),
                           ),
-                          SizedBox(height: 10),
-                          Icon(Icons.arrow_forward, color: Color(0xFF046A38)),
+                          const SizedBox(height: 10),
+                          Icon(Icons.arrow_forward, color: scheme.primary),
                         ],
                       ),
                     ),

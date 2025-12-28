@@ -44,58 +44,60 @@ class NotificationsView extends StatelessWidget {
         ],
       ),
       body: AppBackground(
-        child: Obx(() {
-          final items = controller.notifications;
-          if (controller.isLoading.value && items.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        child: GetX<NotificationsController>(
+          builder: (controller) {
+            final items = controller.notifications;
+            if (controller.isLoading.value && items.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (controller.errorMessage.value.isNotEmpty) {
-            return _buildErrorState(theme);
-          }
+            if (controller.errorMessage.value.isNotEmpty) {
+              return _buildErrorState(theme);
+            }
 
-          return RefreshIndicator(
-            onRefresh: controller.refreshNotifications,
-            child: items.isEmpty
-                ? _buildEmptyState(theme)
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final notification = items[index];
-                      return Dismissible(
-                        key: ValueKey(
-                          notification.remoteId ?? notification.id,
-                        ),
-                        direction: DismissDirection.horizontal,
-                        background: _buildDismissBackground(
-                          alignRight: false,
-                          theme: theme,
-                        ),
-                        secondaryBackground: _buildDismissBackground(
-                          alignRight: true,
-                          theme: theme,
-                        ),
-                        confirmDismiss: (direction) async {
-                          final allowRightSwipe = isRtl
-                              ? direction == DismissDirection.endToStart
-                              : direction == DismissDirection.startToEnd;
-                          return allowRightSwipe;
-                        },
-                        onDismissed: (_) {
-                          controller.dismissNotification(notification);
-                        },
-                        child: _buildNotificationCard(
-                          notification,
-                          theme,
-                          isDarkMode,
-                        ),
-                      );
-                    },
-                  ),
-          );
-        }),
+            return RefreshIndicator(
+              onRefresh: controller.refreshNotifications,
+              child: items.isEmpty
+                  ? _buildEmptyState(theme)
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      itemCount: items.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final notification = items[index];
+                        return Dismissible(
+                          key: ValueKey(
+                            notification.remoteId ?? notification.id,
+                          ),
+                          direction: DismissDirection.horizontal,
+                          background: _buildDismissBackground(
+                            alignRight: false,
+                            theme: theme,
+                          ),
+                          secondaryBackground: _buildDismissBackground(
+                            alignRight: true,
+                            theme: theme,
+                          ),
+                          confirmDismiss: (direction) async {
+                            final allowRightSwipe = isRtl
+                                ? direction == DismissDirection.endToStart
+                                : direction == DismissDirection.startToEnd;
+                            return allowRightSwipe;
+                          },
+                          onDismissed: (_) {
+                            controller.dismissNotification(notification);
+                          },
+                          child: _buildNotificationCard(
+                            notification,
+                            theme,
+                            isDarkMode,
+                          ),
+                        );
+                      },
+                    ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -14,16 +14,16 @@ class AppTheme {
     final isDark = brightness == Brightness.dark;
     final colorScheme = ColorScheme(
       brightness: brightness,
-      primary: isDark ? AppPalette.mint : AppPalette.emerald,
+      primary: isDark ? AppPalette.greenSoft : AppPalette.green,
       onPrimary: Colors.white,
       secondary: AppPalette.gold,
-      onSecondary: AppPalette.ink,
+      onSecondary: isDark ? AppPalette.darkInk : AppPalette.lightInk,
       error: const Color(0xFFB42318),
       onError: Colors.white,
-      background: isDark ? AppPalette.night : AppPalette.sand,
-      onBackground: isDark ? AppPalette.nightInk : AppPalette.ink,
-      surface: isDark ? AppPalette.nightSurface : Colors.white,
-      onSurface: isDark ? AppPalette.nightInk : AppPalette.ink,
+      background: isDark ? AppPalette.darkBackground : AppPalette.lightBackground,
+      onBackground: isDark ? AppPalette.darkInk : AppPalette.lightInk,
+      surface: isDark ? AppPalette.darkSurface : AppPalette.lightSurface,
+      onSurface: isDark ? AppPalette.darkInk : AppPalette.lightInk,
     );
 
     final baseTextTheme = ThemeData(brightness: brightness).textTheme;
@@ -94,10 +94,10 @@ class AppTheme {
         )
         .apply(
           fontFamily: 'Lemonada',
-          fontFamilyFallback: const ['Amiri', 'ArefRuqaa', 'Ruluko'],
-          bodyColor: isDark ? AppPalette.nightInk : AppPalette.ink,
-          displayColor: isDark ? AppPalette.nightInk : AppPalette.ink,
-        );
+      fontFamilyFallback: const ['Amiri', 'ArefRuqaa', 'Ruluko'],
+      bodyColor: isDark ? AppPalette.darkInk : AppPalette.lightInk,
+      displayColor: isDark ? AppPalette.darkInk : AppPalette.lightInk,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -123,10 +123,11 @@ class AppTheme {
         margin: const EdgeInsets.all(8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
-      dividerColor: isDark ? AppPalette.nightOutline : AppPalette.outline,
+      dividerColor: isDark ? AppPalette.darkOutline : AppPalette.lightOutline,
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? AppPalette.nightSurfaceAlt : AppPalette.sandSoft,
+        fillColor:
+            isDark ? AppPalette.darkSurfaceAlt : AppPalette.lightSurfaceAlt,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 16,
@@ -138,7 +139,7 @@ class AppTheme {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: isDark ? AppPalette.nightOutline : AppPalette.outline,
+            color: isDark ? AppPalette.darkOutline : AppPalette.lightOutline,
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -149,7 +150,7 @@ class AppTheme {
           ),
         ),
         hintStyle: TextStyle(
-          color: isDark ? AppPalette.nightMuted : AppPalette.muted,
+          color: isDark ? AppPalette.darkMuted : AppPalette.lightMuted,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -172,15 +173,15 @@ class AppTheme {
           if (states.contains(WidgetState.selected)) {
             return colorScheme.primary;
           }
-          return isDark ? AppPalette.nightMuted : AppPalette.muted;
+          return isDark ? AppPalette.darkMuted : AppPalette.lightMuted;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return colorScheme.primary.withOpacity(0.35);
           }
           return isDark
-              ? AppPalette.nightOutline
-              : AppPalette.outline.withOpacity(0.8);
+              ? AppPalette.darkOutline
+              : AppPalette.lightOutline.withOpacity(0.8);
         }),
       ),
       listTileTheme: ListTileThemeData(

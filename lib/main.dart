@@ -51,13 +51,13 @@ void callbackDispatcher() {
 
 Future<void> main() async {
   await _initializeApp();
-  await initializeDateFormatting('ar');
   runApp(const MyApp());
 }
 
 Future<void> _initializeApp() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('ar');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

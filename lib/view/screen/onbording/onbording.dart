@@ -37,6 +37,7 @@ class _OnBordidingState extends State<OnBordiding> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     // تهيئة OnBordingControllerImpl
     OnBordingControllerImpl controller = Get.put(OnBordingControllerImpl());
 
@@ -47,7 +48,7 @@ class _OnBordidingState extends State<OnBordiding> {
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFFF8F5F0), Colors.white],
+                colors: [scheme.background, scheme.surface],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -62,7 +63,7 @@ class _OnBordidingState extends State<OnBordiding> {
                 children: [
                   CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF2E7D32),
+                      scheme.primary,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -70,7 +71,7 @@ class _OnBordidingState extends State<OnBordiding> {
                     "جاري تحميل البينات الى التطبيق...", // نص التحميل
                     style: TextStyle(
                       fontSize: 18,
-                      color: Color(0xFF2E7D32),
+                      color: scheme.primary,
                       fontFamily: 'Amiri', // افتراض أنك تستخدم هذا الخط
                     ),
                   ),
@@ -117,7 +118,7 @@ class _OnBordidingState extends State<OnBordiding> {
                               child: Text(
                                 "تخطي",
                                 style: TextStyle(
-                                  color: Color(0xFF2E7D32),
+                                  color: scheme.primary,
                                   fontSize: 18,
                                 ),
                               ),
@@ -144,8 +145,7 @@ class _OnBordidingState extends State<OnBordiding> {
                           style: TextStyle(
                             fontFamily: 'Amiri',
                             fontSize: 28,
-
-                            color: Color(0xFF2E7D32),
+                            color: scheme.primary,
                           ),
                         ),
 
@@ -160,7 +160,7 @@ class _OnBordidingState extends State<OnBordiding> {
                             style: TextStyle(
                               fontSize: 22,
                               height: 1.5,
-                              color: Colors.grey[800],
+                              color: scheme.onSurface.withOpacity(0.7),
                             ),
                           ),
                         ),
@@ -185,8 +185,8 @@ class _OnBordidingState extends State<OnBordiding> {
                   effect: ExpandingDotsEffect(
                     dotWidth: 10,
                     dotHeight: 10,
-                    activeDotColor: Color(0xFF2E7D32),
-                    dotColor: Colors.grey[300]!,
+                    activeDotColor: scheme.primary,
+                    dotColor: scheme.onSurface.withOpacity(0.2),
                     spacing: 8,
                   ),
                 ),
@@ -202,7 +202,7 @@ class _OnBordidingState extends State<OnBordiding> {
                 child: Center(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF2E7D32),
+                      backgroundColor: scheme.primary,
                       padding: EdgeInsets.symmetric(
                         horizontal: 50,
                         vertical: 15,
@@ -225,7 +225,7 @@ class _OnBordidingState extends State<OnBordiding> {
                       style: TextStyle(
                         fontSize: 20,
                         fontFamily: 'Amiri',
-                        color: Colors.white,
+                        color: scheme.onPrimary,
                       ),
                     ),
                   ),

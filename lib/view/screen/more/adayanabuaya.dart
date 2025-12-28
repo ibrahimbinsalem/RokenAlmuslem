@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/more/adayanabuayacontroller.dart';
-import 'dart:ui'; // For BackdropFilter
+import 'package:rokenalmuslem/view/wedgit/layout/modern_scaffold.dart';
 
 class AdayahNabuiaView extends StatelessWidget {
   final AdayahNabuiaController controller = Get.put(AdayahNabuiaController());
   AdayahNabuiaView({super.key});
 
-  /// تبني عنوان القسم بخط مميز وأيقونة
   Widget _buildSectionTitle(
     String title, {
     IconData? icon,
     bool isCentered = false,
+    required ColorScheme scheme,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0, top: 25.0),
+      padding: const EdgeInsets.only(bottom: 12.0, top: 10.0),
       child: Row(
         mainAxisAlignment:
             isCentered ? MainAxisAlignment.center : MainAxisAlignment.end,
@@ -25,32 +25,18 @@ class AdayahNabuiaView extends StatelessWidget {
               textAlign: isCentered ? TextAlign.center : TextAlign.right,
               style: TextStyle(
                 fontFamily: 'Amiri',
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFFFFD700), // لون ذهبي مميز
-                shadows: [
-                  BoxShadow(
-                    color: const Color(0xFFFFD700).withOpacity(0.7),
-                    blurRadius: 15,
-                    spreadRadius: 3,
-                  ),
-                ],
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: scheme.secondary,
               ),
             ),
           ),
           if (icon != null) ...[
-            const SizedBox(width: 15),
+            const SizedBox(width: 12),
             Icon(
               icon,
-              color: const Color(0xFFFFD700),
-              size: 32,
-              shadows: [
-                BoxShadow(
-                  color: const Color(0xFFFFD700).withOpacity(0.5),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
+              color: scheme.secondary,
+              size: 28,
             ),
           ],
         ],
@@ -58,358 +44,220 @@ class AdayahNabuiaView extends StatelessWidget {
     );
   }
 
-  /// يبني بطاقة المحتوى الفردية لكل دعاء
   Widget _buildContentCard(
     Map<String, dynamic> item,
     BuildContext context,
     AdayahNabuiaController controller,
+    ColorScheme scheme,
   ) {
-    int currentCount = item['currentCount'] as int; // العداد الحالي
-    int initialCount = item['initialCount'] as int; // العداد الأولي
+    int currentCount = item['currentCount'] as int;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), // تأثير ضبابي شفاف
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20.0),
-          margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08), // خلفية شبه شفافة
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.15),
-              width: 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18.0),
+      margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: scheme.primary.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end, // محاذاة النص لليمين
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (item["start"] != null && item["start"].isNotEmpty)
+            Text(
+              "${item["start"]}",
+              style: TextStyle(
+                color: scheme.onSurface.withOpacity(0.85),
+                fontSize: 16,
+                fontFamily: 'Amiri',
+              ),
+              textAlign: TextAlign.right,
+              textDirection: TextDirection.rtl,
+            ),
+          const SizedBox(height: 10),
+          Text(
+            "${item["name"]}",
+            style: TextStyle(
+              color: scheme.onSurface,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Amiri',
+              height: 1.7,
+            ),
+            textAlign: TextAlign.right,
+            textDirection: TextDirection.rtl,
+          ),
+          Divider(color: scheme.onSurface.withOpacity(0.15), height: 20),
+          Text(
+            "${item["ayah"]}",
+            style: TextStyle(
+              color: scheme.onSurface.withOpacity(0.65),
+              fontSize: 13,
+              fontFamily: 'Amiri',
+            ),
+            textAlign: TextAlign.right,
+            textDirection: TextDirection.rtl,
+          ),
+          Divider(color: scheme.onSurface.withOpacity(0.12), height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // نص البداية (إذا وجد)
-              if (item["start"] != null && item["start"].isNotEmpty)
-                Text(
-                  "${item["start"]}",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontFamily: 'Amiri',
+              InkWell(
+                onTap: () {
+                  controller.resetDuaaCountToInitial(item['id'] as int);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                  textAlign: TextAlign.right,
-                  textDirection: TextDirection.rtl,
-                ),
-              const SizedBox(height: 10),
-              // نص الدعاء الرئيسي
-              Text(
-                "${item["name"]}",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Amiri',
-                  height: 1.7,
-                ),
-                textAlign: TextAlign.right,
-                textDirection: TextDirection.rtl,
-              ),
-              const Divider(color: Colors.white30, height: 20), // فاصل
-              // مصدر الآية/الحديث
-              Text(
-                "${item["ayah"]}",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontFamily: 'Amiri',
-                ),
-                textAlign: TextAlign.right,
-                textDirection: TextDirection.rtl,
-              ),
-              // اسم الراوي
-              if (item["mang"] != null && item["mang"].isNotEmpty)
-                Text(
-                  "${item["mang"]}",
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontFamily: 'Amiri',
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  textAlign: TextAlign.right,
-                  textDirection: TextDirection.rtl,
+                  child: Text(
+                    "إعادة",
+                    style: TextStyle(
+                      color: scheme.primary,
+                      fontSize: 13,
+                      fontFamily: 'Amiri',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              const Divider(color: Colors.white30, height: 20), // فاصل
+              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // زر إعادة تعيين العداد لهذا الدعاء فقط
                   InkWell(
                     onTap: () {
-                      controller.resetDuaaCountToInitial(item['id'] as int);
+                      if (currentCount > 0) {
+                        controller.updateDuaaCount(
+                          item['id'] as int,
+                          currentCount - 1,
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "تم استكمال عدد مرات الذكر",
+                              style: TextStyle(
+                                color: scheme.onPrimary,
+                                fontFamily: 'Amiri',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            backgroundColor: scheme.primary,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.blueAccent.withOpacity(
-                          0.7,
-                        ), // لون أزرق جذاب
-                        borderRadius: BorderRadius.circular(15),
+                        color: currentCount > 0
+                            ? scheme.primary
+                            : scheme.error,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Text(
-                        "إعادة",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontFamily: 'Amiri',
+                      child: Center(
+                        child: Text(
+                          "$currentCount",
+                          style: TextStyle(
+                            color: currentCount > 0
+                                ? scheme.onPrimary
+                                : scheme.onError,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Amiri',
+                          ),
+                          textDirection: TextDirection.rtl,
                         ),
                       ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      // عداد الذكر
-                      InkWell(
-                        onTap: () {
-                          if (currentCount > 0) {
-                            // تحديث العداد بتقليله
-                            controller.updateDuaaCount(
-                              item['id'] as int,
-                              currentCount - 1,
-                            );
-                          } else {
-                            // عرض رسالة عند انتهاء العداد
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  height: 90,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        Colors.deepPurple, // لون مميز للرسالة
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        "تم استكمال عدد مرات الذكر",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Amiri',
-                                        ),
-                                        textAlign: TextAlign.right,
-                                      ),
-                                      Text(
-                                        "اضغط على زر 'إعادة' لتصفير العداد",
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
-                                          fontFamily: 'Amiri',
-                                        ),
-                                        textAlign: TextAlign.right,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                behavior:
-                                    SnackBarBehavior
-                                        .floating, // تظهر فوق المحتوى
-                                backgroundColor:
-                                    Colors
-                                        .transparent, // لجعل الحاوية هي التي تظهر اللون
-                                elevation:
-                                    0, // إزالة الظل الافتراضي للـ SnackBar
-                              ),
-                            );
-                          }
-                        },
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color:
-                                currentCount > 0
-                                    ? Colors.green
-                                    : Colors
-                                        .red, // لون أخضر عند وجود عداد، أحمر عند الانتهاء
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "$currentCount",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Amiri',
-                              ),
-                              textDirection: TextDirection.rtl,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      // تسمية العداد
-                      const Text(
-                        "عداد الذكر : ",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Amiri',
-                        ),
-                        textDirection: TextDirection.rtl,
-                      ),
-                    ],
+                  const SizedBox(width: 10),
+                  Text(
+                    "عداد الذكر : ",
+                    style: TextStyle(
+                      color: scheme.onSurface.withOpacity(0.85),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Amiri',
+                    ),
+                    textDirection: TextDirection.rtl,
                   ),
                 ],
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // الحصول على الـ Controller المُدار بواسطة GetX
     final AdayahNabuiaController controller = Get.find();
-    // حساب ارتفاع شريط التطبيق لتعديل المسافات
-    final double appBarHeight =
-        MediaQuery.of(context).padding.top + kToolbarHeight;
+    final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor:
-          Colors
-              .transparent, // لجعل خلفية Scaffold شفافة للسماح بالخلفية المتدرجة
-      extendBodyBehindAppBar: true, // لتمديد جسم الصفحة خلف شريط التطبيق
-
-      appBar: AppBar(
-        backgroundColor: Colors.transparent, // لجعل شريط التطبيق شفافًا
-        elevation: 0, // إزالة الظل من شريط التطبيق
-        title: const Text(
-          'الْأدْعِيَةُ النبوية',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Amiri',
-            fontSize: 26,
-            fontWeight: FontWeight.w900,
-            shadows: [
-              Shadow(
-                blurRadius: 10.0,
-                color: Colors.black54,
-                offset: Offset(2.0, 2.0),
-              ),
-            ],
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ), // لون أيقونة الرجوع
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: 12,
-              sigmaY: 12,
-            ), // تأثير ضبابي على شريط التطبيق
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF10001C).withOpacity(0.7),
-                    const Color(0xFF2A0040).withOpacity(0.7),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF10001C), // ألوان متدرجة للخلفية
-              Color(0xFF2A0040),
-              Color(0xFF4D0060),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Column(
-          children: [
-            SizedBox(height: appBarHeight + 10), // مسافة أسفل شريط التطبيق
-            // عنوان القسم الرئيسي
-            _buildSectionTitle(
-              "أدعية من السنة النبوية",
-              icon: Icons.brightness_6, // أيقونة للإشارة إلى السنة/النور
-              isCentered: true,
-            ),
-            Expanded(
-              // Obx يستخدم للمراقبة والتحديث التلقائي عند تغيير adayahList في الـ Controller
-              child: Obx(() {
-                // عرض مؤشر تحميل إذا كانت القائمة فارغة
-                if (controller.adayahList.isEmpty) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.amber),
-                  );
-                }
-                // بناء قائمة الأدعية باستخدام ListView.builder
-                return ListView.builder(
-                  padding: const EdgeInsets.only(
-                    bottom: 20,
-                  ), // مسافة في أسفل القائمة
-                  itemCount: controller.adayahList.length,
-                  itemBuilder: (context, index) {
-                    final item = controller.adayahList[index];
-                    return _buildContentCard(
-                      item,
-                      context,
-                      controller,
-                    ); // بناء بطاقة الدعاء
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
-      ),
-      // زر عائم لتصفير جميع العدادات
+    return ModernScaffold(
+      title: 'الأدعية النبوية',
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          controller.resetAllDuaaCounts(); // استدعاء دالة تصفير جميع العدادات
+          controller.resetAllDuaaCounts();
         },
         label: const Text(
           "تصفير العدادات",
           style: TextStyle(
             fontFamily: 'Amiri',
-            fontSize: 16,
-            color: Colors.white,
+            fontSize: 14,
           ),
         ),
-        icon: const Icon(Icons.refresh, color: Colors.white),
-        backgroundColor: Colors.amber[700], // لون مميز للزر
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30), // شكل زر دائري
-        ),
+        icon: const Icon(Icons.refresh),
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
       ),
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.centerFloat, // وضع الزر في منتصف الأسفل
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: Column(
+        children: [
+          _buildSectionTitle(
+            "أدعية من السنة النبوية",
+            icon: Icons.brightness_6,
+            isCentered: true,
+            scheme: scheme,
+          ),
+          Expanded(
+            child: GetX<AdayahNabuiaController>(
+              builder: (controller) {
+                if (controller.adayahList.isEmpty) {
+                  return Center(
+                    child: CircularProgressIndicator(color: scheme.primary),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  itemCount: controller.adayahList.length,
+                  itemBuilder: (context, index) {
+                    final item = controller.adayahList[index];
+                    return _buildContentCard(item, context, controller, scheme);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

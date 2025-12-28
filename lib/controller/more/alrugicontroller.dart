@@ -28,10 +28,14 @@ class AlrugiController extends GetxController {
       print('Quranic Ruqyahs loaded: ${quranicRuqyahs.length}');
       print('Sunnah Ruqyahs loaded: ${sunnahRuqyahs.length}');
     } catch (e) {
-      Get.snackbar('خطأ', 'فشل في تحميل الرقية: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.withOpacity(0.7),
-          colorText: Colors.white);
+      final scheme = Get.theme.colorScheme;
+      Get.snackbar(
+        'خطأ',
+        'فشل في تحميل الرقية: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: scheme.error.withOpacity(0.9),
+        colorText: scheme.onError,
+      );
       print('Error loading Ruqyahs from DB: $e');
     }
   }
@@ -71,6 +75,7 @@ class AlrugiController extends GetxController {
     required List<String> texts,
     ScrollController? scrollController,
   }) {
+    final scheme = Get.theme.colorScheme;
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       child: BackdropFilter(
@@ -79,14 +84,17 @@ class AlrugiController extends GetxController {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFF10001C).withOpacity(0.9),
-                const Color(0xFF2A0040).withOpacity(0.9),
+                scheme.primary.withOpacity(0.9),
+                scheme.secondary.withOpacity(0.9),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+            border: Border.all(
+              color: scheme.onPrimary.withOpacity(0.2),
+              width: 1,
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -98,7 +106,7 @@ class AlrugiController extends GetxController {
                   height: 5,
                   margin: const EdgeInsets.only(bottom: 15),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: scheme.onPrimary.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -129,6 +137,7 @@ class AlrugiController extends GetxController {
   }
 
   Widget _buildSectionTitle(String title, {IconData? icon, bool isCentered = false}) {
+    final scheme = Get.theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0, top: 25.0),
       child: Row(
@@ -142,14 +151,7 @@ class AlrugiController extends GetxController {
                 fontFamily: 'Amiri',
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
-                color: const Color(0xFFFFD700),
-                shadows: [
-                  BoxShadow(
-                    color: const Color(0xFFFFD700).withOpacity(0.7),
-                    blurRadius: 15,
-                    spreadRadius: 3,
-                  ),
-                ],
+                color: scheme.secondary,
               ),
             ),
           ),
@@ -157,15 +159,8 @@ class AlrugiController extends GetxController {
             const SizedBox(width: 15),
             Icon(
               icon,
-              color: const Color(0xFFFFD700),
+              color: scheme.secondary,
               size: 32,
-              shadows: [
-                BoxShadow(
-                  color: const Color(0xFFFFD700).withOpacity(0.5),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
             ),
           ],
         ],
@@ -174,6 +169,7 @@ class AlrugiController extends GetxController {
   }
 
   Widget _buildContentCard(String content, {double fontSize = 18, bool isArabic = true}) {
+    final scheme = Get.theme.colorScheme;
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
@@ -183,15 +179,15 @@ class AlrugiController extends GetxController {
           padding: const EdgeInsets.all(20.0),
           margin: const EdgeInsets.symmetric(vertical: 10.0),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
+            color: scheme.surface.withOpacity(0.9),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withOpacity(0.15),
+              color: scheme.primary.withOpacity(0.2),
               width: 1.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withOpacity(0.08),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -203,7 +199,7 @@ class AlrugiController extends GetxController {
             style: TextStyle(
               fontFamily: 'Amiri',
               fontSize: fontSize,
-              color: Colors.white.withOpacity(0.95),
+              color: scheme.onSurface,
               height: 1.7,
             ),
             textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
@@ -214,6 +210,7 @@ class AlrugiController extends GetxController {
   }
 
   Widget _buildElegantDivider() {
+    final scheme = Get.theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0),
       child: Container(
@@ -223,7 +220,7 @@ class AlrugiController extends GetxController {
           gradient: LinearGradient(
             colors: [
               Colors.transparent,
-              const Color(0xFFFFD700).withOpacity(0.5),
+              scheme.secondary.withOpacity(0.5),
               Colors.transparent,
             ],
             begin: Alignment.centerRight,

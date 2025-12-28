@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart';
+import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
+import 'package:rokenalmuslem/core/constant/routes.dart';
+import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
 import 'package:intl/intl.dart';
 
 import 'package:adhan/adhan.dart';
@@ -13,220 +16,320 @@ class PrayerTimesView extends StatefulWidget {
 }
 
 class _PrayerTimesViewState extends State<PrayerTimesView> {
-  final PrayerTimesController controller = Get.put(PrayerTimesController());
+  final PrayerTimesController controller = Get.find<PrayerTimesController>();
+  final AppSettingsController appSettings = Get.find<AppSettingsController>();
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
+    final scheme = theme.colorScheme;
     final now = DateTime.now();
     // Using 'ar_EG' for more precise Arabic locale for Hijri date
     final hijriDate = DateFormat('dd MMMM yyyy', 'ar_EG').format(now);
 
     return Scaffold(
-      floatingActionButton: Obx(() {
-        if (controller.isApproved.value && !controller.isLoading) {
-          return FloatingActionButton.extended(
-            onPressed: () => controller.saveAndApproveTimes(),
-            icon: const Icon(Icons.check_circle),
-            label: const Text('إعادة اعتماد الأوقات'),
-            backgroundColor: Colors.teal,
-            foregroundColor: Colors.white,
-            elevation: 4,
-          );
-        }
-        return const SizedBox();
-      }),
-      body: CustomScrollView(
-        slivers: [
-          // AppBar with transparency effect
-          SliverAppBar(
-            expandedHeight: 250.0,
-            pinned: true,
-            stretch: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'أوقات الصلاة',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
-                ),
-                textAlign: TextAlign.center,
-              ),
-              centerTitle: true,
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/images/Gemini_Generated_Image_cijwhucijwhucijw.png',
-                    fit: BoxFit.cover,
-                    opacity: const AlwaysStoppedAnimation(0.2),
+      floatingActionButton: GetX<PrayerTimesController>(
+        builder: (controller) {
+          if (controller.isApproved.value && !controller.isLoading) {
+            return FloatingActionButton.extended(
+              onPressed: () => controller.saveAndApproveTimes(),
+              icon: const Icon(Icons.check_circle),
+              label: const Text('إعادة اعتماد الأوقات'),
+              backgroundColor: scheme.primary,
+              foregroundColor: scheme.onPrimary,
+              elevation: 0,
+            );
+          }
+          return const SizedBox();
+        },
+      ),
+      body: AppBackground(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 240.0,
+              pinned: true,
+              stretch: true,
+              flexibleSpace: FlexibleSpaceBar(
+                title: Text(
+                  'أوقات الصلاة',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.teal.shade800,
-                          isDarkMode
-                              ? Colors.teal.shade900
-                              : Colors.teal.shade400,
-                        ],
+                  textAlign: TextAlign.center,
+                ),
+                centerTitle: true,
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      'assets/images/Gemini_Generated_Image_cijwhucijwhucijw.png',
+                      fit: BoxFit.cover,
+                      opacity: const AlwaysStoppedAnimation(0.08),
+                    ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            scheme.primary.withOpacity(0.95),
+                            scheme.secondary.withOpacity(0.85),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              backgroundColor: scheme.primary,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: () => controller.manualRefresh(),
+                  tooltip: 'تحديث أوقات الصلاة',
+                ),
+              ],
             ),
-            backgroundColor: isDarkMode ? Colors.teal[900] : Colors.teal,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                onPressed: () => controller.manualRefresh(),
-                tooltip: 'تحديث أوقات الصلاة',
-              ),
-              // IconButton(
-              //   icon: const Icon(Icons.notifications, color: Colors.white),
-              //   onPressed: () => _showNotificationSettings(context),
-              //   tooltip: 'إعدادات الإشعارات',
-              // ),
-            ],
-          ),
 
           // Page content
-          GetBuilder<PrayerTimesController>(
-            builder: (controller) {
-              if (controller.isLoading) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 20),
-                        Text(
-                          'جاري تحميل أوقات الصلاة...',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
+          GetX<AppSettingsController>(
+            builder: (settings) {
+              final isEnabled =
+                  settings.prayerTimesNotificationsEnabled.value;
+              return GetBuilder<PrayerTimesController>(
+                builder: (controller) {
+                  final hasLocation =
+                      controller.latitude.value != 0.0 &&
+                      controller.longitude.value != 0.0;
 
-              if (controller.errorMessage.isNotEmpty) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                if (!isEnabled) {
+                  return SliverFillRemaining(
+                    child: _buildStateCard(
+                      theme: theme,
+                      icon: Icons.notifications_off_outlined,
+                      title: 'أوقات الصلاة غير مفعّلة',
+                      message:
+                          'يرجى تفعيل مواقيت الصلاة من الإعدادات لعرض الأوقات.',
+                      action: OutlinedButton.icon(
+                        onPressed: () => Get.toNamed(AppRoute.setting),
+                        icon: const Icon(Icons.settings),
+                        label: const Text('فتح الإعدادات'),
+                      ),
+                    ),
+                  );
+                }
+
+                if (!hasLocation) {
+                  return SliverFillRemaining(
+                    child: _buildStateCard(
+                      theme: theme,
+                      icon: Icons.my_location,
+                      title: 'حدد موقعك',
+                      message: 'يلزم تحديد المنطقة لعرض مواقيت الصلاة بدقة.',
+                      action: ElevatedButton.icon(
+                        onPressed: () => controller.determinePosition(),
+                        icon: const Icon(Icons.location_on, size: 22),
+                        label: const Text(
+                          'تحديد الموقع تلقائيًا',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: scheme.primary,
+                          foregroundColor: scheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 18,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 5,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                if (controller.isLoading) {
+                  return SliverFillRemaining(
+                    child: _buildStateCard(
+                      theme: theme,
+                      icon: Icons.access_time,
+                      title: 'جاري تحميل أوقات الصلاة',
+                      message: 'يتم حساب الأوقات الآن، يرجى الانتظار.',
+                      action: const CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return SliverFillRemaining(
+                    child: _buildStateCard(
+                      theme: theme,
+                      icon: Icons.wifi_off,
+                      title: 'تعذر جلب الأوقات',
+                      message: controller.errorMessage.value,
+                      iconColor: scheme.error,
+                      action: ElevatedButton.icon(
+                        onPressed: () => controller.determinePosition(),
+                        icon: const Icon(Icons.location_on, size: 22),
+                        label: const Text(
+                          'تحديد الموقع تلقائيًا',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: scheme.primary,
+                          foregroundColor: scheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 18,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 5,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                if (controller.prayerTimesData.isEmpty) {
+                  return SliverFillRemaining(
+                    child: _buildStateCard(
+                      theme: theme,
+                      icon: Icons.access_time_outlined,
+                      title: 'لا توجد أوقات متاحة',
+                      message: 'قم بتحديث الموقع لإظهار مواقيت الصلاة.',
+                      action: OutlinedButton.icon(
+                        onPressed: () => controller.determinePosition(),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('تحديث الموقع'),
+                      ),
+                    ),
+                  );
+                }
+
+                  return SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Date and Hijri Card
+                      _buildDateCard(theme, hijriDate),
+
+                    const SizedBox(height: 20),
+
+                    // Prayer Times Card with animation - Pass context here
+                    _buildPrayerTimesCard(context, theme),
+
+                    const SizedBox(height: 20),
+
+                    // Location Info Card with map placeholder
+                    _buildLocationCard(theme),
+
+                    const SizedBox(height: 20),
+
+                    // Settings cards in a grid
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ListView(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
                         children: [
-                          Icon(
-                            Icons.wifi_off,
-                            color: Colors.red.shade600,
-                            size: 70,
-                          ),
-                          const SizedBox(height: 25),
-                          Text(
-                            controller.errorMessage.value,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              color: Colors.red.shade600,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 35),
-                          ElevatedButton.icon(
-                            onPressed: () => controller.determinePosition(),
-                            icon: const Icon(Icons.location_on, size: 22),
-                            label: const Text(
-                              'تحديد الموقع تلقائيًا',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent.shade700,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30,
-                                vertical: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              elevation: 5,
-                            ),
-                          ),
+                          // تم إزالة بطاقة اختيار الدولة لأنها تعتمد على الموقع التلقائي
+                          // _buildCountrySelectionCard(theme),
+                          _buildCalculationMethodCard(theme),
+                          const SizedBox(height: 16),
+                          _buildJuristicSchoolCard(theme),
+                          // تم نقل بطاقة الإعدادات لتكون اختيارية أو في مكان آخر
+                          // _buildSettingsCard(theme),
                         ],
                       ),
                     ),
-                  ),
-                );
-              }
 
-              return SliverList(
-                delegate: SliverChildListDelegate([
-                  // Date and Hijri Card
-                  _buildDateCard(theme, isDarkMode, hijriDate),
+                    const SizedBox(height: 25),
 
-                  const SizedBox(height: 20),
-
-                  // Prayer Times Card with animation - Pass context here
-                  _buildPrayerTimesCard(context, theme, isDarkMode),
-
-                  const SizedBox(height: 20),
-
-                  // Location Info Card with map placeholder
-                  _buildLocationCard(theme, isDarkMode),
-
-                  const SizedBox(height: 20),
-
-                  // Settings cards in a grid
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        // تم إزالة بطاقة اختيار الدولة لأنها تعتمد على الموقع التلقائي
-                        // _buildCountrySelectionCard(theme),
-                        _buildCalculationMethodCard(theme),
-                        const SizedBox(height: 16),
-                        _buildJuristicSchoolCard(theme),
-                        // تم نقل بطاقة الإعدادات لتكون اختيارية أو في مكان آخر
-                        // _buildSettingsCard(theme),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  // Additional information
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'يتم تحديث أوقات الصلاة تلقائيًا حسب موقعك الجغرافي',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                        fontStyle: FontStyle.italic,
+                    // Additional information
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'يتم تحديث أوقات الصلاة تلقائيًا حسب موقعك الجغرافي',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: scheme.onSurface.withOpacity(0.6),
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 40),
-                ]),
+                      const SizedBox(height: 40),
+                    ]),
+                  );
+                },
               );
             },
           ),
         ],
       ),
+    ));
+  }
+
+  Widget _buildStateCard({
+    required ThemeData theme,
+    required IconData icon,
+    required String title,
+    required String message,
+    Widget? action,
+    Color? iconColor,
+  }) {
+    final scheme = theme.colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Card(
+          elevation: 6,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  color: iconColor ?? scheme.primary,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: scheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  message,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface.withOpacity(0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (action != null) ...[
+                  const SizedBox(height: 20),
+                  action,
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildDateCard(ThemeData theme, bool isDarkMode, String hijriDate) {
+  Widget _buildDateCard(ThemeData theme, String hijriDate) {
+    final scheme = theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
       child: Card(
@@ -240,16 +343,13 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                isDarkMode ? Colors.teal.shade700 : Colors.teal.shade500,
-                isDarkMode ? Colors.teal.shade900 : Colors.teal.shade400,
+                scheme.primary.withOpacity(0.9),
+                scheme.secondary.withOpacity(0.85),
               ],
             ),
             boxShadow: [
               BoxShadow(
-                color: (isDarkMode
-                        ? Colors.teal.shade900
-                        : Colors.teal.shade200)
-                    .withOpacity(0.5),
+                color: scheme.primary.withOpacity(0.35),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -262,7 +362,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                 Text(
                   DateFormat('EEEE', 'ar_EG').format(DateTime.now()),
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
+                    color: scheme.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -271,7 +371,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                 Text(
                   hijriDate,
                   style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white.withOpacity(0.95),
+                    color: scheme.onPrimary.withOpacity(0.95),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -286,7 +386,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: scheme.onPrimary.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
@@ -314,8 +414,8 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
   Widget _buildPrayerTimesCard(
     BuildContext context,
     ThemeData theme,
-    bool isDarkMode,
   ) {
+    final scheme = theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Card(
@@ -330,8 +430,8 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  isDarkMode ? Colors.blueGrey.shade900 : Colors.white,
-                  isDarkMode ? Colors.blueGrey.shade800 : Colors.grey.shade50,
+                  scheme.surface,
+                  scheme.surface.withOpacity(0.9),
                 ],
               ),
               image: const DecorationImage(
@@ -348,10 +448,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                     children: [
                       Icon(
                         Icons.access_time_filled,
-                        color:
-                            isDarkMode
-                                ? Colors.tealAccent
-                                : Colors.teal.shade700,
+                        color: scheme.primary,
                         size: 28,
                       ),
                       const SizedBox(width: 12),
@@ -359,7 +456,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                         'أوقات الصلاة',
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : Colors.black87,
+                          color: scheme.onSurface,
                         ),
                       ),
                       const Spacer(),
@@ -369,14 +466,13 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color:
-                              isDarkMode ? Colors.teal[700] : Colors.teal[100],
+                          color: scheme.primary.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(25),
                         ),
                         child: Text(
                           'اليوم',
                           style: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.teal[800],
+                            color: scheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -397,18 +493,13 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                         decoration: BoxDecoration(
                           color:
                               isCurrent
-                                  ? (isDarkMode
-                                      ? Colors.teal.shade800.withOpacity(0.4)
-                                      : Colors.teal.withOpacity(0.1))
+                                  ? scheme.primary.withOpacity(0.12)
                                   : null,
                           borderRadius: BorderRadius.circular(15),
                           border:
                               isCurrent
                                   ? Border.all(
-                                    color:
-                                        isDarkMode
-                                            ? Colors.tealAccent
-                                            : Colors.teal.shade600,
+                                    color: scheme.primary,
                                     width: 2,
                                   )
                                   : null,
@@ -424,20 +515,16 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                             decoration: BoxDecoration(
                               color:
                                   isCurrent
-                                      ? Colors.teal.shade600
-                                      : (isDarkMode
-                                          ? Colors.blueGrey.shade700
-                                          : Colors.grey.shade200),
+                                      ? scheme.primary
+                                      : scheme.surface,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               _getPrayerIcon(entry.key),
                               color:
                                   isCurrent
-                                      ? Colors.white
-                                      : (isDarkMode
-                                          ? Colors.blueGrey.shade300
-                                          : Colors.grey.shade700),
+                                      ? scheme.onPrimary
+                                      : scheme.onSurface.withOpacity(0.6),
                               size: 28,
                             ),
                           ),
@@ -447,13 +534,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                               fontWeight:
                                   isCurrent ? FontWeight.bold : FontWeight.w600,
                               color:
-                                  isCurrent
-                                      ? (isDarkMode
-                                          ? Colors.tealAccent
-                                          : Colors.teal.shade700)
-                                      : (isDarkMode
-                                          ? Colors.white
-                                          : Colors.black87),
+                                  isCurrent ? scheme.primary : scheme.onSurface,
                             ),
                           ),
                           trailing: Row(
@@ -466,21 +547,14 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                                   fontWeight: FontWeight.w900,
                                   color:
                                       isCurrent
-                                          ? (isDarkMode
-                                              ? Colors.tealAccent
-                                              : Colors.teal.shade700)
-                                          : (isDarkMode
-                                              ? Colors.white70
-                                              : Colors.black54),
+                                          ? scheme.primary
+                                          : scheme.onSurface.withOpacity(0.6),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Icon(
                                 Icons.edit_note_rounded,
-                                color:
-                                    isDarkMode
-                                        ? Colors.white.withOpacity(0.4)
-                                        : Colors.black.withOpacity(0.4),
+                                color: scheme.onSurface.withOpacity(0.4),
                                 size: 22,
                               ),
                             ],
@@ -488,9 +562,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                           onTap:
                               () => _showAdjustmentDialog(
                                 context,
-
                                 entry.key,
-                                isDarkMode,
                               ),
                         ),
                       );
@@ -503,10 +575,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                     child: Text(
                       '* انقر على وقت الصلاة لتعديله يدويًا.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            isDarkMode
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
+                        color: scheme.onSurface.withOpacity(0.6),
                         fontStyle: FontStyle.italic,
                       ),
                       textAlign: TextAlign.center,
@@ -521,8 +590,8 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                     icon: const Icon(Icons.check_circle_outline),
                     label: const Text('اعتماد هذه التوقيتات'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal.shade600,
-                      foregroundColor: Colors.white,
+                      backgroundColor: scheme.primary,
+                      foregroundColor: scheme.onPrimary,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
@@ -541,125 +610,122 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
     );
   }
 
-  Widget _buildLocationCard(ThemeData theme, bool isDarkMode) {
-    return Obx(
-      () => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Card(
-          elevation: 6,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
+  Widget _buildLocationCard(ThemeData theme) {
+    final scheme = theme.colorScheme;
+    return GetX<PrayerTimesController>(
+      builder: (controller) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Card(
+            elevation: 6,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              color: isDarkMode ? Colors.blueGrey.shade900 : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: (isDarkMode ? Colors.black45 : Colors.grey.shade200)
-                      .withOpacity(0.5),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
             ),
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
-                    'assets/images/maping.png',
-                    fit: BoxFit.cover,
-                    height: 200,
-                    width: double.infinity,
-                    opacity: const AlwaysStoppedAnimation(0.1),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: scheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            color:
-                                isDarkMode
-                                    ? Colors.tealAccent
-                                    : Colors.teal.shade700,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'الموقع الحالي',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isDarkMode ? Colors.white : Colors.black87,
+                ],
+              ),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/images/maping.png',
+                      fit: BoxFit.cover,
+                      height: 200,
+                      width: double.infinity,
+                      opacity: const AlwaysStoppedAnimation(0.1),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: scheme.primary,
+                              size: 28,
                             ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 30, thickness: 1),
-                      _buildLocationInfoRow(
-                        Icons.public,
-                        'الدولة',
-                        controller.currentAddress.value.isNotEmpty
-                            ? controller.currentAddress.value
-                            : 'غير متوفر',
-                        isDarkMode,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildLocationInfoRow(
-                        Icons.location_city,
-                        'المدينة',
-                        controller.currentAddress.value
-                            .split(',')
-                            .first, // Extract city
-                        isDarkMode,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildLocationInfoRow(
-                        Icons.gps_fixed,
-                        'الإحداثيات',
-                        '${controller.latitude.value.toStringAsFixed(4)}, ${controller.longitude.value.toStringAsFixed(4)}',
-                        isDarkMode,
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () => controller.determinePosition(),
-                          icon: const Icon(Icons.my_location, size: 22),
-                          label: const Text(
-                            'تحديث الموقع',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                isDarkMode ? Colors.teal.shade700 : Colors.teal,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
+                            const SizedBox(width: 12),
+                            Text(
+                              'الموقع الحالي',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: scheme.onSurface,
+                              ),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            elevation: 4,
+                          ],
+                        ),
+                        const Divider(height: 30, thickness: 1),
+                        _buildLocationInfoRow(
+                          Icons.public,
+                          'الدولة',
+                          controller.currentAddress.value.isNotEmpty
+                              ? controller.currentAddress.value
+                              : 'غير متوفر',
+                          scheme,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildLocationInfoRow(
+                          Icons.location_city,
+                          'المدينة',
+                          controller.currentAddress.value.split(',').first,
+                          scheme,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildLocationInfoRow(
+                          Icons.gps_fixed,
+                          'الإحداثيات',
+                          '${controller.latitude.value.toStringAsFixed(4)}, ${controller.longitude.value.toStringAsFixed(4)}',
+                          scheme,
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => controller.determinePosition(),
+                            icon: const Icon(Icons.my_location, size: 22),
+                            label: const Text(
+                              'تحديث الموقع',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: scheme.primary,
+                              foregroundColor: scheme.onPrimary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              elevation: 4,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _buildCalculationMethodCard(ThemeData theme) {
+    final scheme = theme.colorScheme;
     return Card(
       elevation: 4,
       margin: EdgeInsets.zero,
@@ -670,11 +736,11 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.orange.shade700, Colors.orange.shade500],
+            colors: [scheme.primary, scheme.primary.withOpacity(0.85)],
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.orange.shade200.withOpacity(0.5),
+              color: scheme.primary.withOpacity(0.35),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -704,10 +770,10 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
               ),
               const SizedBox(height: 15),
               DropdownButtonFormField<CalculationMethod>(
-                dropdownColor: Colors.orange.shade700,
+                dropdownColor: scheme.primary,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.25),
+                  fillColor: scheme.onPrimary.withOpacity(0.15),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -717,7 +783,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                     vertical: 10,
                   ),
                   labelText: '',
-                  labelStyle: const TextStyle(color: Colors.white70),
+                  labelStyle: TextStyle(color: scheme.onPrimary.withOpacity(0.7)),
                 ),
                 value: controller.calculationMethod.value,
                 items:
@@ -727,7 +793,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                             value: entry.key,
                             child: Text(
                               entry.value,
-                              style: const TextStyle(color: Colors.white),
+                              style: TextStyle(color: scheme.onPrimary),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -740,8 +806,8 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                 },
                 isExpanded: true,
                 borderRadius: BorderRadius.circular(12),
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                icon: Icon(Icons.arrow_drop_down, color: scheme.onPrimary),
+                style: TextStyle(color: scheme.onPrimary, fontSize: 16),
               ),
             ],
           ),
@@ -751,6 +817,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
   }
 
   Widget _buildJuristicSchoolCard(ThemeData theme) {
+    final scheme = theme.colorScheme;
     return Card(
       elevation: 4,
       margin: EdgeInsets.zero,
@@ -761,11 +828,11 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.purple.shade700, Colors.purple.shade500],
+            colors: [scheme.secondary, scheme.secondary.withOpacity(0.85)],
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.purple.shade200.withOpacity(0.5),
+              color: scheme.secondary.withOpacity(0.35),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -795,10 +862,10 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
               ),
               const SizedBox(height: 15),
               DropdownButtonFormField<Madhab>(
-                dropdownColor: Colors.purple.shade700,
+                dropdownColor: scheme.secondary,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.25),
+                  fillColor: scheme.onSecondary.withOpacity(0.15),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -808,7 +875,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                     vertical: 10,
                   ),
                   labelText: '',
-                  labelStyle: const TextStyle(color: Colors.white70),
+                  labelStyle: TextStyle(color: scheme.onSecondary.withOpacity(0.7)),
                 ),
                 value: controller.madhab.value,
                 items:
@@ -818,7 +885,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                             value: entry.key,
                             child: Text(
                               entry.value,
-                              style: const TextStyle(color: Colors.white),
+                              style: TextStyle(color: scheme.onSecondary),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -831,8 +898,8 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                 },
                 isExpanded: true,
                 borderRadius: BorderRadius.circular(12),
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                icon: Icon(Icons.arrow_drop_down, color: scheme.onSecondary),
+                style: TextStyle(color: scheme.onSecondary, fontSize: 16),
               ),
             ],
           ),
@@ -842,6 +909,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
   }
 
   Widget _buildSettingsCard(ThemeData theme) {
+    final scheme = theme.colorScheme;
     return Card(
       elevation: 4,
       margin: EdgeInsets.zero,
@@ -852,11 +920,11 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.green.shade700, Colors.green.shade500],
+            colors: [scheme.primary, scheme.secondary.withOpacity(0.9)],
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.green.shade200.withOpacity(0.5),
+              color: scheme.primary.withOpacity(0.25),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -884,7 +952,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                 Image.asset(
                   'assets/images/artup.png',
                   height: 10,
-                  color: Colors.white.withOpacity(0.7),
+                  color: scheme.onPrimary.withOpacity(0.7),
                 ),
               ],
             ),
@@ -898,7 +966,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
     IconData icon,
     String title,
     String value,
-    bool isDarkMode,
+    ColorScheme scheme,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -908,7 +976,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
           Icon(
             icon,
             size: 22,
-            color: isDarkMode ? Colors.tealAccent : Colors.teal.shade600,
+            color: scheme.primary,
           ),
           const SizedBox(width: 10),
           Flexible(
@@ -917,7 +985,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white70 : Colors.black,
+                color: scheme.onSurface.withOpacity(0.7),
               ),
             ),
           ),
@@ -926,7 +994,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
               value,
               style: TextStyle(
                 fontSize: 16,
-                color: isDarkMode ? Colors.white : Colors.black,
+                color: scheme.onSurface,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
@@ -1085,75 +1153,85 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
   void _showAdjustmentDialog(
     BuildContext context,
     String prayerName,
-    bool isDarkMode,
   ) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     // Temporary state for the dialog slider
-    final RxInt currentAdjustment =
-        (controller.prayerTimeAdjustments[prayerName] ?? 0).obs;
+    final ValueNotifier<int> currentAdjustment = ValueNotifier<int>(
+      controller.prayerTimeAdjustments[prayerName] ?? 0,
+    );
 
     Get.dialog(
       AlertDialog(
-        backgroundColor: isDarkMode ? Colors.grey[850] : Colors.white,
+        backgroundColor: scheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'تعديل وقت ${prayerName}',
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineSmall?.copyWith(
-            color: isDarkMode ? Colors.tealAccent : Colors.teal,
+            color: scheme.primary,
             fontWeight: FontWeight.bold,
           ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Obx(
-              () => Text(
-                'التعديل الحالي: ${currentAdjustment.value} دقيقة',
-                style: theme.textTheme.titleMedium,
-              ),
+            ValueListenableBuilder<int>(
+              valueListenable: currentAdjustment,
+              builder: (context, value, _) {
+                return Text(
+                  'التعديل الحالي: $value دقيقة',
+                  style: theme.textTheme.titleMedium,
+                );
+              },
             ),
             const SizedBox(height: 10),
-            Obx(() {
-              final originalTimeStr =
-                  controller.originalPrayerTimes[prayerName] ?? "00:00";
-              final time = controller.parseTimeOfDay(originalTimeStr);
-              final originalDateTime = DateTime(
-                2023,
-                1,
-                1,
-                time.hour,
-                time.minute,
-              );
-              final adjustedDateTime = originalDateTime.add(
-                Duration(minutes: currentAdjustment.value),
-              );
-              final formattedTime = DateFormat(
-                'hh:mm a',
-                'ar',
-              ).format(adjustedDateTime);
+            ValueListenableBuilder<int>(
+              valueListenable: currentAdjustment,
+              builder: (context, value, _) {
+                final originalTimeStr =
+                    controller.originalPrayerTimes[prayerName] ?? "00:00";
+                final time = controller.parseTimeOfDay(originalTimeStr);
+                final originalDateTime = DateTime(
+                  2023,
+                  1,
+                  1,
+                  time.hour,
+                  time.minute,
+                );
+                final adjustedDateTime = originalDateTime.add(
+                  Duration(minutes: value),
+                );
+                final formattedTime = DateFormat(
+                  'hh:mm a',
+                  'ar',
+                ).format(adjustedDateTime);
 
-              return Text(
-                'الوقت الجديد: $formattedTime',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              );
-            }),
+                return Text(
+                  'الوقت الجديد: $formattedTime',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 20),
-            Obx(
-              () => Slider(
-                value: currentAdjustment.value.toDouble(),
-                min: -60,
-                max: 60,
-                divisions: 120,
-                activeColor: Colors.teal,
-                inactiveColor: Colors.teal.withOpacity(0.3),
-                label: '${currentAdjustment.value.round()} دقيقة',
-                onChanged: (double value) {
-                  currentAdjustment.value = value.round();
-                },
-              ),
+            ValueListenableBuilder<int>(
+              valueListenable: currentAdjustment,
+              builder: (context, value, _) {
+                return Slider(
+                  value: value.toDouble(),
+                  min: -60,
+                  max: 60,
+                  divisions: 120,
+                  activeColor: scheme.primary,
+                  inactiveColor: scheme.primary.withOpacity(0.3),
+                  label: '$value دقيقة',
+                  onChanged: (double newValue) {
+                    currentAdjustment.value = newValue.round();
+                  },
+                );
+              },
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -1173,7 +1251,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
             child: Text(
               'إلغاء',
               style: TextStyle(
-                color: isDarkMode ? Colors.white70 : Colors.black54,
+                color: scheme.onSurface.withOpacity(0.7),
               ),
             ),
           ),
@@ -1184,11 +1262,12 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
                 prayerName,
                 currentAdjustment.value,
               );
+              currentAdjustment.dispose();
               Get.back();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
-              foregroundColor: Colors.white,
+              backgroundColor: scheme.primary,
+              foregroundColor: scheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

@@ -7,6 +7,7 @@ import 'package:rokenalmuslem/controller/adkar/sleepcontrller.dart';
 // استيراد خدمة الإشعارات ومعرفات الإشعارات ووقت الإشعارات
 import 'package:rokenalmuslem/core/services/localnotification.dart';
 import 'package:rokenalmuslem/core/class/app_setting_mg.dart'; // مسار AppSettingsController
+import 'package:rokenalmuslem/view/wedgit/layout/modern_scaffold.dart';
 
 // ويدجت FadeIn (يمكنك وضعها في ملف منفصل مثل utilities/widgets.dart لتجنب التكرار)
 class FadeIn extends StatefulWidget {
@@ -68,197 +69,123 @@ class AdkarAlnomView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[800], // خلفية متناسقة وداكنة
-      extendBodyBehindAppBar: true, // للسماح للخلفية بالتمدد خلف الـ AppBar
-      appBar: AppBar(
-        title: const Text(
-          'أذكار النوم',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Amiri', // استخدام نفس الخط
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent, // لجعل الخلفية شفافة لرؤية التدرج
-        elevation: 0, // إزالة الظل
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ), // لون أيقونة الرجوع
-        flexibleSpace: Container(
-          // تدرج لوني لشريط التطبيق
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF1B5E20),
-                Color(0xFF388E3C),
-              ], // درجات اللون الأخضر
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-            ),
-          ),
-        ),
-        actions: <Widget>[
-          // زر إعادة تعيين كل العدادات
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _controller.resetAllCounters, // استدعاء من الكنترولر
-            tooltip: 'إعادة تعيين جميع العدادات',
-            color: Colors.white,
-          ),
-          // جديد: زر "تذكير النوم" المحسّن مع منتقي الوقت
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-            decoration: BoxDecoration(
-              color: Get.theme.colorScheme.secondary, // لون خلفية الزر
-              borderRadius: BorderRadius.circular(12), // حواف مدورة
-              boxShadow: [
-                BoxShadow(
-                  color: Get.theme.colorScheme.secondary.withOpacity(0.4),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2), // ظل خفيف
-                ),
-              ],
-            ),
-            child: Material(
-              color:
-                  Colors
-                      .transparent, // لجعل Material transparent لعرض BoxDecoration
-              borderRadius: BorderRadius.circular(12),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () async {
-                  // جعل onTap async
-                  // عرض منتقي الوقت للسماح للمستخدم باختيار وقت التنبيه
-                  final TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: const TimeOfDay(
-                      hour: 22,
-                      minute: 0,
-                    ), // وقت افتراضي (10:00 مساءً)
-                    builder: (BuildContext context, Widget? child) {
-                      return Theme(
-                        data: Get.theme.copyWith(
-                          colorScheme: Get.theme.colorScheme.copyWith(
-                            primary:
-                                Get
-                                    .theme
-                                    .colorScheme
-                                    .primary, // لون الثيم الأساسي
-                            onPrimary:
-                                Get
-                                    .theme
-                                    .colorScheme
-                                    .onPrimary, // لون النص على الأساسي
-                            surface:
-                                Get
-                                    .theme
-                                    .colorScheme
-                                    .surface, // لون الخلفية في منتقي الوقت
-                            onSurface:
-                                Get
-                                    .theme
-                                    .colorScheme
-                                    .onSurface, // لون النص على الخلفية
-                          ),
-                          textButtonTheme: TextButtonThemeData(
-                            style: TextButton.styleFrom(
-                              foregroundColor:
-                                  Get
-                                      .theme
-                                      .colorScheme
-                                      .primary, // لون أزرار النص
-                            ),
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
-                  if (pickedTime != null) {
-                    // جدولة إشعار أذكار النوم بالوقت الذي اختاره المستخدم
-                    _notificationService.scheduleDailyReminder(
-                      id:
-                          AppSettingsController
-                              .sleepAzkarId, // استخدام ID مخصص لأذكار النوم
-                      title: 'تذكير: أذكار النوم',
-                      body: 'لا تنسَ أذكار النوم قبل أن تنام.',
-                      time: TimeOfDay(
-                        hour: pickedTime.hour,
-                        minute: pickedTime.minute,
-                      ), // استخدام الوقت المختار
-                      payload: 'sleep_azkar_reminder',
-                    );
-                    Get.snackbar(
-                      'تم تفعيل التذكير',
-                      'ستتلقى تذكيرًا يوميًا لأذكار النوم في الساعة ${pickedTime.format(context)}.', // عرض الوقت المختار
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor:
-                          Get
-                              .theme
-                              .colorScheme
-                              .secondary, // لون خلفية السناك بار (الأخضر)
-                      colorText:
-                          Get
-                              .theme
-                              .colorScheme
-                              .onSecondary, // لون النص في السناك بار (الأبيض)
-                      borderRadius: 10,
-                      margin: const EdgeInsets.all(16),
-                    );
-                  } else {
-                    // إذا لم يتم اختيار وقت (المستخدم ألغى)، يمكن إظهار رسالة أو عدم فعل شيء
-                    Get.snackbar(
-                      'إلغاء التفعيل',
-                      'لم يتم تحديد وقت لتذكير أذكار النوم.',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.orange,
-                      colorText: Colors.white,
-                      borderRadius: 10,
-                      margin: const EdgeInsets.all(16),
-                    );
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min, // للحفاظ على الصف مدمجًا
-                    children: [
-                      Icon(
-                        Icons.nights_stay_outlined, // أيقونة واضحة لـ "النوم"
-                        color:
-                            Get
-                                .theme
-                                .colorScheme
-                                .onSecondary, // لون الأيقونة (أبيض)
-                        size: 20,
-                      ),
-                      const SizedBox(
-                        width: 6,
-                      ), // مسافة صغيرة بين الأيقونة والنص
-                      Text(
-                        'تذكير النوم', // نص واضح للزر
-                        style: TextStyle(
-                          color: Get.theme.colorScheme.onSecondary,
-                          fontFamily: 'Amiri',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+    return ModernScaffold(
+      title: 'أذكار النوم',
+      actions: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: _controller.resetAllCounters,
+          tooltip: 'إعادة تعيين جميع العدادات',
+          color: Colors.white,
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+          decoration: BoxDecoration(
+            color: scheme.secondary,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: scheme.secondary.withOpacity(0.35),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () async {
+                final TimeOfDay? pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: const TimeOfDay(hour: 22, minute: 0),
+                  builder: (BuildContext context, Widget? child) {
+                    return Theme(
+                      data: Get.theme.copyWith(
+                        colorScheme: Get.theme.colorScheme.copyWith(
+                          primary: Get.theme.colorScheme.primary,
+                          onPrimary: Get.theme.colorScheme.onPrimary,
+                          surface: Get.theme.colorScheme.surface,
+                          onSurface: Get.theme.colorScheme.onSurface,
+                        ),
+                        textButtonTheme: TextButtonThemeData(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Get.theme.colorScheme.primary,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                      child: child!,
+                    );
+                  },
+                );
+
+                if (pickedTime != null) {
+                  _notificationService.scheduleDailyReminder(
+                    id: AppSettingsController.sleepAzkarId,
+                    title: 'تذكير: أذكار النوم',
+                    body: 'لا تنسَ أذكار النوم قبل أن تنام.',
+                    time: TimeOfDay(
+                      hour: pickedTime.hour,
+                      minute: pickedTime.minute,
+                    ),
+                    payload: 'sleep_azkar_reminder',
+                  );
+                  Get.snackbar(
+                    'تم تفعيل التذكير',
+                    'ستتلقى تذكيرًا يوميًا لأذكار النوم في الساعة ${pickedTime.format(context)}.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: scheme.secondary,
+                    colorText: scheme.onSecondary,
+                    borderRadius: 10,
+                    margin: const EdgeInsets.all(16),
+                  );
+                } else {
+                  Get.snackbar(
+                    'إلغاء التفعيل',
+                    'لم يتم تحديد وقت لتذكير أذكار النوم.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: scheme.error,
+                    colorText: scheme.onError,
+                    borderRadius: 10,
+                    margin: const EdgeInsets.all(16),
+                  );
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.nights_stay_outlined,
+                      color: scheme.onSecondary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'تذكير النوم',
+                      style: TextStyle(
+                        color: scheme.onSecondary,
+                        fontFamily: 'Amiri',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
       body: Stack(
         children: [
           // زخرفة الخلفية (مطابقة لصفحة أذكار الصباح)
@@ -274,8 +201,8 @@ class AdkarAlnomView extends StatelessWidget {
           ),
 
           // قائمة الأذكار
-          Obx(
-            () => ListView.builder(
+          GetX<AdkarAlnomController>(
+            builder: (_) => ListView.builder(
               padding: const EdgeInsets.only(
                 top:
                     kToolbarHeight +
@@ -309,23 +236,22 @@ class AdkarAlnomView extends StatelessWidget {
 
   // دالة لبناء بطاقة الذكر الواحدة
   Widget _buildDhikrCard(Map<String, dynamic> dhikr, int index) {
+    final theme = Get.theme;
+    final scheme = theme.colorScheme;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[900], // خلفية داكنة للبطاقة
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3), // ظل بارز
+            color: Colors.black.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-          width: 0.5,
-        ), // حدود خفيفة
+        border: Border.all(color: theme.dividerColor, width: 0.5),
       ),
       child: Material(
         color: Colors.transparent, // لجعل InkWell يعمل بشكل صحيح
@@ -346,7 +272,7 @@ class AdkarAlnomView extends StatelessWidget {
                       dhikr['start'],
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.white.withOpacity(0.7),
+                        color: scheme.onSurface.withOpacity(0.7),
                         fontFamily: 'Amiri',
                         height: 1.5,
                       ),
@@ -357,17 +283,17 @@ class AdkarAlnomView extends StatelessWidget {
                 // نص الذكر الرئيسي
                 Text(
                   dhikr['name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: scheme.onSurface,
                     fontFamily: 'Amiri',
                   ),
                   textAlign: TextAlign.right,
                   textDirection: TextDirection.rtl,
                 ),
                 const SizedBox(height: 20),
-                Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
+                Divider(color: scheme.onSurface.withOpacity(0.15), thickness: 1),
                 // نص الفضل/المعنى (إن وجد)
                 if (dhikr['meaning'] != null &&
                     dhikr['meaning'].toString().isNotEmpty)
@@ -376,10 +302,10 @@ class AdkarAlnomView extends StatelessWidget {
                     children: [
                       Text(
                         'معنى وفضل الذكر:',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 19,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF388E3C), // لون أخضر مميز
+                          color: scheme.secondary,
                           fontFamily: 'Amiri',
                         ),
                         textAlign: TextAlign.right,
@@ -390,7 +316,7 @@ class AdkarAlnomView extends StatelessWidget {
                         dhikr['meaning'],
                         style: TextStyle(
                           fontSize: 17,
-                          color: Colors.white.withOpacity(0.85),
+                          color: scheme.onSurface.withOpacity(0.85),
                           fontFamily: 'Amiri',
                           height: 1.6,
                         ),
@@ -412,7 +338,7 @@ class AdkarAlnomView extends StatelessWidget {
                           dhikr['ayah'], // مصدر الذكر
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.5),
+                            color: scheme.onSurface.withOpacity(0.5),
                             fontFamily: 'Amiri',
                           ),
                           textAlign: TextAlign.right,
@@ -436,8 +362,10 @@ class AdkarAlnomView extends StatelessWidget {
 
   // دالة لبناء العداد
   Widget _buildCounter(Map<String, dynamic> dhikr, int index) {
-    return Obx(
-      () => Row(
+    final theme = Get.theme;
+    final scheme = theme.colorScheme;
+    return GetX<AdkarAlnomController>(
+      builder: (_) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           // زر إعادة تعيين العداد الفردي
@@ -445,7 +373,7 @@ class AdkarAlnomView extends StatelessWidget {
             icon: const Icon(Icons.undo_rounded, size: 22),
             onPressed:
                 () => _controller.resetCount(index), // استدعاء من الكنترولر
-            color: Colors.white.withOpacity(0.7),
+            color: scheme.onSurface.withOpacity(0.7),
             tooltip: 'إعادة تعيين هذا العداد',
           ),
           // زر العداد نفسه
@@ -463,12 +391,12 @@ class AdkarAlnomView extends StatelessWidget {
                       dhikr['count'].value >
                               0 // لاحظ استخدام .value هنا
                           ? [
-                            const Color(0xFF388E3C), // أخضر داكن (نشط)
-                            const Color(0xFF1B5E20), // أخضر أغمق (نشط)
+                            scheme.primary,
+                            scheme.secondary,
                           ]
                           : [
-                            Colors.grey[700]!, // رمادي (غير نشط)
-                            Colors.grey[600]!, // رمادي أغمق (غير نشط)
+                            scheme.onSurface.withOpacity(0.25),
+                            scheme.onSurface.withOpacity(0.18),
                           ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -478,8 +406,8 @@ class AdkarAlnomView extends StatelessWidget {
                   BoxShadow(
                     color:
                         dhikr['count'].value > 0
-                            ? const Color(0xFF1B5E20).withOpacity(0.5)
-                            : Colors.black.withOpacity(0.3),
+                            ? scheme.primary.withOpacity(0.4)
+                            : Colors.black.withOpacity(0.25),
                     spreadRadius: 1,
                     blurRadius: 5,
                     offset: const Offset(0, 3),
@@ -514,6 +442,8 @@ class AdkarAlnomView extends StatelessWidget {
 
   // دالة عرض التفاصيل في BottomSheet
   void _showDhikrDetails(Map<String, dynamic> dhikr) {
+    final theme = Get.theme;
+    final scheme = theme.colorScheme;
     Get.bottomSheet(
       ClipRRect(
         borderRadius: const BorderRadius.only(
@@ -521,9 +451,9 @@ class AdkarAlnomView extends StatelessWidget {
           topRight: Radius.circular(30),
         ),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white, // خلفية بيضاء للـ BottomSheet
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(30),
               topRight: Radius.circular(30),
             ),
@@ -551,7 +481,7 @@ class AdkarAlnomView extends StatelessWidget {
                         height: 5,
                         margin: const EdgeInsets.only(bottom: 25),
                         decoration: BoxDecoration(
-                          color: Colors.grey[400],
+                          color: scheme.onSurface.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(5),
                         ),
                       ),
@@ -564,7 +494,7 @@ class AdkarAlnomView extends StatelessWidget {
                           dhikr['start'],
                           style: TextStyle(
                             fontSize: 19,
-                            color: Colors.black.withOpacity(0.7),
+                            color: scheme.onSurface.withOpacity(0.75),
                             fontFamily: 'Amiri',
                             height: 1.5,
                           ),
@@ -574,10 +504,10 @@ class AdkarAlnomView extends StatelessWidget {
                       ),
                     Text(
                       dhikr['name'],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: scheme.onSurface,
                         fontFamily: 'Amiri',
                       ),
                       textAlign: TextAlign.right,
@@ -589,12 +519,12 @@ class AdkarAlnomView extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
+                          Text(
                             'فضل الذكر:',
                             style: TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1B5E20),
+                              color: scheme.secondary,
                               fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.right,
@@ -605,7 +535,7 @@ class AdkarAlnomView extends StatelessWidget {
                             dhikr['mang'],
                             style: TextStyle(
                               fontSize: 17,
-                              color: Colors.black.withOpacity(0.85),
+                              color: scheme.onSurface.withOpacity(0.85),
                               fontFamily: 'Amiri',
                               height: 1.6,
                             ),
@@ -623,7 +553,7 @@ class AdkarAlnomView extends StatelessWidget {
                             dhikr['ayah'],
                             style: TextStyle(
                               fontSize: 15,
-                              color: Colors.grey[700],
+                              color: scheme.onSurface.withOpacity(0.6),
                               fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.right,
@@ -636,14 +566,14 @@ class AdkarAlnomView extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF388E3C).withOpacity(0.1),
+                            color: scheme.primary.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          child: const Text(
+                          child: Text(
                             'أذكار النوم', // نص ثابت لأن 'category' غير موجود
                             style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF1B5E20),
+                              color: scheme.primary,
                               fontFamily: 'Amiri',
                               fontWeight: FontWeight.w600,
                             ),

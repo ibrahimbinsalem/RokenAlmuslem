@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/adkar/fordeadcontroller.dart';
+import 'package:rokenalmuslem/view/wedgit/layout/modern_scaffold.dart';
 
 class AdayahForDeadView extends StatelessWidget {
   final AdayahForDeadController _controller = Get.put(
@@ -13,33 +14,8 @@ class AdayahForDeadView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[800],
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text(
-          'أدعية للميّت',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Amiri',
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF1B5E20), Color(0xFF388E3C)],
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-            ),
-          ),
-        ),
-        // No refresh button as there are no counters to reset
-      ),
+    return ModernScaffold(
+      title: 'أدعية للميّت',
       body: Stack(
         children: [
           Positioned.fill(
@@ -52,8 +28,8 @@ class AdayahForDeadView extends StatelessWidget {
               ),
             ),
           ),
-          Obx(
-            () => ListView.builder(
+          GetX<AdayahForDeadController>(
+            builder: (_) => ListView.builder(
               padding: const EdgeInsets.only(
                 top: kToolbarHeight + 40,
                 bottom: 20,
@@ -75,20 +51,22 @@ class AdayahForDeadView extends StatelessWidget {
   }
 
   Widget _buildDhikrCard(Map<String, dynamic> dhikr, int index) {
+    final theme = Get.theme;
+    final scheme = theme.colorScheme;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
+        border: Border.all(color: theme.dividerColor, width: 0.5),
       ),
       child: Material(
         color: Colors.transparent,
@@ -107,7 +85,7 @@ class AdayahForDeadView extends StatelessWidget {
                       dhikr['start'],
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.white.withOpacity(0.7),
+                        color: scheme.onSurface.withOpacity(0.7),
                         fontFamily: 'Amiri',
                         height: 1.5,
                       ),
@@ -117,17 +95,17 @@ class AdayahForDeadView extends StatelessWidget {
                   ),
                 Text(
                   dhikr['name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: scheme.onSurface,
                     fontFamily: 'Amiri',
                   ),
                   textAlign: TextAlign.right,
                   textDirection: TextDirection.rtl,
                 ),
                 const SizedBox(height: 20),
-                Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
+                Divider(color: scheme.onSurface.withOpacity(0.15), thickness: 1),
                 if (dhikr['meaning'].toString().isNotEmpty &&
                     dhikr['meaning'] != "مرة واحدة")
                   Column(
@@ -137,10 +115,10 @@ class AdayahForDeadView extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         child: Text(
                           'معنى وفضل الدعاء:', // Changed "الذكر" to "الدعاء"
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF388E3C),
+                            color: scheme.secondary,
                             fontFamily: 'Amiri',
                           ),
                           textAlign: TextAlign.right,
@@ -151,7 +129,7 @@ class AdayahForDeadView extends StatelessWidget {
                         dhikr['meaning'],
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.white.withOpacity(0.8),
+                          color: scheme.onSurface.withOpacity(0.8),
                           fontFamily: 'Amiri',
                           height: 1.6,
                         ),
@@ -172,7 +150,7 @@ class AdayahForDeadView extends StatelessWidget {
                           dhikr['ayah'],
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.5),
+                            color: scheme.onSurface.withOpacity(0.5),
                             fontFamily: 'Amiri',
                           ),
                           textAlign: TextAlign.right,
@@ -193,6 +171,7 @@ class AdayahForDeadView extends StatelessWidget {
   }
 
   Widget _buildReadButton(int index) {
+    final scheme = Get.theme.colorScheme;
     return GestureDetector(
       onTap:
           () => _controller.decrementCount(
@@ -202,15 +181,15 @@ class AdayahForDeadView extends StatelessWidget {
         width: 100,
         height: 40,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF388E3C), Color(0xFF1B5E20)],
+          gradient: LinearGradient(
+            colors: [scheme.primary, scheme.secondary],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1B5E20).withOpacity(0.5),
+              color: scheme.primary.withOpacity(0.4),
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 3),
@@ -233,6 +212,8 @@ class AdayahForDeadView extends StatelessWidget {
   }
 
   void _showDhikrDetails(Map<String, dynamic> dhikr) {
+    final theme = Get.theme;
+    final scheme = theme.colorScheme;
     Get.bottomSheet(
       ClipRRect(
         borderRadius: const BorderRadius.only(
@@ -240,9 +221,9 @@ class AdayahForDeadView extends StatelessWidget {
           topRight: Radius.circular(30),
         ),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(30),
               topRight: Radius.circular(30),
             ),
@@ -270,7 +251,7 @@ class AdayahForDeadView extends StatelessWidget {
                         height: 5,
                         margin: const EdgeInsets.only(bottom: 25),
                         decoration: BoxDecoration(
-                          color: Colors.grey[400],
+                          color: scheme.onSurface.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(5),
                         ),
                       ),
@@ -284,7 +265,7 @@ class AdayahForDeadView extends StatelessWidget {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color: Colors.grey[200],
+                                color: scheme.surfaceVariant,
                                 borderRadius: BorderRadius.circular(50),
                               ),
                               child: IconButton(
@@ -298,7 +279,7 @@ class AdayahForDeadView extends StatelessWidget {
                               dhikr['start'],
                               style: TextStyle(
                                 fontSize: 19,
-                                color: Colors.black.withOpacity(0.7),
+                                color: scheme.onSurface.withOpacity(0.75),
                                 fontFamily: 'Amiri',
                                 height: 1.5,
                               ),
@@ -310,10 +291,10 @@ class AdayahForDeadView extends StatelessWidget {
                       ),
                     Text(
                       dhikr['name'],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: scheme.onSurface,
                         fontFamily: 'Amiri',
                       ),
                       textAlign: TextAlign.right,
@@ -325,12 +306,12 @@ class AdayahForDeadView extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
+                          Text(
                             'معنى وفضل الدعاء:', // Changed to "الدعاء"
                             style: TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1B5E20),
+                              color: scheme.secondary,
                               fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.right,
@@ -341,7 +322,7 @@ class AdayahForDeadView extends StatelessWidget {
                             dhikr['meaning'],
                             style: TextStyle(
                               fontSize: 17,
-                              color: Colors.black.withOpacity(0.85),
+                              color: scheme.onSurface.withOpacity(0.85),
                               fontFamily: 'Amiri',
                               height: 1.6,
                             ),
@@ -359,7 +340,7 @@ class AdayahForDeadView extends StatelessWidget {
                             dhikr['ayah'],
                             style: TextStyle(
                               fontSize: 15,
-                              color: Colors.grey[700],
+                              color: scheme.onSurface.withOpacity(0.6),
                               fontFamily: 'Amiri',
                             ),
                             textAlign: TextAlign.right,
@@ -372,14 +353,14 @@ class AdayahForDeadView extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF388E3C).withOpacity(0.1),
+                            color: scheme.primary.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          child: const Text(
+                          child: Text(
                             'أذكار للميّت',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF1B5E20),
+                              color: scheme.primary,
                               fontFamily: 'Amiri',
                               fontWeight: FontWeight.w600,
                             ),
