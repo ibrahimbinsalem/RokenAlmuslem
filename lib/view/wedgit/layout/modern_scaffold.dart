@@ -23,6 +23,14 @@ class ModernScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final topInset =
+        extendBodyBehindAppBar
+            ? MediaQuery.of(context).padding.top + kToolbarHeight
+            : 0.0;
+    final content =
+        extendBodyBehindAppBar
+            ? Padding(padding: EdgeInsets.only(top: topInset), child: body)
+            : body;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -55,7 +63,7 @@ class ModernScaffold extends StatelessWidget {
           ),
         ),
       ),
-      body: AppBackground(child: body),
+      body: AppBackground(child: content),
     );
   }
 }

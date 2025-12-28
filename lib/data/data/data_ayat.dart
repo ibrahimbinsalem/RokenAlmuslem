@@ -105,7 +105,7 @@ class AyahData {
       // 'page': page, // Uncomment if needed
       // 'ruku': ruku, // Uncomment if needed
       // 'hizbQuarter': hizbQuarter, // Uncomment if needed
-      'sajda': sajda, // Convert DataSajadah to JSON
+      'sajda': sajda.toJSON(),
       'translate': translate?.translates, // If no translation, store as null
     };
   }

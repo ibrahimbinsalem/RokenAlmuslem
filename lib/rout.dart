@@ -35,6 +35,9 @@ import 'package:rokenalmuslem/view/screen/more/stories.dart';
 import 'package:rokenalmuslem/view/screen/more/story_detail.dart';
 import 'package:rokenalmuslem/view/screen/more/qablah.dart';
 import 'package:rokenalmuslem/view/screen/more/setting.dart';
+import 'package:rokenalmuslem/view/screen/more/quran_plan.dart';
+import 'package:rokenalmuslem/view/screen/more/custom_adkar.dart';
+import 'package:rokenalmuslem/view/screen/more/spiritual_stats.dart';
 import 'package:rokenalmuslem/view/screen/onbording/onbording.dart';
 import 'package:rokenalmuslem/view/screen/quran/detail_screen.dart';
 import 'package:rokenalmuslem/view/screen/quran/home_screen.dart';
@@ -87,6 +90,9 @@ List<GetPage<dynamic>>? routes = [
   GetPage(name: AppRoute.stories, page: () => const StoriesView()),
   GetPage(name: AppRoute.storyDetail, page: () => const StoryDetailView()),
   GetPage(name: AppRoute.quran, page: () => SurahListPage()),
+  GetPage(name: AppRoute.quranPlan, page: () => QuranPlanView()),
+  GetPage(name: AppRoute.customAdkar, page: () => CustomAdkarView()),
+  GetPage(name: AppRoute.spiritualStats, page: () => SpiritualStatsView()),
   // GetPage(name: AppRoute.surahDetail, page: () => SurahDetailPage(surah:)),
 
   // Settings :

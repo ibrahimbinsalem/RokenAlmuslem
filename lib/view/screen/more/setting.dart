@@ -144,6 +144,27 @@ class SettingsPage extends StatelessWidget {
                           ),
                           _buildSwitchRow(
                             context,
+                            icon: Icons.auto_awesome_motion,
+                            title: 'تحديث ذكي لمواقيت الصلاة',
+                            subtitle: 'تحديث تلقائي عند تغيّر الموقع',
+                            value: appSettings.smartPrayerUpdatesEnabled.value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setSmartPrayerUpdatesEnabled(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
+                            icon: Icons.travel_explore_outlined,
+                            title: 'وضع السفر لمواقيت الصلاة',
+                            subtitle: 'تحديث أدق وأسرع أثناء التنقل',
+                            value: appSettings.travelModeEnabled.value,
+                            onChanged: (newValue) async {
+                              await appSettings.setTravelModeEnabled(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
                             icon: Icons.auto_awesome,
                             title: 'تذكير أذكار عامة',
                             subtitle: '8:00 صباحًا',

@@ -57,6 +57,7 @@ Future<void> main() async {
 Future<void> _initializeApp() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    _setupErrorLogging();
     await initializeDateFormatting('ar');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -130,6 +131,20 @@ Future<void> _initializeApp() async {
     debugPrint("App Initialization Error: $e\n$stack");
     rethrow;
   }
+}
+
+void _setupErrorLogging() {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.dumpErrorToConsole(details);
+    debugPrint(
+      "FlutterError: ${details.exception}\n${details.stack ?? ''}",
+    );
+  };
+
+  WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
+    debugPrint("Uncaught async error: $error\n$stack");
+    return true;
+  };
 }
 
 Future<void> _resetAllAdkarCounters(DatabaseHelper dbHelper) async {

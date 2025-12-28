@@ -93,6 +93,12 @@ class _HomePageState extends State<HomePage> {
         isDark ? Colors.white70 : scheme.onBackground.withOpacity(0.7);
     const shortcuts = [
       _ShortcutConfig(
+        id: 'quran',
+        icon: 'assets/images/book.png',
+        label: 'المصحف',
+        route: AppRoute.quran,
+      ),
+      _ShortcutConfig(
         id: 'asma_allah',
         icon: 'assets/images/اسماء الله.png',
         label: 'اسماء الله',
@@ -193,6 +199,24 @@ class _HomePageState extends State<HomePage> {
         icon: 'assets/images/اعدادات.png',
         label: 'الإعدادات',
         route: AppRoute.setting,
+      ),
+      _ShortcutConfig(
+        id: 'quran_plan',
+        icon: 'assets/images/book.png',
+        label: 'خطة الختم',
+        route: AppRoute.quranPlan,
+      ),
+      _ShortcutConfig(
+        id: 'custom_adkar',
+        icon: 'assets/images/مسبحة.png',
+        label: 'أذكار خاصة',
+        route: AppRoute.customAdkar,
+      ),
+      _ShortcutConfig(
+        id: 'spiritual_stats',
+        icon: 'assets/images/masseg icon.png',
+        label: 'إحصائيات',
+        route: AppRoute.spiritualStats,
       ),
     ];
 
@@ -521,19 +545,19 @@ class _HomePageState extends State<HomePage> {
                         .slideX(begin: 0.1, end: 0),
                     // استخدام GetX لمراقبة التغييرات في hadithController
                     GetX<HadithController>(
-                      builder: (controller) {
-                        return _buildHadithCard(
-                          context,
-                          controller,
-                          primaryColor,
-                          cardColor,
-                          screenWidth,
-                        );
-                      },
-                    )
-                    .animate()
-                    .fadeIn(delay: Duration(seconds: 1))
-                    .slideY(begin: 0.1, end: 0),
+                          builder: (controller) {
+                            return _buildHadithCard(
+                              context,
+                              controller,
+                              primaryColor,
+                              cardColor,
+                              screenWidth,
+                            );
+                          },
+                        )
+                        .animate()
+                        .fadeIn(delay: Duration(seconds: 1))
+                        .slideY(begin: 0.1, end: 0),
 
                     // أسماء الله الحسنى
                     _buildSectionHeader(
@@ -645,10 +669,7 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           color: cardColor.withOpacity(isDark ? 0.6 : 0.95),
           borderRadius: BorderRadius.circular(screenWidth * 0.05),
-          border: Border.all(
-            color: primaryColor.withOpacity(0.3),
-            width: 1,
-          ),
+          border: Border.all(color: primaryColor.withOpacity(0.3), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.5),
@@ -701,572 +722,570 @@ class _HomePageState extends State<HomePage> {
                 controller.latitude.value != 0.0 &&
                 controller.longitude.value != 0.0;
 
-          if (!isEnabled) {
-            return buildStatusCard(
-              icon: Icons.notifications_off_outlined,
-              title: 'أوقات الصلاة غير مفعّلة',
-              message: 'فعّل مواقيت الصلاة من الإعدادات لعرض الأوقات.',
-              action: OutlinedButton.icon(
-                onPressed: () => Get.toNamed(AppRoute.setting),
-                icon: const Icon(Icons.settings),
-                label: const Text('فتح الإعدادات'),
-              ),
-            );
-          }
-
-          if (!hasLocation) {
-            return buildStatusCard(
-              icon: Icons.my_location,
-              title: 'حدد موقعك',
-              message: 'يلزم تحديد المنطقة لعرض مواقيت الصلاة بدقة.',
-              action: ElevatedButton.icon(
-                onPressed: () => controller.determinePosition(),
-                icon: const Icon(Icons.location_on),
-                label: const Text('تحديد الموقع'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: scheme.onPrimary,
+            if (!isEnabled) {
+              return buildStatusCard(
+                icon: Icons.notifications_off_outlined,
+                title: 'أوقات الصلاة غير مفعّلة',
+                message: 'فعّل مواقيت الصلاة من الإعدادات لعرض الأوقات.',
+                action: OutlinedButton.icon(
+                  onPressed: () => Get.toNamed(AppRoute.setting),
+                  icon: const Icon(Icons.settings),
+                  label: const Text('فتح الإعدادات'),
                 ),
-              ),
-            );
-          }
+              );
+            }
 
-          if (controller.isLoading) {
-            return buildStatusCard(
-              icon: Icons.access_time,
-              title: 'جاري تحميل أوقات الصلاة',
-              message: 'يتم حساب الأوقات الآن، يرجى الانتظار.',
-              action: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'تحميل...',
-                    style: TextStyle(color: textSecondary),
+            if (!hasLocation) {
+              return buildStatusCard(
+                icon: Icons.my_location,
+                title: 'حدد موقعك',
+                message: 'يلزم تحديد المنطقة لعرض مواقيت الصلاة بدقة.',
+                action: ElevatedButton.icon(
+                  onPressed: () => controller.determinePosition(),
+                  icon: const Icon(Icons.location_on),
+                  label: const Text('تحديد الموقع'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: scheme.onPrimary,
                   ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: scheme.primary,
+                ),
+              );
+            }
+
+            if (controller.isLoading) {
+              return buildStatusCard(
+                icon: Icons.access_time,
+                title: 'جاري تحميل أوقات الصلاة',
+                message: 'يتم حساب الأوقات الآن، يرجى الانتظار.',
+                action: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('تحميل...', style: TextStyle(color: textSecondary)),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: scheme.primary,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
+                  ],
+                ),
+              );
+            }
 
-          if (controller.errorMessage.value.isNotEmpty) {
-            return buildStatusCard(
-              icon: Icons.wifi_off,
-              title: 'تعذر جلب الأوقات',
-              message: controller.errorMessage.value,
-              iconColor: scheme.error,
-              action: OutlinedButton.icon(
-                onPressed: () => controller.determinePosition(),
-                icon: const Icon(Icons.refresh),
-                label: const Text('إعادة المحاولة'),
-              ),
-            );
-          }
+            if (controller.errorMessage.value.isNotEmpty) {
+              return buildStatusCard(
+                icon: Icons.wifi_off,
+                title: 'تعذر جلب الأوقات',
+                message: controller.errorMessage.value,
+                iconColor: scheme.error,
+                action: OutlinedButton.icon(
+                  onPressed: () => controller.determinePosition(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('إعادة المحاولة'),
+                ),
+              );
+            }
 
-          if (controller.prayerTimesData.isEmpty) {
-            return buildStatusCard(
-              icon: Icons.access_time_outlined,
-              title: 'لا توجد أوقات متاحة',
-              message: 'قم بتحديث الموقع لإظهار مواقيت الصلاة.',
-              action: OutlinedButton.icon(
-                onPressed: () => controller.determinePosition(),
-                icon: const Icon(Icons.refresh),
-                label: const Text('تحديث الموقع'),
-              ),
-            );
-          }
+            if (controller.prayerTimesData.isEmpty) {
+              return buildStatusCard(
+                icon: Icons.access_time_outlined,
+                title: 'لا توجد أوقات متاحة',
+                message: 'قم بتحديث الموقع لإظهار مواقيت الصلاة.',
+                action: OutlinedButton.icon(
+                  onPressed: () => controller.determinePosition(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('تحديث الموقع'),
+                ),
+              );
+            }
 
-          return StreamBuilder(
-            stream: Stream.periodic(const Duration(seconds: 1)),
-            builder: (context, streamSnapshot) {
-              final now = DateTime.now();
-              final nextPrayerInfo = controller.getNextPrayer();
-              final nextPrayerName = nextPrayerInfo['name'] ?? 'غير معروف';
-              final nextPrayerTime = nextPrayerInfo['time'] as DateTime?;
+            return StreamBuilder(
+              stream: Stream.periodic(const Duration(seconds: 1)),
+              builder: (context, streamSnapshot) {
+                final now = DateTime.now();
+                final nextPrayerInfo = controller.getNextPrayer();
+                final nextPrayerName = nextPrayerInfo['name'] ?? 'غير معروف';
+                final nextPrayerTime = nextPrayerInfo['time'] as DateTime?;
 
-              String countdown = '...';
-              if (nextPrayerTime != null) {
-                final difference = nextPrayerTime.difference(now);
-                if (difference.isNegative) {
-                  countdown = 'حان الآن';
-                } else {
-                  final hours = difference.inHours;
-                  final minutes = difference.inMinutes.remainder(60);
-                  final seconds = difference.inSeconds.remainder(60);
-                  countdown =
-                      '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-                }
-              }
-              final countdownLabel =
-                  countdown == 'حان الآن'
-                      ? 'حان الآن وقت صلاة $nextPrayerName'
-                      : 'تبقى $countdown لصلاة $nextPrayerName';
-
-              final prayerOrder = [
-                'الفجر',
-                'الشروق',
-                'الظهر',
-                'العصر',
-                'المغرب',
-                'العشاء',
-              ];
-              final prayerIcons = {
-                'الفجر': Icons.bedtime_outlined,
-                'الشروق': Icons.wb_sunny_outlined,
-                'الظهر': Icons.light_mode,
-                'العصر': Icons.brightness_5_outlined,
-                'المغرب': Icons.nights_stay_outlined,
-                'العشاء': Icons.dark_mode,
-              };
-              final prayerItems =
-                  prayerOrder
-                      .where(controller.prayerTimesData.containsKey)
-                      .map(
-                        (name) =>
-                            MapEntry(name, controller.prayerTimesData[name]!),
-                      )
-                      .toList();
-
-              final locationLabel =
-                  controller.currentAddress.value.trim().isEmpty
-                      ? 'حدد موقعك'
-                      : controller.currentAddress.value;
-              final methodLabel =
-                  controller
-                      .calculationMethodNames[controller
-                          .calculationMethod
-                          .value] ??
-                  'طريقة الحساب';
-              final madhabLabel =
-                  controller.madhabNames[controller.madhab.value] ?? 'المذهب';
-              final nextPrayerTimeLabel =
-                  nextPrayerTime != null
-                      ? DateFormat('hh:mm a', 'ar').format(nextPrayerTime)
-                      : '--:--';
-
-              DateTime? previousPrayerTime;
-              double progressValue = 0;
-              if (prayerItems.isNotEmpty && nextPrayerTime != null) {
-                final today = DateTime(now.year, now.month, now.day);
-                final parsedTimes =
-                    prayerItems.map((entry) {
-                      final timeOfDay = controller.parseTimeOfDay(entry.value);
-                      return MapEntry(
-                        entry.key,
-                        DateTime(
-                          today.year,
-                          today.month,
-                          today.day,
-                          timeOfDay.hour,
-                          timeOfDay.minute,
-                        ),
-                      );
-                    }).toList()
-                      ..sort((a, b) => a.value.compareTo(b.value));
-
-                final prevCandidates =
-                    parsedTimes
-                        .where((entry) => !entry.value.isAfter(now))
-                        .toList();
-                if (prevCandidates.isNotEmpty) {
-                  previousPrayerTime = prevCandidates.last.value;
-                } else {
-                  previousPrayerTime =
-                      parsedTimes.last.value.subtract(const Duration(days: 1));
-                }
-
-                var endTime = nextPrayerTime;
-                if (previousPrayerTime != null &&
-                    endTime.isBefore(previousPrayerTime!)) {
-                  endTime = endTime.add(const Duration(days: 1));
-                }
-                if (previousPrayerTime != null) {
-                  final totalSeconds =
-                      endTime.difference(previousPrayerTime!).inSeconds;
-                  final elapsedSeconds =
-                      now.difference(previousPrayerTime!).inSeconds;
-                  if (totalSeconds > 0) {
-                    progressValue =
-                        (elapsedSeconds / totalSeconds).clamp(0.0, 1.0);
+                String countdown = '...';
+                if (nextPrayerTime != null) {
+                  final difference = nextPrayerTime.difference(now);
+                  if (difference.isNegative) {
+                    countdown = 'حان الآن';
+                  } else {
+                    final hours = difference.inHours;
+                    final minutes = difference.inMinutes.remainder(60);
+                    final seconds = difference.inSeconds.remainder(60);
+                    countdown =
+                        '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
                   }
                 }
-              }
-              final progressPercent =
-                  (progressValue * 100).clamp(0, 100).toStringAsFixed(0);
+                final countdownLabel =
+                    countdown == 'حان الآن'
+                        ? 'حان الآن وقت صلاة $nextPrayerName'
+                        : 'تبقى $countdown لصلاة $nextPrayerName';
 
-              Widget buildDateChip(String label) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: scheme.onSurface.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: scheme.onSurface.withOpacity(0.08),
-                    ),
-                  ),
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      color: cardTextSecondary,
-                      fontSize: screenWidth * 0.032,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              }
+                final prayerOrder = [
+                  'الفجر',
+                  'الشروق',
+                  'الظهر',
+                  'العصر',
+                  'المغرب',
+                  'العشاء',
+                ];
+                final prayerIcons = {
+                  'الفجر': Icons.bedtime_outlined,
+                  'الشروق': Icons.wb_sunny_outlined,
+                  'الظهر': Icons.light_mode,
+                  'العصر': Icons.brightness_5_outlined,
+                  'المغرب': Icons.nights_stay_outlined,
+                  'العشاء': Icons.dark_mode,
+                };
+                final prayerItems =
+                    prayerOrder
+                        .where(controller.prayerTimesData.containsKey)
+                        .map(
+                          (name) =>
+                              MapEntry(name, controller.prayerTimesData[name]!),
+                        )
+                        .toList();
 
-              Widget buildInfoChip(String label, IconData icon) {
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: scheme.onSurface.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: scheme.onSurface.withOpacity(0.08),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(icon, size: 14, color: scheme.primary),
-                      const SizedBox(width: 6),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          color: cardTextSecondary,
-                          fontSize: screenWidth * 0.03,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
+                final locationLabel =
+                    controller.currentAddress.value.trim().isEmpty
+                        ? 'حدد موقعك'
+                        : controller.currentAddress.value;
+                final methodLabel =
+                    controller.calculationMethodNames[controller
+                        .calculationMethod
+                        .value] ??
+                    'طريقة الحساب';
+                final madhabLabel =
+                    controller.madhabNames[controller.madhab.value] ?? 'المذهب';
+                final nextPrayerTimeLabel =
+                    nextPrayerTime != null
+                        ? DateFormat('hh:mm a', 'ar').format(nextPrayerTime)
+                        : '--:--';
 
-              return Container(
-                    margin: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.04,
-                      vertical: screenWidth * 0.02,
+                DateTime? previousPrayerTime;
+                double progressValue = 0;
+                if (prayerItems.isNotEmpty && nextPrayerTime != null) {
+                  final today = DateTime(now.year, now.month, now.day);
+                  final parsedTimes =
+                      prayerItems.map((entry) {
+                          final timeOfDay = controller.parseTimeOfDay(
+                            entry.value,
+                          );
+                          return MapEntry(
+                            entry.key,
+                            DateTime(
+                              today.year,
+                              today.month,
+                              today.day,
+                              timeOfDay.hour,
+                              timeOfDay.minute,
+                            ),
+                          );
+                        }).toList()
+                        ..sort((a, b) => a.value.compareTo(b.value));
+
+                  final prevCandidates =
+                      parsedTimes
+                          .where((entry) => !entry.value.isAfter(now))
+                          .toList();
+                  if (prevCandidates.isNotEmpty) {
+                    previousPrayerTime = prevCandidates.last.value;
+                  } else {
+                    previousPrayerTime = parsedTimes.last.value.subtract(
+                      const Duration(days: 1),
+                    );
+                  }
+
+                  var endTime = nextPrayerTime;
+                  if (previousPrayerTime != null &&
+                      endTime.isBefore(previousPrayerTime!)) {
+                    endTime = endTime.add(const Duration(days: 1));
+                  }
+                  if (previousPrayerTime != null) {
+                    final totalSeconds =
+                        endTime.difference(previousPrayerTime!).inSeconds;
+                    final elapsedSeconds =
+                        now.difference(previousPrayerTime!).inSeconds;
+                    if (totalSeconds > 0) {
+                      progressValue = (elapsedSeconds / totalSeconds).clamp(
+                        0.0,
+                        1.0,
+                      );
+                    }
+                  }
+                }
+                final progressPercent = (progressValue * 100)
+                    .clamp(0, 100)
+                    .toStringAsFixed(0);
+
+                Widget buildDateChip(String label) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                    padding: EdgeInsets.all(screenWidth * 0.048),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(screenWidth * 0.065),
-                      gradient: LinearGradient(
-                        colors: [
-                          scheme.surface,
-                          scheme.surface.withOpacity(isDark ? 0.82 : 0.96),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: scheme.onSurface.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: primaryColor.withOpacity(0.18),
-                        width: 1,
+                        color: scheme.onSurface.withOpacity(0.08),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: primaryColor.withOpacity(0.22),
-                          blurRadius: 26,
-                          offset: const Offset(0, 16),
+                    ),
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        color: cardTextSecondary,
+                        fontSize: screenWidth * 0.032,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                }
+
+                Widget buildInfoChip(String label, IconData icon) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: scheme.onSurface.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: scheme.onSurface.withOpacity(0.08),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(icon, size: 14, color: scheme.primary),
+                        const SizedBox(width: 6),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            color: cardTextSecondary,
+                            fontSize: screenWidth * 0.03,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: screenWidth * 0.12,
-                              height: screenWidth * 0.12,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    primaryColor.withOpacity(0.95),
-                                    accentColor.withOpacity(0.95),
-                                  ],
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.mosque_outlined,
-                                color: scheme.onPrimary,
-                                size: screenWidth * 0.06,
+                  );
+                }
+
+                return Container(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: screenWidth * 0.02,
+                  ),
+                  padding: EdgeInsets.all(screenWidth * 0.048),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(screenWidth * 0.065),
+                    gradient: LinearGradient(
+                      colors: [
+                        scheme.surface,
+                        scheme.surface.withOpacity(isDark ? 0.82 : 0.96),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                      color: primaryColor.withOpacity(0.18),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.22),
+                        blurRadius: 26,
+                        offset: const Offset(0, 16),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: screenWidth * 0.12,
+                            height: screenWidth * 0.12,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  primaryColor.withOpacity(0.95),
+                                  accentColor.withOpacity(0.95),
+                                ],
                               ),
                             ),
-                            SizedBox(width: screenWidth * 0.03),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'مواقيت الصلاة',
-                                    style: TextStyle(
-                                      color: cardText,
-                                      fontSize: screenWidth * 0.052,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                            child: Icon(
+                              Icons.mosque_outlined,
+                              color: scheme.onPrimary,
+                              size: screenWidth * 0.06,
+                            ),
+                          ),
+                          SizedBox(width: screenWidth * 0.03),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'مواقيت الصلاة',
+                                  style: TextStyle(
+                                    color: cardText,
+                                    fontSize: screenWidth * 0.052,
+                                    fontWeight: FontWeight.w800,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.place_outlined,
-                                        size: 16,
-                                        color: cardTextSecondary,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        child: Text(
-                                          locationLabel,
-                                          style: TextStyle(
-                                            color: cardTextSecondary,
-                                            fontSize: screenWidth * 0.032,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.place_outlined,
+                                      size: 16,
+                                      color: cardTextSecondary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        locationLabel,
+                                        style: TextStyle(
+                                          color: cardTextSecondary,
+                                          fontSize: screenWidth * 0.032,
                                         ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: accentColor.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: accentColor.withOpacity(0.4),
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    nextPrayerName,
-                                    style: TextStyle(
-                                      color: accentColor,
-                                      fontSize: screenWidth * 0.03,
-                                      fontWeight: FontWeight.w700,
                                     ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    nextPrayerTimeLabel,
-                                    style: TextStyle(
-                                      color: accentColor,
-                                      fontSize: screenWidth * 0.03,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: screenWidth * 0.03),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            buildInfoChip(
-                              'الطريقة: $methodLabel',
-                              Icons.calculate_outlined,
-                            ),
-                            buildInfoChip(
-                              'المذهب: $madhabLabel',
-                              Icons.account_balance_outlined,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: screenWidth * 0.035),
-                        Center(
-                          child: Text(
-                            DateFormat('hh:mm a', 'ar').format(now),
-                            style: TextStyle(
-                              color: cardText,
-                              fontSize: screenWidth * 0.12,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Amiri',
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 14,
-                                  color: primaryColor.withOpacity(0.35),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Center(
-                          child: Container(
+                          Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
+                              horizontal: 12,
+                              vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: scheme.onSurface.withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              countdownLabel,
-                              style: TextStyle(
-                                color: cardTextSecondary,
-                                fontSize: screenWidth * 0.036,
-                                fontWeight: FontWeight.w600,
+                              color: accentColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: accentColor.withOpacity(0.4),
                               ),
-                              textAlign: TextAlign.center,
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  nextPrayerName,
+                                  style: TextStyle(
+                                    color: accentColor,
+                                    fontSize: screenWidth * 0.03,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  nextPrayerTimeLabel,
+                                  style: TextStyle(
+                                    color: accentColor,
+                                    fontSize: screenWidth * 0.03,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        SizedBox(height: screenWidth * 0.03),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: LinearProgressIndicator(
-                            value: progressValue,
-                            minHeight: 10,
-                            backgroundColor: scheme.onSurface.withOpacity(0.08),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              accentColor,
-                            ),
+                        ],
+                      ),
+                      SizedBox(height: screenWidth * 0.03),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          buildInfoChip(
+                            'الطريقة: $methodLabel',
+                            Icons.calculate_outlined,
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'انقضى $progressPercent% من الوقت إلى الصلاة القادمة',
+                          buildInfoChip(
+                            'المذهب: $madhabLabel',
+                            Icons.account_balance_outlined,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: screenWidth * 0.035),
+                      Center(
+                        child: Text(
+                          DateFormat('hh:mm a', 'ar').format(now),
                           style: TextStyle(
-                            color: cardTextSecondary,
-                            fontSize: screenWidth * 0.03,
+                            color: cardText,
+                            fontSize: screenWidth * 0.12,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Amiri',
+                            shadows: [
+                              Shadow(
+                                blurRadius: 14,
+                                color: primaryColor.withOpacity(0.35),
+                              ),
+                            ],
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: screenWidth * 0.03),
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: 10,
-                          runSpacing: 8,
-                          children: [
-                            buildDateChip(
-                              'هجري: ${hijriDate.toFormat("dd MMMM yyyy")}',
+                      ),
+                      const SizedBox(height: 6),
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.onSurface.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            countdownLabel,
+                            style: TextStyle(
+                              color: cardTextSecondary,
+                              fontSize: screenWidth * 0.036,
+                              fontWeight: FontWeight.w600,
                             ),
-                            buildDateChip(
-                              'ميلادي: ${gregorianFormatter.format(gregorianDate)}',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: screenWidth * 0.03),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: LinearProgressIndicator(
+                          value: progressValue,
+                          minHeight: 10,
+                          backgroundColor: scheme.onSurface.withOpacity(0.08),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            accentColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'انقضى $progressPercent% من الوقت إلى الصلاة القادمة',
+                        style: TextStyle(
+                          color: cardTextSecondary,
+                          fontSize: screenWidth * 0.03,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: screenWidth * 0.03),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 10,
+                        runSpacing: 8,
+                        children: [
+                          buildDateChip(
+                            'هجري: ${hijriDate.toFormat("dd MMMM yyyy")}',
+                          ),
+                          buildDateChip(
+                            'ميلادي: ${gregorianFormatter.format(gregorianDate)}',
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: screenWidth * 0.04),
+                      Divider(
+                        color: scheme.onSurface.withOpacity(0.08),
+                        height: 1,
+                      ),
+                      SizedBox(height: screenWidth * 0.035),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: prayerItems.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: screenWidth > 420 ? 3 : 2,
+                          crossAxisSpacing: screenWidth * 0.03,
+                          mainAxisSpacing: screenWidth * 0.03,
+                          childAspectRatio: 2.6,
+                        ),
+                        itemBuilder: (context, index) {
+                          final entry = prayerItems[index];
+                          final isNext = entry.key == nextPrayerName;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
                             ),
-                          ],
-                        ),
-                        SizedBox(height: screenWidth * 0.04),
-                        Divider(
-                          color: scheme.onSurface.withOpacity(0.08),
-                          height: 1,
-                        ),
-                        SizedBox(height: screenWidth * 0.035),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: prayerItems.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: screenWidth > 420 ? 3 : 2,
-                                crossAxisSpacing: screenWidth * 0.03,
-                                mainAxisSpacing: screenWidth * 0.03,
-                                childAspectRatio: 2.6,
-                              ),
-                          itemBuilder: (context, index) {
-                            final entry = prayerItems[index];
-                            final isNext = entry.key == nextPrayerName;
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              color:
+                                  isNext
+                                      ? accentColor.withOpacity(0.16)
+                                      : scheme.onSurface.withOpacity(0.05),
+                              border: Border.all(
                                 color:
                                     isNext
-                                        ? accentColor.withOpacity(0.16)
-                                        : scheme.onSurface.withOpacity(0.05),
-                                border: Border.all(
-                                  color:
-                                      isNext
-                                          ? accentColor.withOpacity(0.5)
-                                          : scheme.onSurface.withOpacity(0.08),
+                                        ? accentColor.withOpacity(0.5)
+                                        : scheme.onSurface.withOpacity(0.08),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: screenWidth * 0.08,
+                                  height: screenWidth * 0.08,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color:
+                                        isNext
+                                            ? accentColor.withOpacity(0.2)
+                                            : primaryColor.withOpacity(0.15),
+                                  ),
+                                  child: Icon(
+                                    prayerIcons[entry.key] ?? Icons.access_time,
+                                    size: screenWidth * 0.045,
+                                    color: isNext ? accentColor : primaryColor,
+                                  ),
                                 ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: screenWidth * 0.08,
-                                    height: screenWidth * 0.08,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color:
-                                          isNext
-                                              ? accentColor.withOpacity(0.2)
-                                              : primaryColor.withOpacity(0.15),
-                                    ),
-                                    child: Icon(
-                                      prayerIcons[entry.key] ??
-                                          Icons.access_time,
-                                      size: screenWidth * 0.045,
-                                      color:
-                                          isNext ? accentColor : primaryColor,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          entry.key,
-                                          style: TextStyle(
-                                            color: cardText,
-                                            fontSize: screenWidth * 0.034,
-                                            fontWeight: FontWeight.w700,
-                                          ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        entry.key,
+                                        style: TextStyle(
+                                          color: cardText,
+                                          fontSize: screenWidth * 0.034,
+                                          fontWeight: FontWeight.w700,
                                         ),
-                                        Text(
-                                          entry.value,
-                                          style: TextStyle(
-                                            color: cardTextSecondary,
-                                            fontSize: screenWidth * 0.03,
-                                          ),
+                                      ),
+                                      Text(
+                                        entry.value,
+                                        style: TextStyle(
+                                          color: cardTextSecondary,
+                                          fontSize: screenWidth * 0.03,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  )
-                  .animate()
-                  .fadeIn(duration: 600.ms)
-                  .slideY(begin: -0.2, end: 0);
-            },
-          );
-        });
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, end: 0);
+              },
+            );
+          },
+        );
       },
     );
   }
@@ -1420,7 +1439,9 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               secondary: CircleAvatar(
-                                backgroundColor: scheme.primary.withOpacity(0.12),
+                                backgroundColor: scheme.primary.withOpacity(
+                                  0.12,
+                                ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(6),
                                   child: Image.asset(item.icon),

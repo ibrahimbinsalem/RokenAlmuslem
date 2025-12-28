@@ -94,6 +94,38 @@ class MorePage extends StatelessWidget {
                   },
                 ),
                 _buildFeatureCard(context, 
+                  title: "المصحف",
+                  image: "assets/images/book.png",
+                  color: scheme.secondary,
+                  onTap: () {
+                    Get.toNamed(AppRoute.quran);
+                  },
+                ),
+                _buildFeatureCard(context, 
+                  title: "خطة ختم القرآن",
+                  image: "assets/images/book.png",
+                  color: scheme.tertiary,
+                  onTap: () {
+                    Get.toNamed(AppRoute.quranPlan);
+                  },
+                ),
+                _buildFeatureCard(context, 
+                  title: "أذكار خاصة",
+                  image: "assets/images/مسبحة.png",
+                  color: scheme.tertiary,
+                  onTap: () {
+                    Get.toNamed(AppRoute.customAdkar);
+                  },
+                ),
+                _buildFeatureCard(context, 
+                  title: "إحصائيات روحانية",
+                  image: "assets/images/masseg icon.png",
+                  color: scheme.primary.withOpacity(0.85),
+                  onTap: () {
+                    Get.toNamed(AppRoute.spiritualStats);
+                  },
+                ),
+                _buildFeatureCard(context, 
                   title: "أسماء الله الحسنى",
                   image: "assets/images/اسماء الله.png",
                   color: scheme.secondary,

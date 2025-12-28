@@ -28,4 +28,13 @@ class DataSajadah {
       );
     }
   }
+
+  Map<String, dynamic> toJSON() {
+    return {
+      'id': id,
+      'isSajda': isSajda,
+      'recommended': isRecommended,
+      'obligatory': isObligatory,
+    };
+  }
 }

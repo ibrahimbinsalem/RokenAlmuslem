@@ -150,6 +150,7 @@ class TasbeehView extends StatelessWidget {
                 ),
           ),
           SafeArea(
+            top: false,
             child: GetX<TasbeehController>(
               builder: (controller) {
                 return ListView(

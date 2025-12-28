@@ -108,6 +108,9 @@ class PrayerTimesController extends GetxController {
         update();
         return;
       }
+      final travelModeEnabled = prefs.getBool('travelModeEnabled') ?? false;
+      final smartPrayerUpdatesEnabled =
+          prefs.getBool('smartPrayerUpdatesEnabled') ?? true;
       if (!latitude.value.isFinite ||
           !longitude.value.isFinite ||
           latitude.value.abs() > 90 ||
@@ -158,6 +161,14 @@ class PrayerTimesController extends GetxController {
           errorMessage.value =
               'الموقع غير محدد. يرجى تحديث الموقع لحساب أوقات الصلاة.';
         }
+      }
+
+      if (smartPrayerUpdatesEnabled && latitude.value != 0.0) {
+        final thresholdKm = travelModeEnabled ? 5.0 : 25.0;
+        await refreshIfLocationChanged(
+          thresholdKm: thresholdKm,
+          forceGps: travelModeEnabled,
+        );
       }
     } catch (e) {
       print("An error occurred during initialization: $e");
@@ -345,6 +356,69 @@ class PrayerTimesController extends GetxController {
     } finally {
       isLoading = false;
       update();
+    }
+  }
+
+  Future<void> refreshIfLocationChanged({
+    double thresholdKm = 25,
+    bool forceGps = false,
+  }) async {
+    try {
+      if (latitude.value == 0.0 && longitude.value == 0.0) {
+        return;
+      }
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return;
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+      Position? position = await Geolocator.getLastKnownPosition();
+      if (forceGps || position == null) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.low,
+            timeLimit: const Duration(seconds: 10),
+          );
+        } catch (_) {}
+      }
+      if (position == null) {
+        return;
+      }
+
+      final distanceMeters = Geolocator.distanceBetween(
+        latitude.value,
+        longitude.value,
+        position.latitude,
+        position.longitude,
+      );
+      if (distanceMeters < thresholdKm * 1000) {
+        return;
+      }
+
+      latitude.value = position.latitude;
+      longitude.value = position.longitude;
+      await savePreferences();
+      fetchPrayerTimes(suppressErrors: true);
+      fetchLocationDetails(latitude.value, longitude.value).catchError((e) {
+        print("Could not update location name in background: $e");
+      });
+
+      if (Get.isRegistered<AppSettingsController>()) {
+        final settings = Get.find<AppSettingsController>();
+        if (settings.notificationsEnabled.value &&
+            settings.prayerTimesNotificationsEnabled.value) {
+          await schedulePrayerTimeNotifications(
+            enableVibration: settings.vibrateOnNotification.value,
+            playSound: true,
+          );
+        }
+      }
+    } catch (e) {
+      print("refreshIfLocationChanged error: $e");
     }
   }
 

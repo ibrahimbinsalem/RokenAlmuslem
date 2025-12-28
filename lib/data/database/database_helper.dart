@@ -16,7 +16,7 @@ class DatabaseHelper {
 
   static const String dbName = 'adkar_database.db';
   static const int dbVersion =
-      23; // <--- **تمت زيادة الرقم لتحديث قاعدة البيانات**
+      24; // <--- **تمت زيادة الرقم لتحديث قاعدة البيانات**
 
   // Existing table names
   static const String morningAdkarTableName = 'MorningAdkar';
@@ -44,6 +44,12 @@ class DatabaseHelper {
   static const String storyLinksTableName = 'story_links';
   static const String prophetStoriesTableName = 'prophet_stories';
   static const String prophetStoryLinksTableName = 'prophet_story_links';
+  static const String quranKhatmPlanTableName = 'quran_khatm_plan';
+  static const String quranKhatmLogsTableName = 'quran_khatm_logs';
+  static const String customAdkarGroupsTableName = 'custom_adkar_groups';
+  static const String customAdkarItemsTableName = 'custom_adkar_items';
+  static const String spiritualActivityLogsTableName =
+      'spiritual_activity_logs';
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -320,6 +326,55 @@ class DatabaseHelper {
         updated_at TEXT
       )
     ''');
+    await db.execute('''
+      CREATE TABLE $quranKhatmPlanTableName (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        start_date TEXT,
+        target_days INTEGER NOT NULL,
+        pages_per_day INTEGER NOT NULL,
+        weekly_goal_pages INTEGER NOT NULL,
+        total_pages INTEGER NOT NULL,
+        completed_pages INTEGER NOT NULL,
+        last_updated TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE $quranKhatmLogsTableName (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        log_date TEXT NOT NULL,
+        pages_read INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE $customAdkarGroupsTableName (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        reminder_enabled INTEGER NOT NULL DEFAULT 0,
+        reminder_time TEXT,
+        reminder_id INTEGER,
+        created_at TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE $customAdkarItemsTableName (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        group_id INTEGER NOT NULL,
+        title TEXT,
+        content TEXT NOT NULL,
+        target_count INTEGER NOT NULL DEFAULT 1,
+        current_count INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE $spiritualActivityLogsTableName (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        activity_type TEXT NOT NULL,
+        activity_count INTEGER NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
 
     // Populate initial data for all tables including the new ones
     await _populateInitialData(db);
@@ -384,6 +439,58 @@ class DatabaseHelper {
       } catch (_) {
         // Column might already exist.
       }
+    }
+
+    if (oldVersion < 24) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $quranKhatmPlanTableName (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          start_date TEXT,
+          target_days INTEGER NOT NULL,
+          pages_per_day INTEGER NOT NULL,
+          weekly_goal_pages INTEGER NOT NULL,
+          total_pages INTEGER NOT NULL,
+          completed_pages INTEGER NOT NULL,
+          last_updated TEXT
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $quranKhatmLogsTableName (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          log_date TEXT NOT NULL,
+          pages_read INTEGER NOT NULL
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $customAdkarGroupsTableName (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          description TEXT,
+          reminder_enabled INTEGER NOT NULL DEFAULT 0,
+          reminder_time TEXT,
+          reminder_id INTEGER,
+          created_at TEXT
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $customAdkarItemsTableName (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          group_id INTEGER NOT NULL,
+          title TEXT,
+          content TEXT NOT NULL,
+          target_count INTEGER NOT NULL DEFAULT 1,
+          current_count INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $spiritualActivityLogsTableName (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          activity_type TEXT NOT NULL,
+          activity_count INTEGER NOT NULL,
+          created_at TEXT NOT NULL
+        )
+      ''');
     }
   }
 
@@ -1146,12 +1253,32 @@ class DatabaseHelper {
 
   Future<int> updateDhikrCount(String tableName, int id, int newCount) async {
     final db = await database;
-    return await db.update(
+    int? oldCount;
+    try {
+      final rows = await db.query(
+        tableName,
+        columns: ['currentCount'],
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (rows.isNotEmpty) {
+        oldCount = rows.first['currentCount'] as int;
+      }
+    } catch (_) {}
+    final result = await db.update(
       tableName,
       {'currentCount': newCount},
       where: 'id = ?',
       whereArgs: [id],
     );
+    if (oldCount != null && newCount < oldCount) {
+      await logSpiritualActivity(
+        'dhikr',
+        count: oldCount - newCount,
+      );
+    }
+    return result;
   }
 
   Future<void> resetDhikrCountToInitial(String tableName, int id) async {
@@ -1265,12 +1392,32 @@ class DatabaseHelper {
 
   Future<int> updateAdayaQuraniyaCount(int id, int newCount) async {
     final db = await database;
-    return await db.update(
+    int? oldCount;
+    try {
+      final rows = await db.query(
+        adayaQuraniyaTableName,
+        columns: ['currentCount'],
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (rows.isNotEmpty) {
+        oldCount = rows.first['currentCount'] as int;
+      }
+    } catch (_) {}
+    final result = await db.update(
       adayaQuraniyaTableName,
       {'currentCount': newCount},
       where: 'id = ?',
       whereArgs: [id],
     );
+    if (oldCount != null && newCount < oldCount) {
+      await logSpiritualActivity(
+        'duaa',
+        count: oldCount - newCount,
+      );
+    }
+    return result;
   }
 
   Future<void> resetAdayaQuraniyaCountToInitial(int id) async {
@@ -1300,12 +1447,32 @@ class DatabaseHelper {
 
   Future<int> updateAdayahNabuiaCount(int id, int newCount) async {
     final db = await database;
-    return await db.update(
+    int? oldCount;
+    try {
+      final rows = await db.query(
+        adayahNabuiaTableName,
+        columns: ['currentCount'],
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (rows.isNotEmpty) {
+        oldCount = rows.first['currentCount'] as int;
+      }
+    } catch (_) {}
+    final result = await db.update(
       adayahNabuiaTableName,
       {'currentCount': newCount},
       where: 'id = ?',
       whereArgs: [id],
     );
+    if (oldCount != null && newCount < oldCount) {
+      await logSpiritualActivity(
+        'duaa',
+        count: oldCount - newCount,
+      );
+    }
+    return result;
   }
 
   Future<void> resetAdayahNabuiaCountToInitial(int id) async {
@@ -1500,5 +1667,183 @@ class DatabaseHelper {
           ),
         )
         .toList();
+  }
+
+  Future<Map<String, dynamic>?> getQuranKhatmPlan() async {
+    final db = await instance.database;
+    final rows = await db.query(quranKhatmPlanTableName, limit: 1);
+    if (rows.isEmpty) return null;
+    return rows.first;
+  }
+
+  Future<int> upsertQuranKhatmPlan(Map<String, dynamic> plan) async {
+    final db = await instance.database;
+    final rows = await db.query(quranKhatmPlanTableName, limit: 1);
+    if (rows.isEmpty) {
+      return await db.insert(quranKhatmPlanTableName, plan);
+    }
+    final id = rows.first['id'] as int;
+    await db.update(
+      quranKhatmPlanTableName,
+      plan,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return id;
+  }
+
+  Future<void> logQuranKhatmPages(String date, int pagesRead) async {
+    final db = await instance.database;
+    final rows = await db.query(
+      quranKhatmLogsTableName,
+      where: 'log_date = ?',
+      whereArgs: [date],
+      limit: 1,
+    );
+    if (rows.isEmpty) {
+      await db.insert(quranKhatmLogsTableName, {
+        'log_date': date,
+        'pages_read': pagesRead,
+      });
+      return;
+    }
+    final existing = rows.first['pages_read'] as int;
+    await db.update(
+      quranKhatmLogsTableName,
+      {'pages_read': existing + pagesRead},
+      where: 'log_date = ?',
+      whereArgs: [date],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getQuranKhatmLogs(
+    String startDate,
+    String endDate,
+  ) async {
+    final db = await instance.database;
+    return await db.query(
+      quranKhatmLogsTableName,
+      where: 'log_date >= ? AND log_date <= ?',
+      whereArgs: [startDate, endDate],
+      orderBy: 'log_date ASC',
+    );
+  }
+
+  Future<int> insertCustomAdkarGroup(Map<String, dynamic> group) async {
+    final db = await instance.database;
+    return await db.insert(customAdkarGroupsTableName, group);
+  }
+
+  Future<int> updateCustomAdkarGroup(
+    int id,
+    Map<String, dynamic> updates,
+  ) async {
+    final db = await instance.database;
+    return await db.update(
+      customAdkarGroupsTableName,
+      updates,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteCustomAdkarGroup(int id) async {
+    final db = await instance.database;
+    await db.delete(
+      customAdkarItemsTableName,
+      where: 'group_id = ?',
+      whereArgs: [id],
+    );
+    await db.delete(
+      customAdkarGroupsTableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getCustomAdkarGroups() async {
+    final db = await instance.database;
+    return await db.query(customAdkarGroupsTableName, orderBy: 'id DESC');
+  }
+
+  Future<int> insertCustomAdkarItem(Map<String, dynamic> item) async {
+    final db = await instance.database;
+    return await db.insert(customAdkarItemsTableName, item);
+  }
+
+  Future<int> updateCustomAdkarItem(
+    int id,
+    Map<String, dynamic> updates,
+  ) async {
+    final db = await instance.database;
+    return await db.update(
+      customAdkarItemsTableName,
+      updates,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteCustomAdkarItem(int id) async {
+    final db = await instance.database;
+    return await db.delete(
+      customAdkarItemsTableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getCustomAdkarItems(int groupId) async {
+    final db = await instance.database;
+    return await db.query(
+      customAdkarItemsTableName,
+      where: 'group_id = ?',
+      whereArgs: [groupId],
+      orderBy: 'id DESC',
+    );
+  }
+
+  Future<void> logSpiritualActivity(
+    String type, {
+    int count = 1,
+    DateTime? time,
+  }) async {
+    final db = await instance.database;
+    final stamp = (time ?? DateTime.now()).toIso8601String();
+    await db.insert(spiritualActivityLogsTableName, {
+      'activity_type': type,
+      'activity_count': count,
+      'created_at': stamp,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getActivityLogs(
+    String startIso,
+    String endIso,
+  ) async {
+    final db = await instance.database;
+    return await db.query(
+      spiritualActivityLogsTableName,
+      where: 'created_at >= ? AND created_at <= ?',
+      whereArgs: [startIso, endIso],
+      orderBy: 'created_at ASC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getActivitySummary(
+    String startIso,
+    String endIso,
+  ) async {
+    final db = await instance.database;
+    return await db.rawQuery(
+      '''
+      SELECT activity_type,
+             SUM(activity_count) AS total_count
+      FROM $spiritualActivityLogsTableName
+      WHERE created_at >= ? AND created_at <= ?
+      GROUP BY activity_type
+      ''',
+      [startIso, endIso],
+    );
   }
 }

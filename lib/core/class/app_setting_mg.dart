@@ -24,6 +24,8 @@ class AppSettingsController extends GetxController {
   final randomAzkarOrder = true.obs;
   final shortcutsLoaded = false.obs;
   final enabledShortcuts = <String>[].obs;
+  final travelModeEnabled = false.obs;
+  final smartPrayerUpdatesEnabled = true.obs;
 
   static const List<String> defaultShortcuts = [
     'asma_allah',
@@ -71,6 +73,9 @@ class AppSettingsController extends GetxController {
     vibrateOnNotification.value =
         _prefs.getBool('vibrateOnNotification') ?? true;
     randomAzkarOrder.value = _prefs.getBool('randomAzkarOrder') ?? true;
+    travelModeEnabled.value = _prefs.getBool('travelModeEnabled') ?? false;
+    smartPrayerUpdatesEnabled.value =
+        _prefs.getBool('smartPrayerUpdatesEnabled') ?? true;
     enabledShortcuts.assignAll(
       _prefs.getStringList('enabledShortcuts') ?? defaultShortcuts,
     );
@@ -309,6 +314,16 @@ class AppSettingsController extends GetxController {
     await _prefs.setBool('randomAzkarOrder', value);
   }
 
+  Future<void> setTravelModeEnabled(bool value) async {
+    travelModeEnabled.value = value;
+    await _saveSetting('travelModeEnabled', value);
+  }
+
+  Future<void> setSmartPrayerUpdatesEnabled(bool value) async {
+    smartPrayerUpdatesEnabled.value = value;
+    await _saveSetting('smartPrayerUpdatesEnabled', value);
+  }
+
   Future<void> setGeneralDailyAzkarEnabled(bool value) async {
     generalDailyAzkarEnabled.value = value;
     await _saveSetting('generalDailyAzkarEnabled', value);
@@ -538,6 +553,8 @@ class AppSettingsController extends GetxController {
     fontSizeMultiplier.value = 1.0;
     vibrateOnNotification.value = true;
     randomAzkarOrder.value = true;
+    travelModeEnabled.value = false;
+    smartPrayerUpdatesEnabled.value = true;
     generalDailyAzkarEnabled.value = false;
     morningAzkarReminderEnabled.value = false;
     eveningAzkarReminderEnabled.value = false;

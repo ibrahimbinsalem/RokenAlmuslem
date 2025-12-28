@@ -1,6 +1,7 @@
 import 'package:rokenalmuslem/core/constant/routes.dart';
 import 'package:rokenalmuslem/view/screen/adkar/adkaralmuslem.dart';
 import 'package:rokenalmuslem/view/screen/home/homepage.dart';
+import 'package:rokenalmuslem/view/screen/quran/home_screen.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,6 +17,7 @@ class MainScreenControllerImp extends MainScreenController {
 
   List<Widget> listpage = [
     HomePage(),
+    SurahListPage(),
     NotificationsView(),
     AdkarAlmuslam(),
     MorePage(),
@@ -23,9 +25,10 @@ class MainScreenControllerImp extends MainScreenController {
 
   final iconList = <IconData>[
     Icons.home,
-    Icons.person,
+    Icons.menu_book,
+    Icons.notifications,
     Icons.settings,
-    Icons.abc_outlined,
+    Icons.more_vert,
   ];
 
   goToCreateReport() {}

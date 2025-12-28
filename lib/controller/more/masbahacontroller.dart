@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart'; // لضمان وجودها إذا كنت تستخدم DateFormat
+import 'package:rokenalmuslem/data/database/database_helper.dart';
 
 class TasbeehController extends GetxController {
   RxInt counter = 0.obs;
@@ -272,6 +273,7 @@ class TasbeehController extends GetxController {
     }
     counter.value++;
     dailyTasbeehCount.value++;
+    DatabaseHelper.instance.logSpiritualActivity('tasbeeh', count: 1);
     _saveCounter();
     _saveDailyTasbeehCount();
     if (targetCount.value != 0 && counter.value >= targetCount.value) {

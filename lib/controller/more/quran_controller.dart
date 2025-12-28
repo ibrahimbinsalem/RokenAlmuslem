@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart'; // For WidgetsBinding
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rokenalmuslem/data/data/data_ayat.dart';
@@ -113,7 +114,7 @@ class QuranController extends GetxController {
     debugPrint("API Call: fetching all surahs.");
     try {
       final response = await http.get(
-        Uri.parse("http://api.alquran.cloud/v1/surah"),
+        Uri.parse("https://api.alquran.cloud/v1/surah"),
       );
 
       if (response.statusCode != 200) {
@@ -143,11 +144,6 @@ class QuranController extends GetxController {
       debugPrint("API Call Success: Fetched ${surahDatas.length} surahs.");
       return surahDatas;
     } catch (e, s) {
-      Get.snackbar(
-        'خطأ',
-        'حدث خطأ أثناء تحميل السور من API: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      ); // Added snackbar for API error
       debugPrint("API Call Error in getQuranOnline (Outer Catch): $e\n$s");
       throw Exception("Failed to get surahs from API: $e");
     }
@@ -184,16 +180,17 @@ class QuranController extends GetxController {
       }
 
       if (surahs.isEmpty) {
-        debugPrint("loadInitialData: Surahs list is empty, fetching from API.");
-        final fetchedSurahs = await getQuranOnline();
-        surahs.value = fetchedSurahs;
-        await quranDataBox.put(
-          'allSurahs',
-          jsonEncode(fetchedSurahs.map((s) => s.toJSON()).toList()),
-        );
-        debugPrint(
-          "loadInitialData: Fetched and cached ${surahs.length} surahs from API.",
-        );
+        final localSurahs = await _loadSurahsFromLocal();
+        if (localSurahs.isNotEmpty) {
+          surahs.value = localSurahs;
+          await quranDataBox.put(
+            'allSurahs',
+            jsonEncode(localSurahs.map((s) => s.toJSON()).toList()),
+          );
+          debugPrint(
+            "loadInitialData: Loaded ${surahs.length} surahs from local assets.",
+          );
+        }
       }
 
       lastReadSurahNumber.value =
@@ -223,25 +220,35 @@ class QuranController extends GetxController {
 
       debugPrint("Loading ayahs for Surah: ${surahData.number}");
 
-      // 1. جلب البيانات من API
-      final fetchedAyahs = await _fetchAyahsFromAPI(surahData);
-
-      // 2. التحقق من وجود بيانات
-      if (fetchedAyahs.isEmpty) {
-        throw Exception("API returned empty ayahs list");
+      // 1. محاولة التحميل من الكاش أولاً
+      final cachedAyahs = await _loadAyahsFromCache(surahData.number);
+      if (cachedAyahs != null && cachedAyahs.isNotEmpty) {
+        debugPrint("Loaded ${cachedAyahs.length} ayahs from cache.");
+        currentAyahs.assignAll(cachedAyahs);
+        return;
       }
 
-      // 3. تحديث القائمة
-      currentAyahs.assignAll(fetchedAyahs);
+      // 2. تحميل البيانات من الملف المحلي
+      final localAyahs = await _loadAyahsFromLocal(surahData.number);
+      if (localAyahs.isEmpty) {
+        throw Exception("Local data returned empty ayahs list");
+      }
 
-      // 4. تخزين البيانات
-      await _cacheAyahs(surahData.number, fetchedAyahs);
-
-      debugPrint("Successfully loaded ${fetchedAyahs.length} ayahs");
+      currentAyahs.assignAll(localAyahs);
+      await _cacheAyahs(surahData.number, localAyahs);
+      debugPrint("Successfully loaded ${localAyahs.length} ayahs from local.");
     } catch (e, stack) {
       debugPrint("Error loading ayahs: $e\n$stack");
-      currentAyahs.clear();
-      Get.snackbar('خطأ', 'حدث خطأ في تحميل الآيات');
+      final fallbackAyahs = await _loadAyahsFromCache(surahData.number);
+      if (fallbackAyahs != null && fallbackAyahs.isNotEmpty) {
+        debugPrint("Falling back to cached ayahs after local failure.");
+        currentAyahs.assignAll(fallbackAyahs);
+      } else {
+        currentAyahs.clear();
+      }
+      if (currentAyahs.isEmpty) {
+        Get.snackbar('خطأ', 'حدث خطأ في تحميل الآيات');
+      }
     } finally {
       isLoading(false);
     }
@@ -251,52 +258,105 @@ class QuranController extends GetxController {
     try {
       final surahNumber = surahData.number;
       final arabicUrl =
-          "http://api.alquran.cloud/v1/surah/$surahNumber/ar.alafasy";
-      final translateUrl =
-          "http://api.alquran.cloud/v1/surah/$surahNumber/id.indonesian";
+          "https://api.alquran.cloud/v1/surah/$surahNumber/quran-uthmani";
 
       debugPrint("Fetching Arabic text from: $arabicUrl");
-      debugPrint("Fetching translation from: $translateUrl");
 
-      final [arabicResponse, translateResponse] = await Future.wait([
-        http.get(Uri.parse(arabicUrl)),
-        http.get(Uri.parse(translateUrl)),
-      ]);
-
-      if (arabicResponse.statusCode != 200 ||
-          translateResponse.statusCode != 200) {
-        throw Exception("API request failed");
+      final arabicResponse = await http.get(Uri.parse(arabicUrl));
+      if (arabicResponse.statusCode != 200) {
+        throw Exception(
+          "API request failed: HTTP ${arabicResponse.statusCode}",
+        );
       }
 
       final arabicJson =
           jsonDecode(arabicResponse.body)['data']['ayahs'] as List;
-      final translateJson =
-          jsonDecode(translateResponse.body)['data']['ayahs'] as List;
 
       return List.generate(arabicJson.length, (index) {
         final arabicAyah = arabicJson[index] as Map<String, dynamic>;
-        final translatedAyah = translateJson[index] as Map<String, dynamic>;
+        final sajdaValue = arabicAyah['sajda'];
+        final sajda =
+            DataSajadah.fromJSON(sajdaValue ?? false);
 
         return AyahData(
-          juz: surahData.number,
-          sajda: DataSajadah(
-            isSajda: false,
-            isRecommended: false,
-            isObligatory: false,
-            id: 0,
-          ),
+          juz: arabicAyah['juz'] as int,
+          sajda: sajda,
           number: arabicAyah['number'] as int,
-          text: arabicAyah['text'] as String, // النص العربي
+          text: arabicAyah['text'] as String,
           numberInSurah: arabicAyah['numberInSurah'] as int,
-          translate: QuranTranslate(
-            translates: {
-              TranslateID.indonesia: translatedAyah['text'] as String,
-            },
-          ),
         );
       });
     } catch (e, stack) {
       debugPrint("API fetch error: $e\n$stack");
+      return [];
+    }
+  }
+
+  Future<List<AyahData>?> _loadAyahsFromCache(int surahNumber) async {
+    try {
+      final surahKey = 'surah_${surahNumber}_ayahs';
+      final cachedAyahsJson = quranDataBox.get(surahKey);
+      if (cachedAyahsJson == null) return null;
+
+      final decoded = jsonDecode(cachedAyahsJson) as List<dynamic>;
+      return decoded
+          .map((e) => AyahData.fromJSON(e as Map<String, dynamic>))
+          .toList();
+    } catch (e, s) {
+      debugPrint("Error loading cached ayahs: $e\n$s");
+      return null;
+    }
+  }
+
+  Future<List<SurahData>> _loadSurahsFromLocal() async {
+    try {
+      final raw = await rootBundle.loadString('assets/json/quran.json');
+      final data = jsonDecode(raw) as List<dynamic>;
+      return data.map((e) {
+        final item = e as Map<String, dynamic>;
+        final ayahs = item['array'] as List<dynamic>? ?? [];
+        return SurahData(
+          number: item['id'] as int,
+          name: item['name'] as String? ?? '',
+          englishName: item['name_en'] as String? ?? '',
+          englishNameTranslation: item['name_translation'] as String? ?? '',
+          numberOfAyahs: ayahs.length,
+          revelationType: item['type'] as String? ?? '',
+        );
+      }).toList();
+    } catch (e, s) {
+      debugPrint("Error loading local surahs: $e\n$s");
+      return [];
+    }
+  }
+
+  Future<List<AyahData>> _loadAyahsFromLocal(int surahNumber) async {
+    try {
+      final raw = await rootBundle.loadString('assets/json/quran.json');
+      final data = jsonDecode(raw) as List<dynamic>;
+      final surah = data
+          .cast<Map<String, dynamic>>()
+          .firstWhere((item) => item['id'] == surahNumber, orElse: () => {});
+      if (surah.isEmpty) return [];
+
+      final ayahs = surah['array'] as List<dynamic>? ?? [];
+      return List.generate(ayahs.length, (index) {
+        final ayah = ayahs[index] as Map<String, dynamic>;
+        return AyahData(
+          number: ayah['id'] as int,
+          text: ayah['ar'] as String? ?? '',
+          numberInSurah: index + 1,
+          juz: 0,
+          sajda: DataSajadah(
+            id: 0,
+            isSajda: false,
+            isRecommended: false,
+            isObligatory: false,
+          ),
+        );
+      });
+    } catch (e, s) {
+      debugPrint("Error loading local ayahs: $e\n$s");
       return [];
     }
   }
