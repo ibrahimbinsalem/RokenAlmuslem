@@ -6,6 +6,7 @@ class AppLink {
   static const String signUp = "$apiBase/auth/register";
   static const String login = "$apiBase/auth/login";
   static const String me = "$apiBase/auth/me";
+  static const String firebaseLogin = "$apiBase/auth/firebase";
 
   // ============== Stories ==================
   static const String stories = "$apiBase/stories";
@@ -25,4 +26,14 @@ class AppLink {
 
   // ============== App Settings ==================
   static const String appSettings = "$apiBase/app-settings";
+
+  // ============== Ratings ==================
+  static const String ratings = "$apiBase/ratings";
+  static const String ratingMe = "$apiBase/ratings/me";
+
+  // ============== Support ==================
+  static const String supportMessages = "$apiBase/support/messages";
+
+  // ============== Suggestions ==================
+  static const String suggestions = "$apiBase/suggestions";
 }

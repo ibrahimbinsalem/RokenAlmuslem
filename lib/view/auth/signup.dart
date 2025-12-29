@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:rokenalmuslem/controller/auth/login_controller.dart';
 import 'package:rokenalmuslem/controller/auth/signup_controller.dart';
 import 'package:rokenalmuslem/view/wedgit/auth/custom_auth_button.dart';
 import 'package:rokenalmuslem/view/wedgit/auth/custom_text_field.dart';
+import 'package:rokenalmuslem/view/wedgit/auth/social_login_button.dart';
 import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
 
 class SignUpView extends StatelessWidget {
@@ -12,6 +14,10 @@ class SignUpView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SignUpControllerImp controller = Get.put(SignUpControllerImp());
+    final LoginControllerImp loginController =
+        Get.isRegistered<LoginControllerImp>()
+            ? Get.find<LoginControllerImp>()
+            : Get.put(LoginControllerImp());
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -137,6 +143,35 @@ class SignUpView extends StatelessWidget {
                                 .slideY(begin: 0.2);
                           },
                         ),
+                        const SizedBox(height: 18),
+
+                        Row(
+                          children: [
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12.0),
+                              child: Text(
+                                "أو أنشئ عبر",
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                            const Expanded(child: Divider()),
+                          ],
+                        ).animate().fadeIn(delay: 820.ms),
+                        const SizedBox(height: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SocialLoginButton(
+                              icon: Icons.mail_outline,
+                              label: 'Google',
+                              onTap: () {
+                                loginController.loginWithGoogle();
+                              },
+                            ),
+                          ],
+                        ).animate().fadeIn(delay: 860.ms),
                         const SizedBox(height: 18),
 
                         // Login

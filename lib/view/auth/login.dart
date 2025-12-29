@@ -183,18 +183,10 @@ class LoginView extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SocialLoginButton(
-                              iconPath:
-                                  'assets/images/book.png', // تأكد من وجود الصورة
+                              icon: Icons.mail_outline,
+                              label: 'Google',
                               onTap: () {
-                                // TODO: Implement Google Sign-In
-                              },
-                            ),
-                            const SizedBox(width: 18),
-                            SocialLoginButton(
-                              iconPath:
-                                  'assets/images/book.png', // تأكد من وجود الصورة
-                              onTap: () {
-                                // TODO: Implement Apple Sign-In
+                                controller.loginWithGoogle();
                               },
                             ),
                           ],

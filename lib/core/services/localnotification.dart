@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -12,6 +14,24 @@ enum WeekDay { sunday, monday, tuesday, wednesday, thursday, friday, saturday }
 
 class NotificationService extends GetxService {
   late FlutterLocalNotificationsPlugin _notificationsPlugin;
+  final StreamController<String> _actionStream =
+      StreamController<String>.broadcast();
+  final StreamController<NotificationResponse> _notificationStream =
+      StreamController<NotificationResponse>.broadcast();
+  static const int _audioNotificationId = 77;
+  String? _lastLaunchPayload;
+
+  Stream<String> get actionStream => _actionStream.stream;
+  Stream<NotificationResponse> get notificationStream =>
+      _notificationStream.stream;
+  String? get lastLaunchPayload => _lastLaunchPayload;
+
+  @override
+  void onClose() {
+    _actionStream.close();
+    _notificationStream.close();
+    super.onClose();
+  }
 
   Future<void> initialize() async {
     _notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -31,7 +51,27 @@ class NotificationService extends GetxService {
       iOS: iosSettings,
     );
 
-    await _notificationsPlugin.initialize(settings);
+    await _notificationsPlugin.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (response) {
+        if (response.actionId != null && response.actionId!.isNotEmpty) {
+          _actionStream.add(response.actionId!);
+        }
+        if (response.payload != null && response.payload!.isNotEmpty) {
+          _lastLaunchPayload = response.payload;
+          _notificationStream.add(response);
+        }
+      },
+    );
+
+    final launchDetails =
+        await _notificationsPlugin.getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp ?? false) {
+      final payload = launchDetails?.notificationResponse?.payload;
+      if (payload != null && payload.isNotEmpty) {
+        _lastLaunchPayload = payload;
+      }
+    }
 
     tz.initializeTimeZones();
     try {
@@ -95,6 +135,120 @@ class NotificationService extends GetxService {
       title,
       body,
       details,
+      payload: payload,
+    );
+  }
+
+  Future<void> showAudioNotification({
+    required String title,
+    required String body,
+    required bool isPlaying,
+  }) async {
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'audio_playback_channel',
+          'Audio Playback',
+          channelDescription: 'Audio playback controls',
+          importance: Importance.low,
+          priority: Priority.low,
+          enableVibration: false,
+          playSound: false,
+          onlyAlertOnce: true,
+          ongoing: true,
+          actions: [
+            AndroidNotificationAction(
+              'audio_play_pause',
+              isPlaying ? 'إيقاف مؤقت' : 'تشغيل',
+            ),
+            const AndroidNotificationAction(
+              'audio_stop',
+              'إيقاف',
+            ),
+          ],
+        );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: false,
+      presentSound: false,
+    );
+
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notificationsPlugin.show(
+      _audioNotificationId,
+      title,
+      body,
+      details,
+      payload: 'audio',
+    );
+  }
+
+  void clearLaunchPayload() {
+    _lastLaunchPayload = null;
+  }
+
+  Future<void> cancelAudioNotification() async {
+    await _notificationsPlugin.cancel(_audioNotificationId);
+  }
+
+  Future<void> schedulePrayerReminder({
+    required int id,
+    required String title,
+    required String body,
+    required TimeOfDay time,
+    required String prayerName,
+    bool enableVibration = true,
+    bool playSound = true,
+  }) async {
+    final scheduledDate = _calculateNextInstanceOfTime(time);
+
+    final payload = json.encode({
+      'scheduledTime': scheduledDate.toIso8601String(),
+      'type': 'prayer',
+      'prayerName': prayerName,
+      'notificationId': id,
+    });
+
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'prayer_adhan_channel',
+          'Prayer Adhan',
+          channelDescription: 'Prayer notifications with adhan audio',
+          importance: Importance.max,
+          priority: Priority.high,
+          enableVibration: enableVibration,
+          playSound: playSound,
+          sound:
+              playSound
+                  ? const RawResourceAndroidNotificationSound('adhan')
+                  : null,
+          actions: [
+            const AndroidNotificationAction(
+              'adhan_stop',
+              'إيقاف الأذان',
+            ),
+          ],
+        );
+
+    final DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: playSound,
+      sound: playSound ? 'adhan.mp3' : null,
+    );
+
+    await _notificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      scheduledDate,
+      NotificationDetails(android: androidDetails, iOS: iosDetails),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
       payload: payload,
     );
   }

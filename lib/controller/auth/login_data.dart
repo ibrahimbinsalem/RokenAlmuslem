@@ -13,4 +13,11 @@ class LoginData {
     });
     return response; // **تعديل: إرجاع كائن Either مباشرة**
   }
+
+  postFirebase(String idToken) async {
+    var response = await crud.postData(AppLink.firebaseLogin, {
+      "id_token": idToken,
+    });
+    return response;
+  }
 }

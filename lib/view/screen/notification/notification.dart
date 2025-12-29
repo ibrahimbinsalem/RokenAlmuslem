@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/notification_item.dart';
 import 'package:rokenalmuslem/controller/notificationcontroller.dart';
+import 'package:rokenalmuslem/view/wedgit/buttons/customdrawer.dart';
 import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
 
 class NotificationsView extends StatelessWidget {
@@ -14,9 +15,9 @@ class NotificationsView extends StatelessWidget {
     final theme = Theme.of(context);
     final bool isDarkMode = theme.brightness == Brightness.dark;
     final bool isRtl = Directionality.of(context) == TextDirection.rtl;
-
     return Scaffold(
       backgroundColor: Colors.transparent,
+      endDrawer: const CustomDrawer(),
       appBar: AppBar(
         title: Text('الرسائل', style: theme.appBarTheme.titleTextStyle),
         centerTitle: true,
@@ -35,6 +36,16 @@ class NotificationsView extends StatelessWidget {
         ),
         foregroundColor: Colors.white,
         actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                tooltip: 'القائمة',
+                color: Colors.white,
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: controller.refreshNotifications,

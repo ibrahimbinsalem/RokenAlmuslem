@@ -610,6 +610,7 @@ class _PrayerTimesViewState extends State<PrayerTimesView> {
     );
   }
 
+
   Widget _buildLocationCard(ThemeData theme) {
     final scheme = theme.colorScheme;
     return GetX<PrayerTimesController>(

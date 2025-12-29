@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/more/quran_controller.dart';
+import 'package:rokenalmuslem/view/wedgit/buttons/customdrawer.dart';
+import 'package:rokenalmuslem/view/screen/quran/audio_library_screen.dart';
 import 'package:rokenalmuslem/view/screen/quran/detail_screen.dart';
 
 class SurahListPage extends StatefulWidget {
@@ -28,9 +30,18 @@ class _SurahListPageState extends State<SurahListPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      quranController.prefetchAllSurahs();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _pageBackground,
+      endDrawer: const CustomDrawer(),
       appBar: AppBar(
         title: const Text(
           'القرآن الكريم',
@@ -45,6 +56,29 @@ class _SurahListPageState extends State<SurahListPage> {
         backgroundColor: _pageBackground,
         elevation: 0,
         iconTheme: const IconThemeData(color: _inkColor),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                tooltip: 'القائمة',
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Icon(Icons.menu, color: _inkColor),
+              );
+            },
+          ),
+          GetX<QuranController>(
+            builder: (controller) {
+              if (controller.isCacheComplete.value) {
+                return const SizedBox.shrink();
+              }
+              return IconButton(
+                tooltip: 'تحميل المصحف بدون إنترنت',
+                onPressed: () => quranController.prefetchAllSurahs(force: true),
+                icon: const Icon(Icons.cloud_download, color: _inkColor),
+              );
+            },
+          ),
+        ],
       ),
       body: GetX<QuranController>(builder: (controller) {
         if (controller.isLoading.value) {
@@ -62,9 +96,14 @@ class _SurahListPageState extends State<SurahListPage> {
 
         final lastReadSurahNumber = controller.lastReadSurahNumber.value;
         final lastReadAyah = controller.lastReadPosition.value;
-        final lastReadSurah = surahs.firstWhereOrNull(
-          (surah) => surah.number == lastReadSurahNumber,
-        );
+        dynamic lastReadSurah;
+        try {
+          lastReadSurah = surahs.firstWhere(
+            (surah) => surah.number == lastReadSurahNumber,
+          );
+        } catch (_) {
+          lastReadSurah = null;
+        }
 
         return CustomScrollView(
           slivers: [
@@ -72,7 +111,13 @@ class _SurahListPageState extends State<SurahListPage> {
               child: _buildHeader(surahs.length),
             ),
             SliverToBoxAdapter(
+              child: _buildOfflineStatus(controller, surahs),
+            ),
+            SliverToBoxAdapter(
               child: _buildSearchBar(),
+            ),
+            SliverToBoxAdapter(
+              child: _buildAudioLibraryCard(),
             ),
             if (lastReadSurah != null && lastReadAyah > 0)
               SliverToBoxAdapter(
@@ -184,6 +229,185 @@ class _SurahListPageState extends State<SurahListPage> {
     );
   }
 
+  Widget _buildAudioLibraryCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+        color: _softAccent,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _pageBorder, width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'مكتبة القرآن الصوتية',
+            style: TextStyle(
+              fontFamily: 'Amiri',
+              fontSize: 18,
+              color: _inkColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'اختر القارئ واستمع للسور كاملة من مكان واحد.',
+            style: TextStyle(
+              fontFamily: 'Amiri',
+              fontSize: 13,
+              color: _inkColor.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              Get.to(() => const QuranAudioLibraryPage());
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B6B4A), Color(0xFFB68A5B)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.headphones,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'فتح المكتبة الصوتية',
+                    style: TextStyle(
+                      fontFamily: 'Amiri',
+                      fontSize: 15,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOfflineStatus(
+    QuranController controller,
+    List<dynamic> surahs,
+  ) {
+    final total = controller.prefetchTotal.value;
+    final done = controller.prefetchDone.value;
+    final isComplete = controller.isCacheComplete.value;
+    final isLoading = controller.isPrefetching.value;
+    final lastSurahNumber = controller.lastCachedSurahNumber.value;
+    dynamic lastSurah;
+    try {
+      lastSurah = surahs.firstWhere(
+        (surah) => surah.number == lastSurahNumber,
+      );
+    } catch (_) {
+      lastSurah = null;
+    }
+
+    if (total == 0) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: _pageBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _pageBorder, width: 1.1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            isComplete
+                ? 'المصحف جاهز بدون إنترنت'
+                : 'يتم تنزيل المصحف للاستخدام بدون إنترنت',
+            style: const TextStyle(
+              fontFamily: 'Amiri',
+              fontSize: 14,
+              color: _inkColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (!isComplete && lastSurah != null && lastSurahNumber > 0) ...[
+            const SizedBox(height: 6),
+            Text(
+              'آخر سورة تم تنزيلها: ${lastSurah.name} (رقم ${_arabicNumber(lastSurahNumber)})',
+              style: TextStyle(
+                fontFamily: 'Amiri',
+                fontSize: 12,
+                color: _inkColor.withOpacity(0.7),
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: total > 0 ? (done / total).clamp(0, 1) : 0,
+              minHeight: 6,
+              backgroundColor: _pageBorder,
+              valueColor: const AlwaysStoppedAnimation<Color>(_accent),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'تم تحميل ${_arabicNumber(done)} من ${_arabicNumber(total)} سورة',
+            style: const TextStyle(
+              fontFamily: 'Amiri',
+              fontSize: 12,
+              color: _accent,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (!isComplete && !isLoading)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => controller.prefetchAllSurahs(),
+                style: TextButton.styleFrom(
+                  foregroundColor: _accent,
+                  textStyle: const TextStyle(
+                    fontFamily: 'Amiri',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('إعادة المحاولة'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContinueCard(
     QuranController controller,
     dynamic surah,
@@ -255,7 +479,18 @@ class _SurahListPageState extends State<SurahListPage> {
 
   Widget _buildSurahCard(QuranController controller, dynamic surah) {
     return InkWell(
-      onTap: () => Get.to(() => SurahDetailPage(surah: surah)),
+      onTap: () async {
+        try {
+          debugPrint(
+            'فتح السورة: ${surah.number} - ${surah.name} (${surah.englishName})',
+          );
+          await Get.to(() => SurahDetailPage(surah: surah));
+          debugPrint('تم فتح السورة بنجاح: ${surah.number}');
+        } catch (e, s) {
+          debugPrint('خطأ عند فتح السورة ${surah.number}: $e\n$s');
+          Get.snackbar('خطأ', 'تعذر فتح السورة');
+        }
+      },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(14),

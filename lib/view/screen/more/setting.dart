@@ -1,8 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
+import 'package:rokenalmuslem/core/constant/routes.dart';
 import 'package:rokenalmuslem/core/services/localnotification.dart';
 import 'package:rokenalmuslem/view/screen/more/aboutbage.dart';
 import 'package:url_launcher/url_launcher.dart'; // تأكد من المسار الصحيح
@@ -16,9 +23,137 @@ class SettingsPage extends StatelessWidget {
     final AppSettingsController appSettings = Get.find<AppSettingsController>();
     final NotificationService notificationService =
         Get.find<NotificationService>();
+    final quranSettingsBox = Hive.box('quranSettings');
 
     final ThemeData currentTheme = Theme.of(context);
     final scheme = currentTheme.colorScheme;
+
+    Future<File> _getBackupFile() async {
+      final dir = await getApplicationDocumentsDirectory();
+      final backupDir = Directory('${dir.path}/backup');
+      if (!await backupDir.exists()) {
+        await backupDir.create(recursive: true);
+      }
+      return File('${backupDir.path}/rokn_backup.json');
+    }
+
+    Future<void> _createBackup() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final data = {
+          'version': 1,
+          'createdAt': DateTime.now().toIso8601String(),
+          'preferences': {
+            'enabledShortcuts': prefs.getStringList('enabledShortcuts') ?? [],
+            'selectedLanguage': prefs.getString('selectedLanguage'),
+            'darkModeEnabled': prefs.getBool('darkModeEnabled'),
+            'fontSizeMultiplier': prefs.getDouble('fontSizeMultiplier'),
+            'lineHeightMultiplier': prefs.getDouble('lineHeightMultiplier'),
+            'daily_plan_history': prefs.getString('daily_plan_history'),
+            'generalDailyAzkarEnabled':
+                prefs.getBool('generalDailyAzkarEnabled'),
+            'morningAzkarReminderEnabled':
+                prefs.getBool('morningAzkarReminderEnabled'),
+            'eveningAzkarReminderEnabled':
+                prefs.getBool('eveningAzkarReminderEnabled'),
+            'sleepAzkarReminderEnabled':
+                prefs.getBool('sleepAzkarReminderEnabled'),
+            'tasbeehReminderEnabled':
+                prefs.getBool('tasbeehReminderEnabled'),
+            'weeklyFridayReminderEnabled':
+                prefs.getBool('weeklyFridayReminderEnabled'),
+            'prayerTimesNotificationsEnabled':
+                prefs.getBool('prayerTimesNotificationsEnabled'),
+          },
+          'quranSettings': {
+            'favorite_audio_surahs':
+                quranSettingsBox.get('favorite_audio_surahs'),
+            'favorite_audio_reciters':
+                quranSettingsBox.get('favorite_audio_reciters'),
+            'last_audio_surah': quranSettingsBox.get('last_audio_surah'),
+            'last_audio_reciter': quranSettingsBox.get('last_audio_reciter'),
+            'lastReadSurahNumber': quranSettingsBox.get('lastReadSurahNumber'),
+            'lastReadPosition': quranSettingsBox.get('lastReadPosition'),
+          },
+        };
+
+        final file = await _getBackupFile();
+        await file.writeAsString(jsonEncode(data));
+        Get.snackbar('نسخ احتياطي', 'تم إنشاء النسخة الاحتياطية بنجاح');
+      } catch (e) {
+        Get.snackbar('خطأ', 'تعذر إنشاء النسخة الاحتياطية');
+      }
+    }
+
+    Future<void> _restoreBackup() async {
+      try {
+        final file = await _getBackupFile();
+        if (!await file.exists()) {
+          Get.snackbar('تنبيه', 'لا توجد نسخة احتياطية للمعالجة');
+          return;
+        }
+        final raw = await file.readAsString();
+        final data = jsonDecode(raw) as Map<String, dynamic>;
+        final prefs = await SharedPreferences.getInstance();
+        final prefsData = Map<String, dynamic>.from(
+          data['preferences'] as Map? ?? {},
+        );
+        final quranData = Map<String, dynamic>.from(
+          data['quranSettings'] as Map? ?? {},
+        );
+
+        final enabledShortcuts =
+            (prefsData['enabledShortcuts'] as List?)?.cast<String>();
+        if (enabledShortcuts != null) {
+          await prefs.setStringList('enabledShortcuts', enabledShortcuts);
+        }
+
+        Future<void> _setBool(String key) async {
+          final value = prefsData[key];
+          if (value is bool) {
+            await prefs.setBool(key, value);
+          }
+        }
+
+        Future<void> _setDouble(String key) async {
+          final value = prefsData[key];
+          if (value is num) {
+            await prefs.setDouble(key, value.toDouble());
+          }
+        }
+
+        Future<void> _setString(String key) async {
+          final value = prefsData[key];
+          if (value is String) {
+            await prefs.setString(key, value);
+          }
+        }
+
+        await _setString('selectedLanguage');
+        await _setBool('darkModeEnabled');
+        await _setDouble('fontSizeMultiplier');
+        await _setDouble('lineHeightMultiplier');
+        await _setString('daily_plan_history');
+        await _setBool('generalDailyAzkarEnabled');
+        await _setBool('morningAzkarReminderEnabled');
+        await _setBool('eveningAzkarReminderEnabled');
+        await _setBool('sleepAzkarReminderEnabled');
+        await _setBool('tasbeehReminderEnabled');
+        await _setBool('weeklyFridayReminderEnabled');
+        await _setBool('prayerTimesNotificationsEnabled');
+
+        for (final entry in quranData.entries) {
+          if (entry.value != null) {
+            quranSettingsBox.put(entry.key, entry.value);
+          }
+        }
+
+        await appSettings.loadSettings();
+        Get.snackbar('تم الاسترجاع', 'تم استعادة النسخة الاحتياطية');
+      } catch (e) {
+        Get.snackbar('خطأ', 'تعذر استعادة النسخة الاحتياطية');
+      }
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -99,6 +234,20 @@ class SettingsPage extends StatelessWidget {
                             await appSettings.setFontSizeMultiplier(newValue);
                           },
                         ),
+                        _buildSliderRow(
+                          context,
+                          icon: Icons.format_line_spacing,
+                          title: 'تباعد الأسطر',
+                          value: appSettings.lineHeightMultiplier.value,
+                          min: 1.2,
+                          max: 2.4,
+                          divisions: 6,
+                          label:
+                              '${appSettings.lineHeightMultiplier.value.toStringAsFixed(1)}x',
+                          onChanged: (newValue) async {
+                            await appSettings.setLineHeightMultiplier(newValue);
+                          },
+                        ),
                         _buildDropdownRow(
                           context,
                           icon: Icons.language,
@@ -167,7 +316,7 @@ class SettingsPage extends StatelessWidget {
                             context,
                             icon: Icons.auto_awesome,
                             title: 'تذكير أذكار عامة',
-                            subtitle: '8:00 صباحًا',
+                            subtitle: 'بعد الظهر',
                             value: appSettings.generalDailyAzkarEnabled.value,
                             onChanged: (newValue) async {
                               await appSettings
@@ -178,7 +327,7 @@ class SettingsPage extends StatelessWidget {
                             context,
                             icon: Icons.wb_sunny_outlined,
                             title: 'تذكير أذكار الصباح',
-                            subtitle: '6:00 صباحًا',
+                            subtitle: 'بعد الفجر',
                             value: appSettings.morningAzkarReminderEnabled.value,
                             onChanged: (newValue) async {
                               await appSettings
@@ -189,7 +338,7 @@ class SettingsPage extends StatelessWidget {
                             context,
                             icon: Icons.nights_stay_outlined,
                             title: 'تذكير أذكار المساء',
-                            subtitle: '6:00 مساءً',
+                            subtitle: 'بعد المغرب',
                             value: appSettings.eveningAzkarReminderEnabled.value,
                             onChanged: (newValue) async {
                               await appSettings
@@ -200,7 +349,7 @@ class SettingsPage extends StatelessWidget {
                             context,
                             icon: Icons.bedtime_outlined,
                             title: 'تذكير أذكار النوم',
-                            subtitle: '10:00 مساءً',
+                            subtitle: 'بعد العشاء',
                             value: appSettings.sleepAzkarReminderEnabled.value,
                             onChanged: (newValue) async {
                               await appSettings
@@ -211,7 +360,7 @@ class SettingsPage extends StatelessWidget {
                             context,
                             icon: Icons.refresh,
                             title: 'تذكير التسبيح',
-                            subtitle: '12:00 ظهرًا',
+                            subtitle: 'بعد العصر',
                             value: appSettings.tasbeehReminderEnabled.value,
                             onChanged: (newValue) async {
                               await appSettings
@@ -252,6 +401,27 @@ class SettingsPage extends StatelessWidget {
                     const SizedBox(height: 16),
                     _buildSectionCard(
                       context,
+                      title: 'النسخ الاحتياطي المحلي',
+                      children: [
+                        _buildActionRow(
+                          context,
+                          icon: Icons.cloud_upload_outlined,
+                          title: 'إنشاء نسخة احتياطية',
+                          subtitle: 'حفظ الإعدادات والاختصارات محليًا',
+                          onTap: _createBackup,
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.cloud_download_outlined,
+                          title: 'استعادة النسخة الاحتياطية',
+                          subtitle: 'استرجاع آخر نسخة محفوظة',
+                          onTap: _restoreBackup,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionCard(
+                      context,
                       title: 'إجراءات إضافية',
                       children: [
                         _buildActionRow(
@@ -280,11 +450,21 @@ class SettingsPage extends StatelessWidget {
                           icon: Icons.star_rate_outlined,
                           title: 'تقييم التطبيق',
                           subtitle: 'شارك رأيك لتطوير التطبيق',
-                          onTap: () => _showSnackBar(
-                            context,
-                            'ميزة التقييم قيد التطوير!',
-                            currentTheme,
-                          ),
+                          onTap: () => Get.toNamed(AppRoute.appRating),
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.support_agent_outlined,
+                          title: 'تواصل مع الإدارة',
+                          subtitle: 'محادثة مباشرة مع فريق الدعم',
+                          onTap: () => Get.toNamed(AppRoute.supportChat),
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.lightbulb_outline,
+                          title: 'الاقتراحات والأفكار',
+                          subtitle: 'أضف اقتراحاً أو فكرة للتطوير',
+                          onTap: () => Get.toNamed(AppRoute.suggestions),
                         ),
                         _buildActionRow(
                           context,

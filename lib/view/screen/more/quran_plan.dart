@@ -217,6 +217,8 @@ class QuranPlanView extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             ),
             child: const Text('تسجيل'),
           ),
@@ -391,6 +393,10 @@ class QuranPlanView extends StatelessWidget {
               }
               Get.back();
             },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
             child: const Text('حفظ'),
           ),
         ],
@@ -447,6 +453,10 @@ class QuranPlanView extends StatelessWidget {
               );
               Get.back();
             },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
             child: const Text('تحديث'),
           ),
         ],

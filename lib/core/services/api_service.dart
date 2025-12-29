@@ -141,4 +141,123 @@ class ApiService {
 
     throw Exception('Failed to update app settings');
   }
+
+  Future<Map<String, dynamic>?> fetchAppRating({
+    required String authToken,
+  }) async {
+    final uri = Uri.parse(AppLink.ratingMe);
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body) as Map<String, dynamic>;
+      final data = decoded['data'];
+      if (data is Map<String, dynamic>) {
+        return data;
+      }
+      return null;
+    }
+
+    throw Exception('Failed to fetch rating');
+  }
+
+  Future<void> submitAppRating({
+    required String authToken,
+    required int rating,
+    String? comment,
+  }) async {
+    final uri = Uri.parse(AppLink.ratings);
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+      body: json.encode({
+        'rating': rating,
+        if (comment != null && comment.trim().isNotEmpty)
+          'comment': comment.trim(),
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to submit rating');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchSupportMessages({
+    required String authToken,
+  }) async {
+    final uri = Uri.parse(AppLink.supportMessages);
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body) as Map<String, dynamic>;
+      final data = decoded['data'];
+      if (data is List) {
+        return data.cast<Map<String, dynamic>>();
+      }
+      return [];
+    }
+
+    throw Exception('Failed to fetch support messages');
+  }
+
+  Future<void> sendSupportMessage({
+    required String authToken,
+    required String message,
+  }) async {
+    final uri = Uri.parse(AppLink.supportMessages);
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+      body: json.encode({'message': message}),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to send support message');
+    }
+  }
+
+  Future<void> submitSuggestion({
+    required String authToken,
+    required String title,
+    required String message,
+  }) async {
+    final uri = Uri.parse(AppLink.suggestions);
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+      body: json.encode({
+        'title': title,
+        'message': message,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to submit suggestion');
+    }
+  }
 }

@@ -13,7 +13,6 @@ class MorePage extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       endDrawer: CustomDrawer(),
@@ -107,6 +106,14 @@ class MorePage extends StatelessWidget {
                   color: scheme.tertiary,
                   onTap: () {
                     Get.toNamed(AppRoute.quranPlan);
+                  },
+                ),
+                _buildFeatureCard(context, 
+                  title: "خطة اليوم",
+                  image: "assets/images/book.png",
+                  color: scheme.primary.withOpacity(0.85),
+                  onTap: () {
+                    Get.toNamed(AppRoute.dailyPlan);
                   },
                 ),
                 _buildFeatureCard(context, 

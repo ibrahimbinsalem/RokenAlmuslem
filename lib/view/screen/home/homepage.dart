@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
+import 'package:rokenalmuslem/view/wedgit/buttons/customdrawer.dart';
 
 // تأكد من المسار الصحيح لوحدة التحكم الخاصة بك
 import 'package:rokenalmuslem/controller/ayah_controller.dart';
@@ -50,6 +51,18 @@ class _HomePageState extends State<HomePage> {
   final AppSettingsController appSettings = Get.find<AppSettingsController>();
 
   String _appVersion = ''; // متغير لتخزين رقم الإصدار
+  static const List<String> _dailyDhikrList = [
+    'سبحان الله وبحمده',
+    'لا إله إلا الله وحده لا شريك له',
+    'اللهم صلِّ وسلم على نبينا محمد',
+    'أستغفر الله العظيم',
+    'حسبي الله لا إله إلا هو عليه توكلت',
+    'سبحان الله والحمد لله ولا إله إلا الله والله أكبر',
+    'اللهم أعني على ذكرك وشكرك وحسن عبادتك',
+    'يا حي يا قيوم برحمتك أستغيث',
+    'اللهم اغفر لي ولوالدي',
+    'اللهم ارزقني حسن الخاتمة',
+  ];
 
   @override
   void initState() {
@@ -207,6 +220,12 @@ class _HomePageState extends State<HomePage> {
         route: AppRoute.quranPlan,
       ),
       _ShortcutConfig(
+        id: 'daily_plan',
+        icon: 'assets/images/book.png',
+        label: 'خطة اليوم',
+        route: AppRoute.dailyPlan,
+      ),
+      _ShortcutConfig(
         id: 'custom_adkar',
         icon: 'assets/images/مسبحة.png',
         label: 'أذكار خاصة',
@@ -222,6 +241,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      endDrawer: const CustomDrawer(),
       body: AppBackground(
         child: SafeArea(
           child: GetX<TasbeehController>(
@@ -247,6 +267,24 @@ class _HomePageState extends State<HomePage> {
               return SingleChildScrollView(
                 child: Column(
                   children: [
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: screenHeight * 0.02,
+                        right: screenWidth * 0.05,
+                        left: screenWidth * 0.05,
+                      ),
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: Builder(
+                          builder: (context) {
+                            return _buildDrawerButton(
+                              context,
+                              primaryColor,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                     // --== ويدجت جديد لعرض الوقت والتاريخ والصلاة القادمة ==--
                     // نستخدم Obx هنا للاستماع إلى التغييرات في prayerController
 
@@ -285,6 +323,7 @@ class _HomePageState extends State<HomePage> {
                       accentColor,
                       screenWidth,
                     ),
+                    _buildDailyWidget(context, screenWidth),
 
                     // اختصارات
                     Padding(
@@ -1290,6 +1329,148 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  int _dailyIndex() {
+    final now = DateTime.now();
+    final startOfYear = DateTime(now.year, 1, 1);
+    return now.difference(startOfYear).inDays;
+  }
+
+  Widget _buildDailyWidget(BuildContext context, double screenWidth) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = scheme.surface.withOpacity(isDark ? 0.7 : 0.95);
+    final dailyDhikr =
+        _dailyDhikrList[_dailyIndex() % _dailyDhikrList.length];
+
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.04,
+        vertical: screenWidth * 0.02,
+      ),
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(screenWidth * 0.05),
+        border: Border.all(color: scheme.primary.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: GetBuilder<PrayerTimesController>(
+        builder: (controller) {
+          String prayerLabel = 'فعّل مواقيت الصلاة';
+          String prayerTime = '—';
+          if (controller.prayerTimesData.isNotEmpty) {
+            final nextPrayer = controller.getNextPrayer();
+            final name = nextPrayer['name']?.toString() ?? 'غير معروف';
+            final time = nextPrayer['time'] as DateTime?;
+            prayerLabel = 'الصلاة القادمة: $name';
+            if (time != null) {
+              prayerTime = DateFormat('hh:mm a', 'ar').format(time);
+            }
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'وِرد اليوم',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                dailyDhikr,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontFamily: 'Amiri',
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Icon(Icons.access_time, color: scheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      prayerLabel,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+                  Text(
+                    prayerTime,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => Get.toNamed(AppRoute.prytime),
+                    icon: const Icon(Icons.mosque_outlined),
+                    label: const Text('المواقيت'),
+                  ),
+                  const SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => Get.toNamed(AppRoute.dailyPlan),
+                    icon: const Icon(Icons.checklist),
+                    label: const Text('خطة اليوم'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Obx(() {
+                final notificationsEnabled =
+                    appSettings.notificationsEnabled.value;
+                return Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          if (notificationsEnabled) {
+                            Get.toNamed(AppRoute.setting);
+                          } else {
+                            appSettings.setNotificationsEnabled(true);
+                          }
+                        },
+                        icon: Icon(
+                          notificationsEnabled
+                              ? Icons.notifications_active_outlined
+                              : Icons.notifications_off_outlined,
+                        ),
+                        label: Text(
+                          notificationsEnabled
+                              ? 'إدارة التنبيهات'
+                              : 'تفعيل التنبيهات',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => Get.toNamed(AppRoute.setting),
+                      icon: const Icon(Icons.settings_outlined),
+                      label: const Text('الإعدادات'),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          );
+        },
+      ),
+    ).animate().fadeIn(duration: 700.ms).slideY(begin: 0.1, end: 0);
+  }
+
   Widget _buildShortcut(
     BuildContext context, {
     required String icon,
@@ -1516,6 +1697,34 @@ class _HomePageState extends State<HomePage> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDrawerButton(BuildContext context, Color accentColor) {
+    return Material(
+      color: accentColor.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => Scaffold.of(context).openEndDrawer(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.menu, color: accentColor, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'القائمة',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: accentColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

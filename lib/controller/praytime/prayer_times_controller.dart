@@ -215,11 +215,6 @@ class PrayerTimesController extends GetxController {
         'time': prayerTimes.fajr,
         'type': 'prayerFajr',
       },
-      'الشروق': {
-        'id': prayerSunriseId,
-        'time': prayerTimes.sunrise,
-        'type': 'prayerSunrise',
-      },
       'الظهر': {
         'id': prayerDhuhrId,
         'time': prayerTimes.dhuhr,
@@ -253,17 +248,14 @@ class PrayerTimesController extends GetxController {
       // نستخدم دالة مخصصة لجدولة إشعار يومي متكرر في منطقة زمنية محددة.
       // هذه الدالة تستخدم TZDateTime لضمان الدقة مع التوقيت الصيفي/الشتوي.
       // تم التغيير إلى scheduleDailyReminder لأنها الدالة الموجودة في الخدمة
-      await _notificationService.scheduleDailyReminder(
+      await _notificationService.schedulePrayerReminder(
         id: prayer['id'] as int,
         title: 'حان وقت صلاة $prayerName',
         body: 'تقبل الله منا ومنكم صالح الأعمال',
-        time: TimeOfDay.fromDateTime(scheduledDateTime), // تمرير TimeOfDay
-        enableVibration: enableVibration, // تمرير إعداد الاهتزاز
-        playSound: playSound, // تمرير إعداد الصوت
-        payload: json.encode({
-          'type': prayer['type'] as String,
-          'prayerName': prayerName, // Arabic prayer name
-        }),
+        time: TimeOfDay.fromDateTime(scheduledDateTime),
+        prayerName: prayerName,
+        enableVibration: enableVibration,
+        playSound: playSound,
       );
     }
     print('Prayer time notifications scheduled by PrayerTimesController.');
@@ -501,6 +493,13 @@ class PrayerTimesController extends GetxController {
       dbHelper.insertOrUpdatePrayerTimes(today, prayerTimesData);
 
       savePreferences();
+
+      if (Get.isRegistered<AppSettingsController>()) {
+        final settings = Get.find<AppSettingsController>();
+        if (settings.notificationsEnabled.value) {
+          settings.resyncNotifications();
+        }
+      }
     } catch (e) {
       print("Error calculating prayer times: $e");
       if (!suppressErrors) {

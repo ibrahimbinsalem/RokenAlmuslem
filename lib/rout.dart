@@ -24,7 +24,10 @@ import 'package:rokenalmuslem/view/screen/more/adayaquran.dart';
 import 'package:rokenalmuslem/view/screen/more/adayatalanbya.dart';
 import 'package:rokenalmuslem/view/screen/more/alarboun.dart';
 import 'package:rokenalmuslem/view/screen/more/alrugi.dart';
+import 'package:rokenalmuslem/view/screen/more/app_rating.dart';
+import 'package:rokenalmuslem/view/screen/more/app_suggestion.dart';
 import 'package:rokenalmuslem/view/screen/more/asmaallah.dart';
+import 'package:rokenalmuslem/view/screen/more/support_chat.dart';
 import 'package:rokenalmuslem/view/screen/more/fadelaldaker.dart';
 import 'package:rokenalmuslem/view/screen/more/fadelalduaa.dart';
 import 'package:rokenalmuslem/view/screen/more/msbaha.dart';
@@ -36,6 +39,7 @@ import 'package:rokenalmuslem/view/screen/more/story_detail.dart';
 import 'package:rokenalmuslem/view/screen/more/qablah.dart';
 import 'package:rokenalmuslem/view/screen/more/setting.dart';
 import 'package:rokenalmuslem/view/screen/more/quran_plan.dart';
+import 'package:rokenalmuslem/view/screen/more/daily_plan.dart';
 import 'package:rokenalmuslem/view/screen/more/custom_adkar.dart';
 import 'package:rokenalmuslem/view/screen/more/spiritual_stats.dart';
 import 'package:rokenalmuslem/view/screen/onbording/onbording.dart';
@@ -93,6 +97,10 @@ List<GetPage<dynamic>>? routes = [
   GetPage(name: AppRoute.quranPlan, page: () => QuranPlanView()),
   GetPage(name: AppRoute.customAdkar, page: () => CustomAdkarView()),
   GetPage(name: AppRoute.spiritualStats, page: () => SpiritualStatsView()),
+  GetPage(name: AppRoute.dailyPlan, page: () => const DailyPlanView()),
+  GetPage(name: AppRoute.appRating, page: () => const AppRatingView()),
+  GetPage(name: AppRoute.supportChat, page: () => const SupportChatView()),
+  GetPage(name: AppRoute.suggestions, page: () => const AppSuggestionView()),
   // GetPage(name: AppRoute.surahDetail, page: () => SurahDetailPage(surah:)),
 
   // Settings :

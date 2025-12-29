@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/core/constant/routes.dart'; // تأكد من أن هذا المسار صحيح
+import 'package:rokenalmuslem/view/wedgit/buttons/customdrawer.dart';
 import 'package:rokenalmuslem/view/wedgit/layout/modern_scaffold.dart';
 
 class AdkarAlmuslam extends StatelessWidget {
@@ -13,6 +14,18 @@ class AdkarAlmuslam extends StatelessWidget {
 
     return ModernScaffold(
       title: 'أذكار المسلم',
+      actions: [
+        Builder(
+          builder: (context) {
+            return IconButton(
+              tooltip: 'القائمة',
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              icon: const Icon(Icons.menu, color: Colors.white),
+            );
+          },
+        ),
+      ],
+      endDrawer: const CustomDrawer(),
       body: CustomScrollView(
         slivers: [
           SliverPadding(

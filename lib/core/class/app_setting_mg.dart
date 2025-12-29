@@ -20,6 +20,7 @@ class AppSettingsController extends GetxController {
   final selectedLanguage = 'العربية'.obs;
   final darkModeEnabled = false.obs;
   final fontSizeMultiplier = 1.0.obs;
+  final lineHeightMultiplier = 1.9.obs;
   final vibrateOnNotification = true.obs;
   final randomAzkarOrder = true.obs;
   final shortcutsLoaded = false.obs;
@@ -70,6 +71,8 @@ class AppSettingsController extends GetxController {
     selectedLanguage.value = _prefs.getString('selectedLanguage') ?? 'العربية';
     darkModeEnabled.value = _prefs.getBool('darkModeEnabled') ?? true;
     fontSizeMultiplier.value = _prefs.getDouble('fontSizeMultiplier') ?? 1.0;
+    lineHeightMultiplier.value =
+        _prefs.getDouble('lineHeightMultiplier') ?? 1.9;
     vibrateOnNotification.value =
         _prefs.getBool('vibrateOnNotification') ?? true;
     randomAzkarOrder.value = _prefs.getBool('randomAzkarOrder') ?? true;
@@ -303,6 +306,11 @@ class AppSettingsController extends GetxController {
     await _saveSetting('fontSizeMultiplier', value);
   }
 
+  Future<void> setLineHeightMultiplier(double value) async {
+    lineHeightMultiplier.value = value;
+    await _saveSetting('lineHeightMultiplier', value);
+  }
+
   Future<void> setVibrateOnNotification(bool value) async {
     vibrateOnNotification.value = value;
     await _saveSetting('vibrateOnNotification', value);
@@ -334,7 +342,10 @@ class AppSettingsController extends GetxController {
         id: generalDailyAzkarId,
         title: 'تذكير أذكار عام',
         body: 'حان وقت أذكارك اليومية!',
-        time: const TimeOfDay(hour: 8, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.general,
+          fallback: const TimeOfDay(hour: 8, minute: 0),
+        ),
         payload: 'generalDailyAzkar',
       ),
     );
@@ -350,7 +361,10 @@ class AppSettingsController extends GetxController {
         id: morningAzkarId,
         title: 'أذكار الصباح',
         body: 'ابدأ يومك بذكر الله',
-        time: const TimeOfDay(hour: 6, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.morning,
+          fallback: const TimeOfDay(hour: 6, minute: 0),
+        ),
         payload: 'morningAzkar',
       ),
     );
@@ -366,7 +380,10 @@ class AppSettingsController extends GetxController {
         id: eveningAzkarId,
         title: 'أذكار المساء',
         body: 'حصّن نفسك بذكر الله',
-        time: const TimeOfDay(hour: 18, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.evening,
+          fallback: const TimeOfDay(hour: 18, minute: 0),
+        ),
         payload: 'eveningAzkar',
       ),
     );
@@ -382,7 +399,10 @@ class AppSettingsController extends GetxController {
         id: sleepAzkarId,
         title: 'أذكار النوم',
         body: 'تذكير بأذكار النوم قبل الخلود إليه',
-        time: const TimeOfDay(hour: 22, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.sleep,
+          fallback: const TimeOfDay(hour: 22, minute: 0),
+        ),
         payload: 'sleepAzkar',
       ),
     );
@@ -398,7 +418,10 @@ class AppSettingsController extends GetxController {
         id: tasbeehReminderId,
         title: 'تذكير تسبيح',
         body: 'حان وقت التسبيح، لا تنس ذكر الله!',
-        time: const TimeOfDay(hour: 12, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.tasbeeh,
+          fallback: const TimeOfDay(hour: 12, minute: 0),
+        ),
         payload: 'tasbeeh',
       ),
     );
@@ -464,7 +487,10 @@ class AppSettingsController extends GetxController {
         id: generalDailyAzkarId,
         title: 'تذكير أذكار عام',
         body: 'حان وقت أذكارك اليومية!',
-        time: const TimeOfDay(hour: 8, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.general,
+          fallback: const TimeOfDay(hour: 8, minute: 0),
+        ),
         payload: 'generalDailyAzkar',
       );
     }
@@ -473,7 +499,10 @@ class AppSettingsController extends GetxController {
         id: morningAzkarId,
         title: 'أذكار الصباح',
         body: 'ابدأ يومك بذكر الله',
-        time: const TimeOfDay(hour: 6, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.morning,
+          fallback: const TimeOfDay(hour: 6, minute: 0),
+        ),
         payload: 'morningAzkar',
       );
     }
@@ -482,7 +511,10 @@ class AppSettingsController extends GetxController {
         id: eveningAzkarId,
         title: 'أذكار المساء',
         body: 'حصّن نفسك بذكر الله',
-        time: const TimeOfDay(hour: 18, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.evening,
+          fallback: const TimeOfDay(hour: 18, minute: 0),
+        ),
         payload: 'eveningAzkar',
       );
     }
@@ -491,7 +523,10 @@ class AppSettingsController extends GetxController {
         id: sleepAzkarId,
         title: 'أذكار النوم',
         body: 'تذكير بأذكار النوم قبل الخلود إليه',
-        time: const TimeOfDay(hour: 22, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.sleep,
+          fallback: const TimeOfDay(hour: 22, minute: 0),
+        ),
         payload: 'sleepAzkar',
       );
     }
@@ -500,7 +535,10 @@ class AppSettingsController extends GetxController {
         id: tasbeehReminderId,
         title: 'تذكير تسبيح',
         body: 'حان وقت التسبيح، لا تنس ذكر الله!',
-        time: const TimeOfDay(hour: 12, minute: 0),
+        time: _resolveSmartTime(
+          type: _SmartReminderType.tasbeeh,
+          fallback: const TimeOfDay(hour: 12, minute: 0),
+        ),
         payload: 'tasbeeh',
       );
     }
@@ -551,6 +589,7 @@ class AppSettingsController extends GetxController {
     selectedLanguage.value = 'العربية';
     darkModeEnabled.value = false;
     fontSizeMultiplier.value = 1.0;
+    lineHeightMultiplier.value = 1.9;
     vibrateOnNotification.value = true;
     randomAzkarOrder.value = true;
     travelModeEnabled.value = false;
@@ -596,4 +635,71 @@ class AppSettingsController extends GetxController {
     await _prefs.remove('${keySuffix}Hour');
     await _prefs.remove('${keySuffix}Minute');
   }
+
+  Future<void> resyncNotifications() async {
+    await _syncNotificationsState();
+  }
+
+  TimeOfDay _resolveSmartTime({
+    required _SmartReminderType type,
+    required TimeOfDay fallback,
+  }) {
+    if (_prayerTimesController.prayerTimesData.isEmpty) {
+      return fallback;
+    }
+
+    TimeOfDay? baseTime;
+    int offsetMinutes = 0;
+    switch (type) {
+      case _SmartReminderType.general:
+        baseTime = _getPrayerTime('الظهر');
+        offsetMinutes = 20;
+        break;
+      case _SmartReminderType.morning:
+        baseTime = _getPrayerTime('الفجر');
+        offsetMinutes = 30;
+        break;
+      case _SmartReminderType.evening:
+        baseTime = _getPrayerTime('المغرب');
+        offsetMinutes = 30;
+        break;
+      case _SmartReminderType.sleep:
+        baseTime = _getPrayerTime('العشاء');
+        offsetMinutes = 45;
+        break;
+      case _SmartReminderType.tasbeeh:
+        baseTime = _getPrayerTime('العصر');
+        offsetMinutes = 20;
+        break;
+    }
+
+    if (baseTime == null) {
+      return fallback;
+    }
+    return _addMinutes(baseTime, offsetMinutes);
+  }
+
+  TimeOfDay? _getPrayerTime(String prayerName) {
+    final timeString = _prayerTimesController.prayerTimesData[prayerName];
+    if (timeString == null || timeString.isEmpty) {
+      return null;
+    }
+    return _prayerTimesController.parseTimeOfDay(timeString);
+  }
+
+  TimeOfDay _addMinutes(TimeOfDay time, int minutes) {
+    final totalMinutes =
+        (time.hour * 60 + time.minute + minutes) % (24 * 60);
+    final normalized =
+        totalMinutes < 0 ? totalMinutes + (24 * 60) : totalMinutes;
+    return TimeOfDay(hour: normalized ~/ 60, minute: normalized % 60);
+  }
+}
+
+enum _SmartReminderType {
+  general,
+  morning,
+  evening,
+  sleep,
+  tasbeeh,
 }

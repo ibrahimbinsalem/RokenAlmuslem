@@ -59,7 +59,7 @@ class SignUpControllerImp extends SignUpController {
         (data) {
           statusRequest = handelingData(data);
           if (data['status'] == 'success') {
-            showToast("تم انشاء الحساب الخاص بك بنجاح ", Colors.green);
+            showToast("تم إنشاء الحساب بنجاح، يرجى تسجيل الدخول.", Colors.green);
             Get.offNamed(AppRoute.login, arguments: {"email": emailLower});
           } else {
             showToast("فشل إنشاء الحساب.", Colors.orange);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -21,6 +23,7 @@ import 'package:rokenalmuslem/data/database/database_helper.dart';
 import 'package:rokenalmuslem/rout.dart'; // هذا الملف يجب أن يحتوي على قائمة المسارات
 import 'package:rokenalmuslem/view/screen/more/aboutbage.dart'; // استيراد صفحة حول التطبيق والمطورين
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart'; // **استيراد PrayerTimesController**
+import 'package:rokenalmuslem/controller/adhan_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:rokenalmuslem/core/services/firebase_messaging_handler.dart';
@@ -49,9 +52,13 @@ void callbackDispatcher() {
   });
 }
 
-Future<void> main() async {
-  await _initializeApp();
-  runApp(const MyApp());
+void main() {
+  runZonedGuarded(() async {
+    await _initializeApp();
+    runApp(const MyApp());
+  }, (error, stack) {
+    debugPrint("Uncaught zone error: $error\n$stack");
+  });
 }
 
 Future<void> _initializeApp() async {
@@ -100,6 +107,7 @@ Future<void> _initializeApp() async {
     final notificationService = NotificationService();
     await notificationService.initialize();
     Get.put(notificationService, permanent: true);
+    Get.put(AdhanController(), permanent: true);
 
     try {
       await FirebaseMessaging.instance.requestPermission();

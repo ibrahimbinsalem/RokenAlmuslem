@@ -12,7 +12,20 @@
           "package_name": "com.roknmuslim.roknmuslimapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "281470701923-urlo18h2k10ne21ugmq4dd7smdhgogka.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.roknmuslim.roknmuslimapp",
+            "certificate_hash": "2126b10cdfe7520b6cff097ffc13805f749bb01e"
+          }
+        },
+        {
+          "client_id": "281470701923-tfnes72ssahtkbrh0fmidhp4fjal59kp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA5VkVplnjX2McWJ7GjT3--HjjUQUZF1co"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "281470701923-tfnes72ssahtkbrh0fmidhp4fjal59kp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "281470701923-vrglgh00f4fssqmtmqnq2s1ccsra63da.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.roknmuslim.roknmuslimapp"
+              }
+            }
+          ]
         }
       }
     }

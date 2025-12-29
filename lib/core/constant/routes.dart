@@ -47,6 +47,10 @@ class AppRoute {
   static const String quranPlan = "/quranPlan";
   static const String customAdkar = "/customAdkar";
   static const String spiritualStats = "/spiritualStats";
+  static const String dailyPlan = "/dailyPlan";
+  static const String appRating = "/appRating";
+  static const String supportChat = "/supportChat";
+  static const String suggestions = "/suggestions";
 
   // Quran :
   static const String quran = "/quran";

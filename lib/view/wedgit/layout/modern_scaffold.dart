@@ -8,6 +8,7 @@ class ModernScaffold extends StatelessWidget {
   final bool extendBodyBehindAppBar;
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
+  final Widget? endDrawer;
 
   const ModernScaffold({
     super.key,
@@ -17,6 +18,7 @@ class ModernScaffold extends StatelessWidget {
     this.extendBodyBehindAppBar = true,
     this.floatingActionButton,
     this.floatingActionButtonLocation,
+    this.endDrawer,
   });
 
   @override
@@ -37,6 +39,7 @@ class ModernScaffold extends StatelessWidget {
       extendBodyBehindAppBar: extendBodyBehindAppBar,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
+      endDrawer: endDrawer,
       appBar: AppBar(
         title: Text(
           title,

@@ -42,27 +42,23 @@ class AyahData {
 
   /// Factory constructor to create an `AyahData` instance from a JSON map.
   factory AyahData.fromJSON(Map<String, dynamic> json) {
-    debugPrint('AyahData.fromJSON: Starting deserialization for Ayah number ${json['number']}');
-    
     // Ensure 'sajda' exists and is a Map before parsing
     final DataSajadah sajdaValue = json.containsKey('sajda') && json['sajda'] != null
         ? DataSajadah.fromJSON(json['sajda'] as Map<String, dynamic>)
         : DataSajadah(isSajda: false, isRecommended: false, isObligatory: false, id: 0); // Provide a default/empty DataSajadah if null or missing
-    debugPrint('AyahData.fromJSON: Sajda parsed: ${sajdaValue.isRecommended}');
 
     QuranTranslate? loadedTranslate;
-    debugPrint('AyahData.fromJSON: Checking for "translate" field. Type: ${json['translate']?.runtimeType}');
 
     if (json['translate'] != null && json['translate'] is Map) {
       Map<String, String> tempTranslates = {};
       try {
         (json['translate'] as Map<String, dynamic>).forEach((keyString, value) {
-          debugPrint('  Processing translate key: "$keyString", value: "$value", valueType: ${value.runtimeType}');
           if (value is String) {
             tempTranslates[keyString] = value;
-            debugPrint('  Successfully added translation for key: "$keyString".');
           } else {
-            debugPrint('  Warning: Translate value for "$keyString" is not a String. Type: ${value.runtimeType}. Skipping.');
+            debugPrint(
+              'Translate value for "$keyString" is not a String. Type: ${value.runtimeType}. Skipping.',
+            );
           }
         });
       } catch (e) {
@@ -71,15 +67,9 @@ class AyahData {
 
       if (tempTranslates.isNotEmpty) {
         loadedTranslate = QuranTranslate(translates: tempTranslates);
-        debugPrint('AyahData.fromJSON: Successfully created QuranTranslate object with ${tempTranslates.length} translations.');
-      } else {
-        debugPrint('AyahData.fromJSON: No valid translations found for this Ayah.');
       }
-    } else {
-      debugPrint('AyahData.fromJSON: "translate" field is null or not a Map.');
     }
 
-    debugPrint('AyahData.fromJSON: Deserialization complete for Ayah number ${json['number']}.');
     return AyahData(
       number: json['number'] as int,
       text: json['text'] as String,

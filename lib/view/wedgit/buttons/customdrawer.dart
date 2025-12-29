@@ -114,86 +114,76 @@ class _CustomDrawerState extends State<CustomDrawer> {
     return Drawer(
       child: Container(
         color: scheme.background,
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: <Widget>[
-                  isLoggedIn
-                      ? _buildUserHeader(theme)
-                      : _buildGuestHeader(theme),
-                  _buildDrawerItem(
-                    icon: Icons.home_outlined,
-                    text: 'الرئيسية',
-                    onTap: () {
-                      // يفترض أن لديك صفحة رئيسية معرفة في MainScreen
-                      // إذا كانت الصفحة الرئيسية هي أول صفحة في المكدس، يمكنك استخدام Get.offAllNamed
-                      Get.offAllNamed(AppRoute.homePage);
-                    },
-                  ),
-                  if (isLoggedIn)
-                    _buildDrawerItem(
-                      icon: Icons.settings_outlined,
-                      text: 'الإعدادات',
-                      onTap: () {
-                        Get.back(); // إغلاق القائمة أولاً
-                        Get.toNamed(AppRoute.setting);
-                      },
-                    ),
-                  Divider(
-                    color: scheme.outline.withOpacity(0.4),
-                    indent: 16,
-                    endIndent: 16,
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.info_outline,
-                    text: 'حول التطبيق',
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed(AppRoute.about);
-                    },
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.share_outlined,
-                    text: 'مشاركة التطبيق',
-                    onTap: () {
-                      Get.back();
-                      Share.share(
-                        'تحقق من تطبيق ركن المسلم، رفيقك اليومي للعبادة والذكر. \n\n [رابط التطبيق على المتجر]',
-                        subject: 'تطبيق ركن المسلم',
-                      );
-                    },
-                  ),
-                  if (isLoggedIn) ...[
-                    Divider(
-                      color: scheme.outline.withOpacity(0.4),
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-                    _buildDrawerItem(
-                      icon: Icons.logout,
-                      text: 'تسجيل الخروج',
-                      onTap: () {
-                        // هنا يمكنك إضافة منطق تسجيل الخروج
-                        myServices.sharedprf.setString("step", "1");
-                        Get.offAllNamed(AppRoute.homePage);
-                      },
-                    ),
-                  ],
-                ],
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            children: [
+              isLoggedIn
+                  ? _buildUserHeader(context, theme)
+                  : _buildGuestHeader(context, theme),
+              const SizedBox(height: 16),
+              _buildSectionTitle(context, 'التطبيق'),
+              _buildDrawerItem(
+                context,
+                icon: Icons.home_outlined,
+                text: 'الرئيسية',
+                onTap: () => Get.offAllNamed(AppRoute.homePage),
               ),
-            ),
-            // Version and update check at the bottom
-            Padding(
-              padding: const EdgeInsets.only(
-                bottom: 20.0,
-                left: 16.0,
-                right: 16.0,
+              if (isLoggedIn)
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.settings_outlined,
+                  text: 'الإعدادات',
+                  onTap: () => Get.toNamed(AppRoute.setting),
+                ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.info_outline,
+                text: 'حول التطبيق',
+                onTap: () => Get.toNamed(AppRoute.about),
               ),
-              child: _buildUpdateSection(theme),
-            ),
-          ],
+              _buildDrawerItem(
+                context,
+                icon: Icons.share_outlined,
+                text: 'مشاركة التطبيق',
+                onTap: () {
+                  Share.share(
+                    'تحقق من تطبيق ركن المسلم، رفيقك اليومي للعبادة والذكر. \n\n [رابط التطبيق على المتجر]',
+                    subject: 'تطبيق ركن المسلم',
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildSectionTitle(context, 'الحساب'),
+              if (!isLoggedIn)
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.login,
+                  text: 'تسجيل الدخول',
+                  onTap: () => Get.toNamed(AppRoute.login),
+                ),
+              if (!isLoggedIn)
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.person_add_alt_1,
+                  text: 'إنشاء حساب',
+                  onTap: () => Get.toNamed(AppRoute.signUp),
+                ),
+              if (isLoggedIn)
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.logout,
+                  text: 'تسجيل الخروج',
+                  onTap: () {
+                    myServices.sharedprf.setString("step", "1");
+                    Get.offAllNamed(AppRoute.homePage);
+                  },
+                ),
+              const SizedBox(height: 8),
+              _buildSectionTitle(context, 'التحديثات'),
+              _buildUpdateSection(theme),
+            ],
+          ),
         ),
       ),
     );
@@ -291,7 +281,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
   }
 
-  Widget _buildUserHeader(ThemeData theme) {
+  Widget _buildUserHeader(BuildContext context, ThemeData theme) {
     final scheme = theme.colorScheme;
     MyServices myServices2 = Get.find();
 
@@ -303,7 +293,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
     return Container(
       // استخدام `EdgeInsets.only` و `SafeArea` لتجنب التداخل مع شريط الحالة
       padding: EdgeInsets.only(
-        top: MediaQuery.of(Get.context!).padding.top + 16,
+        top: MediaQuery.of(context).padding.top + 8,
         bottom: 16,
         right: 16,
         left: 16,
@@ -383,11 +373,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
   }
 
-  Widget _buildGuestHeader(ThemeData theme) {
+  Widget _buildGuestHeader(BuildContext context, ThemeData theme) {
     final scheme = theme.colorScheme;
     return Container(
       padding: EdgeInsets.only(
-        top: MediaQuery.of(Get.context!).padding.top + 16,
+        top: MediaQuery.of(context).padding.top + 8,
         bottom: 16,
         right: 16,
         left: 16,
@@ -421,23 +411,32 @@ class _CustomDrawerState extends State<CustomDrawer> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () => Get.toNamed(AppRoute.login),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Get.toNamed(AppRoute.login);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: scheme.primary,
+                  minimumSize: const Size(0, 44),
                 ),
                 child: const Text('تسجيل الدخول'),
               ),
-              const SizedBox(width: 12),
               OutlinedButton(
-                onPressed: () => Get.toNamed(AppRoute.signUp),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Get.toNamed(AppRoute.signUp);
+                },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.white),
                   foregroundColor: Colors.white,
+                  minimumSize: const Size(0, 44),
                 ),
                 child: const Text('إنشاء حساب'),
               ),
@@ -448,30 +447,74 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
   }
 
-  Widget _buildDrawerItem({
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, top: 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(
+    BuildContext context, {
     required IconData icon,
     required String text,
     required GestureTapCallback onTap,
   }) {
-    final theme = Theme.of(Get.context!);
+    final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          Navigator.of(context).pop();
+          onTap();
+        },
         splashColor: scheme.primary.withOpacity(0.2),
         highlightColor: scheme.primary.withOpacity(0.08),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: scheme.outline.withOpacity(0.2)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
           child: Row(
-            children: <Widget>[
-              Icon(icon, color: scheme.onSurface.withOpacity(0.7), size: 24),
-              const SizedBox(width: 20),
-              Text(
-                text,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: scheme.onSurface,
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: scheme.primary.withOpacity(0.12),
+                child: Icon(icon, color: scheme.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  text,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+              ),
+              Icon(
+                isRtl ? Icons.chevron_left : Icons.chevron_right,
+                color: scheme.onSurface.withOpacity(0.5),
               ),
             ],
           ),
