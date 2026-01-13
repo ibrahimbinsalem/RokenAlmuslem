@@ -128,8 +128,8 @@ import 'package:rokenalmuslem/core/services/services.dart';
 class LocalController extends GetxController {
   final MyServices myServices = Get.find();
 
-  Rx<Locale> locale = const Locale('en').obs;
-  Rx<ThemeData> theme = themeEnglish.obs;
+  Rx<Locale> locale = const Locale('ar').obs;
+  Rx<ThemeData> theme = themeArabic.obs;
 
   get isRtl => null;
 
@@ -140,17 +140,8 @@ class LocalController extends GetxController {
   }
 
   void _loadSavedLang() {
-    final savedLang = myServices.sharedprf.getString("lang");
-    if (savedLang == "ar") {
-      locale.value = const Locale("ar");
-      theme.value = themeArabic;
-    } else if (savedLang == "en") {
-      locale.value = const Locale("en");
-      theme.value = themeEnglish;
-    } else {
-      locale.value = Get.deviceLocale ?? const Locale('en');
-      theme.value = themeEnglish;
-    }
+    locale.value = const Locale("ar");
+    theme.value = themeArabic;
   }
 
   Future<void> changeLang(String langCode) async {

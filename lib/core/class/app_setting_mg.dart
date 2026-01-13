@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart'; // For TimeOfDay
@@ -22,6 +24,8 @@ class AppSettingsController extends GetxController {
   final fontSizeMultiplier = 1.0.obs;
   final lineHeightMultiplier = 1.9.obs;
   final vibrateOnNotification = true.obs;
+  final hideNotificationContent = false.obs;
+  final smartMorningAzkarReminderEnabled = true.obs;
   final randomAzkarOrder = true.obs;
   final shortcutsLoaded = false.obs;
   final enabledShortcuts = <String>[].obs;
@@ -48,6 +52,7 @@ class AppSettingsController extends GetxController {
   static const int sleepAzkarId = 301;
   static const int tasbeehReminderId = 104;
   static const int weeklyFridayReminderId = 201;
+  static const int smartMorningAzkarId = 901;
   static const int prayerTimesNotificationsStartId = 1000;
   static const int prayerTimesNotificationsEndId = 1005;
 
@@ -75,6 +80,10 @@ class AppSettingsController extends GetxController {
         _prefs.getDouble('lineHeightMultiplier') ?? 1.9;
     vibrateOnNotification.value =
         _prefs.getBool('vibrateOnNotification') ?? true;
+    hideNotificationContent.value =
+        _prefs.getBool('hideNotificationContent') ?? false;
+    smartMorningAzkarReminderEnabled.value =
+        _prefs.getBool('smartMorningAzkarReminderEnabled') ?? true;
     randomAzkarOrder.value = _prefs.getBool('randomAzkarOrder') ?? true;
     travelModeEnabled.value = _prefs.getBool('travelModeEnabled') ?? false;
     smartPrayerUpdatesEnabled.value =
@@ -103,6 +112,9 @@ class AppSettingsController extends GetxController {
     // This ensures the theme change happens after the current build cycle is complete.
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyCurrentTheme());
 
+    _notificationService.setHideNotificationContent(
+      hideNotificationContent.value,
+    );
     _syncNotificationsState();
     await syncFromServer();
   }
@@ -116,6 +128,27 @@ class AppSettingsController extends GetxController {
       await _prefs.setString(key, value);
     } else if (value is int) {
       await _prefs.setInt(key, value);
+    }
+  }
+
+  Future<void> _cancelManagedNotifications() async {
+    await _notificationService.cancelNotifications([
+      generalDailyAzkarId,
+      morningAzkarId,
+      eveningAzkarId,
+      sleepAzkarId,
+      tasbeehReminderId,
+      weeklyFridayReminderId,
+      smartMorningAzkarId,
+    ]);
+    await _prayerTimesController.cancelAllPrayerTimeNotifications();
+  }
+
+  Future<void> _ensurePrayerTimesReady() async {
+    try {
+      await _prayerTimesController.initializationFuture;
+    } catch (e) {
+      debugPrint('Failed to await prayer times initialization: $e');
     }
   }
 
@@ -317,6 +350,19 @@ class AppSettingsController extends GetxController {
     _syncNotificationsState(); // أعد مزامنة لجعل الاهتزاز سارياً
   }
 
+  Future<void> setHideNotificationContent(bool value) async {
+    hideNotificationContent.value = value;
+    await _saveSetting('hideNotificationContent', value);
+    _notificationService.setHideNotificationContent(value);
+    await _syncNotificationsState();
+  }
+
+  Future<void> setSmartMorningAzkarReminderEnabled(bool value) async {
+    smartMorningAzkarReminderEnabled.value = value;
+    await _saveSetting('smartMorningAzkarReminderEnabled', value);
+    await _syncNotificationsState();
+  }
+
   Future<void> setRandomAzkarOrder(bool value) async {
     randomAzkarOrder.value = value;
     await _prefs.setBool('randomAzkarOrder', value);
@@ -368,6 +414,7 @@ class AppSettingsController extends GetxController {
         payload: 'morningAzkar',
       ),
     );
+    await _syncSmartMorningAzkarReminder();
   }
 
   Future<void> setEveningAzkarReminderEnabled(bool value) async {
@@ -468,12 +515,12 @@ class AppSettingsController extends GetxController {
 
   // **تعديلات مهمة في _syncNotificationsState**
   Future<void> _syncNotificationsState() async {
-    // 1. إلغاء جميع الإشعارات أولاً. هذا يضمن عدم وجود إشعارات قديمة أو مكررة.
-    // This is a simple and robust strategy.
-    await _notificationService.cancelAllNotifications();
+    // 1. إلغاء الإشعارات التي يديرها التطبيق فقط لتفادي حذف إشعارات أخرى.
+    await _cancelManagedNotifications();
 
     // 2. التحقق من المفتاح الرئيسي لتمكين الإشعارات بشكل عام.
     if (!notificationsEnabled.value) {
+      await _notificationService.cancelAllNotifications();
       print(
         'Global notifications disabled. No new notifications will be scheduled.',
       );
@@ -557,12 +604,12 @@ class AppSettingsController extends GetxController {
     if (prayerTimesNotificationsEnabled.value) {
       // التأكد من أن بيانات أوقات الصلاة متاحة قبل الجدولة.
       // إذا كانت فارغة، حاول جلبها.
+      await _ensurePrayerTimesReady();
       if (_prayerTimesController.prayerTimesData.isEmpty) {
         print(
           'Prayer times data is empty, attempting to fetch before scheduling.',
         );
-        // نستدعي الدالة لجلب البيانات، لكن لا نستخدم نتيجتها في الشرط
-        await _prayerTimesController.prayerTimesData;
+        _prayerTimesController.fetchPrayerTimes(suppressErrors: true);
       }
 
       // جدولة إشعارات أوقات الصلاة فقط إذا كانت البيانات موجودة الآن
@@ -580,6 +627,73 @@ class AppSettingsController extends GetxController {
         );
       }
     }
+
+    await _syncSmartMorningAzkarReminder();
+  }
+
+  Future<void> _syncSmartMorningAzkarReminder() async {
+    final todayKey = DateTime.now().toIso8601String().split('T').first;
+    final doneDate = _prefs.getString('morning_adhkar_done_date');
+    if (doneDate == todayKey) {
+      await _notificationService.cancelNotification(smartMorningAzkarId);
+      await _prefs.remove('smart_morning_scheduled_at');
+      return;
+    }
+
+    if (!notificationsEnabled.value ||
+        !morningAzkarReminderEnabled.value ||
+        !smartMorningAzkarReminderEnabled.value) {
+      await _notificationService.cancelNotification(smartMorningAzkarId);
+      await _prefs.remove('smart_morning_scheduled_at');
+      return;
+    }
+
+    final now = DateTime.now();
+    final scheduledAtRaw = _prefs.getString('smart_morning_scheduled_at');
+    if (scheduledAtRaw != null) {
+      final scheduledAt = DateTime.tryParse(scheduledAtRaw);
+      if (scheduledAt != null &&
+          scheduledAt.isAfter(now) &&
+          scheduledAt.toIso8601String().startsWith(todayKey)) {
+        return;
+      }
+    }
+
+    final target = DateTime(now.year, now.month, now.day, 14, 0);
+    final latest = DateTime(now.year, now.month, now.day, 18, 0);
+    DateTime? scheduledAt;
+    if (now.isBefore(target)) {
+      scheduledAt = target;
+    } else if (now.isBefore(latest)) {
+      scheduledAt = now.add(const Duration(minutes: 5));
+    }
+
+    if (scheduledAt == null) {
+      await _prefs.remove('smart_morning_scheduled_at');
+      return;
+    }
+
+    final payload = json.encode({
+      'type': 'morningAzkar',
+      'scheduledTime': scheduledAt.toIso8601String(),
+      'notificationId': smartMorningAzkarId,
+      'smart': true,
+    });
+
+    await _notificationService.scheduleOneTimeNotification(
+      id: smartMorningAzkarId,
+      title: 'تنبيه لطيف: أذكار الصباح',
+      body: 'لم تقرأ أذكار الصباح اليوم، خصص دقيقة الآن.',
+      scheduledAt: scheduledAt,
+      payload: payload,
+      enableVibration: vibrateOnNotification.value,
+      playSound: true,
+    );
+
+    await _prefs.setString(
+      'smart_morning_scheduled_at',
+      scheduledAt.toIso8601String(),
+    );
   }
 
   Future<void> resetSettings() async {
@@ -591,6 +705,8 @@ class AppSettingsController extends GetxController {
     fontSizeMultiplier.value = 1.0;
     lineHeightMultiplier.value = 1.9;
     vibrateOnNotification.value = true;
+    hideNotificationContent.value = false;
+    smartMorningAzkarReminderEnabled.value = true;
     randomAzkarOrder.value = true;
     travelModeEnabled.value = false;
     smartPrayerUpdatesEnabled.value = true;
@@ -603,6 +719,7 @@ class AppSettingsController extends GetxController {
     prayerTimesNotificationsEnabled.value = false;
 
     _applyCurrentTheme();
+    _notificationService.setHideNotificationContent(false);
     _syncNotificationsState();
 
     Get.snackbar(

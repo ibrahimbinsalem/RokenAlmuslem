@@ -50,6 +50,7 @@ class AppRoute {
   static const String dailyPlan = "/dailyPlan";
   static const String appRating = "/appRating";
   static const String supportChat = "/supportChat";
+  static const String helpCenter = "/helpCenter";
   static const String suggestions = "/suggestions";
 
   // Quran :

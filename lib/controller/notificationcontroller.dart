@@ -18,8 +18,12 @@ class NotificationsController extends GetxController {
   final RxList<NotificationItem> notifications = <NotificationItem>[].obs;
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
+  final RxInt unreadCount = 0.obs;
+  final RxBool pulseUnread = false.obs;
 
   List<NotificationItem> _remoteNotificationsCache = [];
+  int _lastUnreadCount = 0;
+  bool _hasInitializedUnread = false;
 
   // حقن متحكمات التبعية
   final NotificationService _notificationService;
@@ -44,6 +48,7 @@ class NotificationsController extends GetxController {
         Get.find<PrayerTimesController>(); // حقن PrayerTimesController
     // **الإصلاح**: ضمان تنفيذ العمليات بالترتيب الصحيح لتجنب السباق الزمني
     // أولاً، تحقق من وجود إشعار تحديث معلق، ثم قم بتحديث بقية الإشعارات.
+    ever<List<NotificationItem>>(notifications, (_) => _syncUnreadCount());
     _initializeNotifications();
   }
 
@@ -104,6 +109,7 @@ class NotificationsController extends GetxController {
 
     // إضافة الإشعار الجديد في بداية القائمة
     notifications.insert(0, updateNotification);
+    _syncUnreadCount();
     Get.snackbar('تحديث متوفر', 'إصدار جديد من التطبيق متاح الآن!');
   }
 
@@ -115,19 +121,9 @@ class NotificationsController extends GetxController {
     errorMessage.value = '';
 
     try {
-      // 1. اطلب من AppSettingsController إعادة مزامنة إشعارات الأذكار
-      // هذا سيلغي القديم ويجدول الجديد بناءً على إعدادات المستخدم.
-      // بما أن _syncNotificationsState في AppSettingsController أصبحت مسؤولة عن كل الجدولة/الإلغاء
-      // بناءً على حالة المفاتيح، فإن استدعاء loadSettings() سيتولى المزامنة.
-      await _appSettingsController.loadSettings();
-
-      // لا حاجة لاستدعاء _prayerTimesController.fetchPrayerTimes() هنا بشكل منفصل لجدولة الإشعارات،
-      // لأن _appSettingsController.syncNotificationsState() ستفعل ذلك إذا كان مفتاح الصلاة مفعلاً.
-      // وظيفة fetchPrayerTimes() في PrayerTimesController هي فقط جلب البيانات.
-
-      // 2. بعد إعادة الجدولة (التي حدثت بفضل loadSettings/syncNotificationsState)،
-      // قم بجلب قائمة الإشعارات المعلقة لعرضها
+      // اجلب الإشعارات المعلقة دون إعادة جدولتها لتجنب التداخل أو الإلغاء غير المقصود.
       await _fetchNotifications(isRefresh: true);
+      _syncUnreadCount();
     } catch (e, stack) {
       errorMessage.value = 'خطأ في تحديث الإشعارات: $e';
       debugPrint('Error refreshing notifications: $e\n$stack');
@@ -142,6 +138,7 @@ class NotificationsController extends GetxController {
       errorMessage.value = '';
       notifications.clear(); // تأكيد المسح حتى عند التحميل الأولي
       await _fetchNotifications(isRefresh: true);
+      _syncUnreadCount();
     } catch (e) {
       _handleError(e);
     } finally {
@@ -275,6 +272,7 @@ class NotificationsController extends GetxController {
     // فرز الإشعارات حسب الوقت (الأحدث أولاً)
     allNotifications.sort((a, b) => b.time.compareTo(a.time));
     notifications.assignAll(allNotifications);
+    _syncUnreadCount();
   }
 
   Future<List<NotificationItem>> _fetchRemoteNotifications({
@@ -541,6 +539,7 @@ class NotificationsController extends GetxController {
 
     notifications[index] = notifications[index].copyWith(isRead: true);
     notifications.refresh();
+    _syncUnreadCount();
   }
 
   Future<void> dismissNotification(NotificationItem notificationItem) async {
@@ -551,6 +550,7 @@ class NotificationsController extends GetxController {
       return item.id == notificationItem.id;
     });
     notifications.refresh();
+    _syncUnreadCount();
 
     if (notificationItem.isRemote && notificationItem.remoteId != null) {
       _dismissedRemoteIds.add(notificationItem.remoteId!);
@@ -572,6 +572,23 @@ class NotificationsController extends GetxController {
     } else {
       await _notificationService.cancelNotification(notificationItem.id);
     }
+  }
+
+  void _syncUnreadCount() {
+    final count = notifications.where((item) => !item.isRead).length;
+    unreadCount.value = count;
+    if (_hasInitializedUnread && count > _lastUnreadCount) {
+      _triggerPulse();
+    }
+    _lastUnreadCount = count;
+    _hasInitializedUnread = true;
+  }
+
+  void _triggerPulse() {
+    pulseUnread.value = true;
+    Future.delayed(const Duration(milliseconds: 900), () {
+      pulseUnread.value = false;
+    });
   }
 
   Future<void> handleNotificationTap(NotificationItem notification) async {
@@ -697,6 +714,7 @@ class NotificationsController extends GetxController {
       '/quran',
       '/msbaha',
       '/about',
+      '/supportChat',
     };
     return allowed.contains(value);
   }

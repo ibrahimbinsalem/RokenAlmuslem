@@ -27,6 +27,7 @@ import 'package:rokenalmuslem/view/screen/more/alrugi.dart';
 import 'package:rokenalmuslem/view/screen/more/app_rating.dart';
 import 'package:rokenalmuslem/view/screen/more/app_suggestion.dart';
 import 'package:rokenalmuslem/view/screen/more/asmaallah.dart';
+import 'package:rokenalmuslem/view/screen/more/help_center.dart';
 import 'package:rokenalmuslem/view/screen/more/support_chat.dart';
 import 'package:rokenalmuslem/view/screen/more/fadelaldaker.dart';
 import 'package:rokenalmuslem/view/screen/more/fadelalduaa.dart';
@@ -100,6 +101,7 @@ List<GetPage<dynamic>>? routes = [
   GetPage(name: AppRoute.dailyPlan, page: () => const DailyPlanView()),
   GetPage(name: AppRoute.appRating, page: () => const AppRatingView()),
   GetPage(name: AppRoute.supportChat, page: () => const SupportChatView()),
+  GetPage(name: AppRoute.helpCenter, page: () => const HelpCenterView()),
   GetPage(name: AppRoute.suggestions, page: () => const AppSuggestionView()),
   // GetPage(name: AppRoute.surahDetail, page: () => SurahDetailPage(surah:)),
 

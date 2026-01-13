@@ -104,9 +104,14 @@ Future<void> _initializeApp() async {
     ]);
 
     // **1. Initialize NotificationService first as other controllers depend on it**
-    final notificationService = NotificationService();
-    await notificationService.initialize();
-    Get.put(notificationService, permanent: true);
+    final NotificationService notificationService =
+        Get.isRegistered<NotificationService>()
+            ? Get.find<NotificationService>()
+            : NotificationService();
+    if (!Get.isRegistered<NotificationService>()) {
+      await notificationService.initialize();
+      Get.put(notificationService, permanent: true);
+    }
     Get.put(AdhanController(), permanent: true);
 
     try {
@@ -122,15 +127,19 @@ Future<void> _initializeApp() async {
 
     // **2. Initialize PrayerTimesController using Get.putAsync**
     // This ensures its async onInit (location, prayer times fetch) completes
-    await Get.putAsync<PrayerTimesController>(() async {
-      final controller = PrayerTimesController();
-      // onInit will be called automatically, which handles async initialization
-      return controller;
-    }, permanent: true);
+    if (!Get.isRegistered<PrayerTimesController>()) {
+      await Get.putAsync<PrayerTimesController>(() async {
+        final controller = PrayerTimesController();
+        // onInit will be called automatically, which handles async initialization
+        return controller;
+      }, permanent: true);
+    }
 
     // **3. Initialize AppSettingsController synchronously**
     // It will find the already initialized PrayerTimesController when needed.
-    Get.put<AppSettingsController>(AppSettingsController(), permanent: true);
+    if (!Get.isRegistered<AppSettingsController>()) {
+      Get.put<AppSettingsController>(AppSettingsController(), permanent: true);
+    }
 
     // Initialize Workmanager
     await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
@@ -242,17 +251,14 @@ class MyApp extends StatelessWidget {
                       ? ThemeMode.dark
                       : ThemeMode.light, // لتغيير الوضع الليلي
               translations: MyTranslation(),
-              locale: localeController.locale.value ?? const Locale('ar'),
+              locale: const Locale('ar'),
               fallbackLocale: const Locale('ar'),
               initialRoute: _getInitialRoute(myServices),
               getPages: routes, // قائمة المسارات الخاصة بك
               initialBinding: InitialBindings(),
               builder: (context, child) {
                 return Directionality(
-                  textDirection:
-                      localeController.locale.value?.languageCode == 'ar'
-                          ? TextDirection.rtl
-                          : TextDirection.ltr,
+                  textDirection: TextDirection.rtl,
                   child: child!,
                 );
               },

@@ -45,6 +45,12 @@ class SpiritualStatsView extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
+              _weeklyChartCard(
+                scheme: scheme,
+                average: state.weeklyAverage.value,
+                series: state.weeklySeries,
+              ),
+              const SizedBox(height: 14),
               _statCard(
                 scheme: scheme,
                 title: 'الأيام المتتالية',
@@ -226,6 +232,116 @@ class SpiritualStatsView extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _weeklyChartCard({
+    required ColorScheme scheme,
+    required int average,
+    required List<Map<String, dynamic>> series,
+  }) {
+    final maxCount = series.fold<int>(
+      0,
+      (max, item) {
+        final count = item['count'] as int? ?? 0;
+        return count > max ? count : max;
+      },
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.primary.withOpacity(0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bar_chart_rounded, color: scheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'ملخص الأسبوع',
+                style: TextStyle(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'متوسط يومي: $average',
+                style: TextStyle(
+                  color: scheme.onSurface.withOpacity(0.7),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (series.isEmpty)
+            Text(
+              'لا توجد بيانات كافية بعد.',
+              style: TextStyle(color: scheme.onSurface.withOpacity(0.6)),
+            )
+          else
+            ...series.map((item) {
+              final label = item['label']?.toString() ?? '';
+              final count = item['count'] as int? ?? 0;
+              final ratio = maxCount == 0 ? 0.0 : count / maxCount;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 44,
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: scheme.onSurface.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 10,
+                          color: scheme.primary.withOpacity(0.08),
+                          alignment: Alignment.centerLeft,
+                          child: FractionallySizedBox(
+                            widthFactor: ratio,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    scheme.primary.withOpacity(0.7),
+                                    scheme.secondary.withOpacity(0.9),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      count.toString(),
+                      style: TextStyle(
+                        color: scheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );

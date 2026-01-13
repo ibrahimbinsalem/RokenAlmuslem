@@ -11,6 +11,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart'; // استيراد مكتبة intl
+import 'package:rokenalmuslem/core/services/home_widget_service.dart';
 
 // استيراد NotificationService
 import 'package:rokenalmuslem/core/services/localnotification.dart';
@@ -106,6 +107,7 @@ class PrayerTimesController extends GetxController {
         errorMessage.value = '';
         isLoading = false;
         update();
+        _updatePrayerWidget();
         return;
       }
       final travelModeEnabled = prefs.getBool('travelModeEnabled') ?? false;
@@ -142,6 +144,7 @@ class PrayerTimesController extends GetxController {
         };
         originalPrayerTimes.value = Map.from(prayerTimesData);
         _applyAdjustments();
+        _updatePrayerWidget();
       } else {
         // إذا لم توجد بيانات محلية، حاول حسابها إذا كان الموقع محفوظًا
         if (latitude.value != 0.0 && longitude.value != 0.0) {
@@ -500,6 +503,8 @@ class PrayerTimesController extends GetxController {
           settings.resyncNotifications();
         }
       }
+
+      _updatePrayerWidget();
     } catch (e) {
       print("Error calculating prayer times: $e");
       if (!suppressErrors) {
@@ -516,6 +521,37 @@ class PrayerTimesController extends GetxController {
     // The adhan package returns times in UTC by default.
     final localTime = tz.TZDateTime.from(time, tz.local);
     return DateFormat('hh:mm a', 'ar').format(localTime);
+  }
+
+  void _updatePrayerWidget() {
+    if (!Get.isRegistered<HomeWidgetService>()) {
+      return;
+    }
+    final widgetService = Get.find<HomeWidgetService>();
+    if (prayerTimesData.isEmpty) {
+      widgetService.updatePrayerWidget(
+        prayerName: 'فعّل مواقيت الصلاة',
+        prayerTime: '--:--',
+        subtitle: 'افتح التطبيق لتحديد الموقع',
+      );
+      return;
+    }
+
+    final nextPrayer = getNextPrayer();
+    final name = nextPrayer['name']?.toString() ?? 'الصلاة القادمة';
+    final DateTime? time = nextPrayer['time'] as DateTime?;
+    final formattedTime =
+        time == null
+            ? '--:--'
+            : DateFormat('hh:mm a', 'ar').format(time);
+
+    widgetService.updatePrayerWidget(
+      prayerName: 'الصلاة القادمة: $name',
+      prayerTime: formattedTime,
+      subtitle: currentAddress.value.isNotEmpty
+          ? currentAddress.value
+          : 'حدّث موقعك من التطبيق',
+    );
   }
 
   void _applyAdjustments() {

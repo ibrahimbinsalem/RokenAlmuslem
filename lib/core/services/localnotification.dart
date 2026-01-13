@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:get/get.dart';
@@ -20,6 +21,7 @@ class NotificationService extends GetxService {
       StreamController<NotificationResponse>.broadcast();
   static const int _audioNotificationId = 77;
   String? _lastLaunchPayload;
+  bool _hideNotificationContent = false;
 
   Stream<String> get actionStream => _actionStream.stream;
   Stream<NotificationResponse> get notificationStream =>
@@ -73,6 +75,14 @@ class NotificationService extends GetxService {
       }
     }
 
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _hideNotificationContent =
+          prefs.getBool('hideNotificationContent') ?? false;
+    } catch (_) {
+      _hideNotificationContent = false;
+    }
+
     tz.initializeTimeZones();
     try {
       final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
@@ -109,7 +119,7 @@ class NotificationService extends GetxService {
     required String body,
     String? payload,
   }) async {
-    const AndroidNotificationDetails androidDetails =
+    final AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'default_channel',
           'Default Notifications',
@@ -117,6 +127,9 @@ class NotificationService extends GetxService {
           importance: Importance.max,
           priority: Priority.high,
           ticker: 'ticker',
+          visibility: _hideNotificationContent
+              ? NotificationVisibility.private
+              : NotificationVisibility.public,
         );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -155,6 +168,9 @@ class NotificationService extends GetxService {
           playSound: false,
           onlyAlertOnce: true,
           ongoing: true,
+          visibility: _hideNotificationContent
+              ? NotificationVisibility.private
+              : NotificationVisibility.public,
           actions: [
             AndroidNotificationAction(
               'audio_play_pause',
@@ -191,6 +207,10 @@ class NotificationService extends GetxService {
     _lastLaunchPayload = null;
   }
 
+  void setHideNotificationContent(bool value) {
+    _hideNotificationContent = value;
+  }
+
   Future<void> cancelAudioNotification() async {
     await _notificationsPlugin.cancel(_audioNotificationId);
   }
@@ -204,6 +224,7 @@ class NotificationService extends GetxService {
     bool enableVibration = true,
     bool playSound = true,
   }) async {
+    await _notificationsPlugin.cancel(id);
     final scheduledDate = _calculateNextInstanceOfTime(time);
 
     final payload = json.encode({
@@ -222,6 +243,9 @@ class NotificationService extends GetxService {
           priority: Priority.high,
           enableVibration: enableVibration,
           playSound: playSound,
+          visibility: _hideNotificationContent
+              ? NotificationVisibility.private
+              : NotificationVisibility.public,
           sound:
               playSound
                   ? const RawResourceAndroidNotificationSound('adhan')
@@ -262,6 +286,7 @@ class NotificationService extends GetxService {
     bool enableVibration = true, // جديد
     bool playSound = true, // جديد
   }) async {
+    await _notificationsPlugin.cancel(id);
     final scheduledDate = _calculateNextInstanceOfTime(time);
 
     // تأكد من أن الـ payload هو string يمثل JSON
@@ -304,6 +329,9 @@ class NotificationService extends GetxService {
       ticker: 'Daily Reminder',
       enableVibration: enableVibration,
       playSound: playSound,
+      visibility: _hideNotificationContent
+          ? NotificationVisibility.private
+          : NotificationVisibility.public,
     );
 
     DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -327,6 +355,48 @@ class NotificationService extends GetxService {
     );
   }
 
+  Future<void> scheduleOneTimeNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledAt,
+    String? payload,
+    bool enableVibration = true,
+    bool playSound = true,
+  }) async {
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'smart_reminder_channel',
+      'Smart Reminders',
+      channelDescription: 'Smart reminder notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'Smart Reminder',
+      enableVibration: enableVibration,
+      playSound: playSound,
+      visibility: _hideNotificationContent
+          ? NotificationVisibility.private
+          : NotificationVisibility.public,
+    );
+
+    final DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: playSound,
+    );
+
+    final scheduled = tz.TZDateTime.from(scheduledAt, tz.local);
+    await _notificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      scheduled,
+      NotificationDetails(android: androidDetails, iOS: iosDetails),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    
+      payload: payload,
+    );
+  }
+
   Future<void> scheduleWeeklyReminder({
     required int id,
     required String title,
@@ -337,6 +407,7 @@ class NotificationService extends GetxService {
     bool enableVibration = true,
     bool playSound = true,
   }) async {
+    await _notificationsPlugin.cancel(id);
     final scheduledDate = _calculateNextInstanceOfDayAndTime(day, time);
 
     // تأكد من أن الـ payload هو string يمثل JSON
@@ -374,6 +445,9 @@ class NotificationService extends GetxService {
       ticker: 'Weekly Reminder',
       enableVibration: enableVibration,
       playSound: playSound,
+      visibility: _hideNotificationContent
+          ? NotificationVisibility.private
+          : NotificationVisibility.public,
     );
 
     DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -472,6 +546,12 @@ class NotificationService extends GetxService {
   Future<void> cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);
     print('Cancelled notification with ID: $id');
+  }
+
+  Future<void> cancelNotifications(Iterable<int> ids) async {
+    for (final id in ids) {
+      await _notificationsPlugin.cancel(id);
+    }
   }
 
   Future<void> cancelAllNotifications() async {

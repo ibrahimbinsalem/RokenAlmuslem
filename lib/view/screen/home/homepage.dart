@@ -1,11 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:hijri/hijri_calendar.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:rokenalmuslem/linkapi.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:rokenalmuslem/view/wedgit/layout/app_background.dart';
 import 'package:rokenalmuslem/view/wedgit/buttons/customdrawer.dart';
 
@@ -51,6 +56,9 @@ class _HomePageState extends State<HomePage> {
   final AppSettingsController appSettings = Get.find<AppSettingsController>();
 
   String _appVersion = ''; // متغير لتخزين رقم الإصدار
+  bool _updateAvailable = false;
+  String _latestVersion = '';
+  String _updateUrl = '';
   static const List<String> _dailyDhikrList = [
     'سبحان الله وبحمده',
     'لا إله إلا الله وحده لا شريك له',
@@ -74,10 +82,87 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadAppVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
+      if (!mounted) return;
       setState(() => _appVersion = packageInfo.version);
+      await _checkForUpdate(packageInfo.version);
     } catch (e) {
-      print("Could not get app version: $e");
+      debugPrint("Could not get app version: $e");
+      if (!mounted) return;
       setState(() => _appVersion = 'N/A');
+    }
+  }
+
+  Future<void> _checkForUpdate(String currentVersion) async {
+    if (currentVersion.trim().isEmpty) {
+      return;
+    }
+    if (mounted) {
+      setState(() {
+        _updateAvailable = false;
+        _updateUrl = '';
+        _latestVersion = '';
+      });
+    }
+
+    try {
+      final uri = Uri.parse(AppLink.appVersionCheck).replace(
+        queryParameters: {'version': currentVersion},
+      );
+      final response = await http.get(uri);
+      if (response.statusCode != 200) {
+        return;
+      }
+
+      final Map<String, dynamic> data =
+          json.decode(response.body) as Map<String, dynamic>;
+      final bool updateAvailable = data['update_available'] == true;
+      final String? latestVersion = data['latest_version'] as String?;
+      final String? updateUrl = data['update_url'] as String?;
+      if (updateAvailable && updateUrl != null && updateUrl.trim().isNotEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _updateAvailable = true;
+          _latestVersion = latestVersion ?? '';
+          _updateUrl = updateUrl;
+        });
+      }
+    } catch (e) {
+      debugPrint("Update check failed: $e");
+    }
+  }
+
+  Future<void> _launchUpdateUrl() async {
+    final trimmed = _updateUrl.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+    final normalized = trimmed.startsWith('http://') ||
+            trimmed.startsWith('https://')
+        ? trimmed
+        : 'https://$trimmed';
+    final uri = Uri.tryParse(normalized);
+    if (uri == null) {
+      Get.snackbar(
+        'خطأ',
+        'رابط التحديث غير صالح.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!launched) {
+      Get.snackbar(
+        'خطأ',
+        'لا يمكن فتح رابط التحديث.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -316,6 +401,13 @@ class _HomePageState extends State<HomePage> {
                             .slideY(begin: 0.1, end: 0),
                       ),
                     ),
+
+                    if (_updateAvailable)
+                      _buildUpdateBanner(
+                        context,
+                        screenWidth,
+                        primaryColor,
+                      ),
 
                     _buildHeaderSection(
                       context,
@@ -668,6 +760,105 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ================ Widgets مساعدة =================
+
+  Widget _buildUpdateBanner(
+    BuildContext context,
+    double screenWidth,
+    Color primaryColor,
+  ) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = scheme.secondary;
+
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.06,
+        vertical: screenWidth * 0.02,
+      ),
+      padding: EdgeInsets.all(screenWidth * 0.045),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            primaryColor.withOpacity(isDark ? 0.22 : 0.12),
+            accent.withOpacity(isDark ? 0.28 : 0.18),
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        borderRadius: BorderRadius.circular(screenWidth * 0.04),
+        border: Border.all(color: accent.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accent.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.system_update_alt,
+                  color: accent,
+                  size: 22,
+                ),
+              ),
+              SizedBox(width: screenWidth * 0.03),
+              Expanded(
+                child: Text(
+                  'تحديث جديد متوفر',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: screenWidth * 0.02),
+          Text(
+            _latestVersion.isNotEmpty
+                ? 'الإصدار $_latestVersion متاح الآن. حدّث للحصول على أحدث الميزات.'
+                : 'يوجد إصدار أحدث للتطبيق. حدّث للحصول على آخر الميزات.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurface.withOpacity(0.8),
+              height: 1.4,
+            ),
+          ),
+          SizedBox(height: screenWidth * 0.03),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: ElevatedButton.icon(
+              onPressed: _launchUpdateUrl,
+              icon: const Icon(Icons.open_in_new, size: 18),
+              label: const Text('تحديث الآن'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accent,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.04,
+                  vertical: screenWidth * 0.02,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // الويدجت الجديد لعرض الوقت والتاريخ والصلاة القادمة
   Widget _buildHeaderSection(

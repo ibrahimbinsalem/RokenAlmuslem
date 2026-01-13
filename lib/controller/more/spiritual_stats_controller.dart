@@ -11,6 +11,8 @@ class SpiritualStatsController extends GetxController {
   final streakDays = 0.obs;
   final mostActiveHour = '—'.obs;
   final activityBreakdown = <String, int>{}.obs;
+  final weeklySeries = <Map<String, dynamic>>[].obs;
+  final weeklyAverage = 0.obs;
 
   @override
   void onInit() {
@@ -56,6 +58,20 @@ class SpiritualStatsController extends GetxController {
               .format(todayStart.subtract(Duration(days: i)));
       weekTotal += dailyTotals[date] ?? 0;
     }
+
+    final weeklyItems = <Map<String, dynamic>>[];
+    for (int i = 6; i >= 0; i--) {
+      final day = todayStart.subtract(Duration(days: i));
+      final dateKey = DateFormat('yyyy-MM-dd').format(day);
+      weeklyItems.add({
+        'label': DateFormat('EEE', 'ar').format(day),
+        'count': dailyTotals[dateKey] ?? 0,
+        'date': day,
+      });
+    }
+
+    weeklySeries.assignAll(weeklyItems);
+    weeklyAverage.value = (weekTotal / 7).round();
 
     int streak = 0;
     for (int i = 0; i < 30; i++) {

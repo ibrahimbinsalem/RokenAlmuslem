@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ركن المسلم</string>
+    <string name="prayer_widget_name">ودجت مواقيت الصلاة</string>
+    <string name="prayer_widget_description">عرض الصلاة القادمة بسرعة</string>
+</resources>

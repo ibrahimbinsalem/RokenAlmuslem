@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart'; // قد لا تحتاجها هنا بشكل مباشر ولكن لا بأس
 import 'package:get/get.dart';
+import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
+import 'package:rokenalmuslem/core/services/localnotification.dart';
+import 'package:rokenalmuslem/core/services/services.dart';
 import 'package:rokenalmuslem/data/database/database_helper.dart'; // تأكد من المسار الصحيح
 
 class AdkarSabahController extends GetxController {
@@ -331,6 +334,18 @@ class AdkarSabahController extends GetxController {
           items[index]["id"] as int,
           items[index]["count"].value,
         );
+        final services = Get.find<MyServices>();
+        final todayKey = DateTime.now().toIso8601String().split('T').first;
+        await services.sharedprf.setString(
+          'morning_adhkar_done_date',
+          todayKey,
+        );
+        await services.sharedprf.remove('smart_morning_scheduled_at');
+        if (Get.isRegistered<NotificationService>()) {
+          await Get.find<NotificationService>().cancelNotification(
+            AppSettingsController.smartMorningAzkarId,
+          );
+        }
       } else {
         Get.bottomSheet(
           Container(

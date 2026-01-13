@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/notificationcontroller.dart';
+import 'package:rokenalmuslem/core/constant/routes.dart';
 import 'package:rokenalmuslem/core/services/api_service.dart';
 import 'package:rokenalmuslem/core/services/services.dart';
 import 'package:rokenalmuslem/core/services/localnotification.dart';
@@ -48,7 +51,9 @@ class FirebaseMessagingHandler {
         return;
       }
 
-      if ((title ?? '').isNotEmpty || (body ?? '').isNotEmpty) {
+      final handledSupport = _handleSupportReplyForeground(message, title, body);
+      if (!handledSupport &&
+          ((title ?? '').isNotEmpty || (body ?? '').isNotEmpty)) {
         _localNotificationService.showNotification(
           title: title ?? 'إشعار جديد',
           body: body ?? '',
@@ -111,6 +116,43 @@ bool _handleUpdateNotification(RemoteMessage message) {
     return true;
   }
   return false;
+}
+
+bool _handleSupportReplyForeground(
+  RemoteMessage message,
+  String? title,
+  String? body,
+) {
+  if (message.data['type'] != 'support_reply') {
+    return false;
+  }
+
+  final bannerTitle = (title ?? '').trim().isEmpty ? 'رسالة من الدعم' : title!;
+  final bannerBody =
+      (body ?? '').trim().isEmpty ? 'لديك رد جديد من فريق الدعم.' : body!;
+
+  Get.snackbar(
+    bannerTitle,
+    bannerBody,
+    snackPosition: SnackPosition.TOP,
+    backgroundColor: Colors.black87,
+    colorText: Colors.white,
+    margin: const EdgeInsets.all(16),
+    duration: const Duration(seconds: 4),
+    icon: const Icon(Icons.support_agent, color: Colors.white),
+    mainButton: TextButton(
+      onPressed: () {
+        Get.closeAllSnackbars();
+        Get.toNamed(AppRoute.supportChat);
+      },
+      child: const Text(
+        'فتح',
+        style: TextStyle(color: Colors.white),
+      ),
+    ),
+  );
+
+  return true;
 }
 
 /// Private helper function to handle a TAPPED notification.

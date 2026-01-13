@@ -50,6 +50,10 @@ class SettingsPage extends StatelessWidget {
             'fontSizeMultiplier': prefs.getDouble('fontSizeMultiplier'),
             'lineHeightMultiplier': prefs.getDouble('lineHeightMultiplier'),
             'daily_plan_history': prefs.getString('daily_plan_history'),
+            'hideNotificationContent':
+                prefs.getBool('hideNotificationContent'),
+            'smartMorningAzkarReminderEnabled':
+                prefs.getBool('smartMorningAzkarReminderEnabled'),
             'generalDailyAzkarEnabled':
                 prefs.getBool('generalDailyAzkarEnabled'),
             'morningAzkarReminderEnabled':
@@ -134,6 +138,8 @@ class SettingsPage extends StatelessWidget {
         await _setDouble('fontSizeMultiplier');
         await _setDouble('lineHeightMultiplier');
         await _setString('daily_plan_history');
+        await _setBool('hideNotificationContent');
+        await _setBool('smartMorningAzkarReminderEnabled');
         await _setBool('generalDailyAzkarEnabled');
         await _setBool('morningAzkarReminderEnabled');
         await _setBool('eveningAzkarReminderEnabled');
@@ -280,6 +286,17 @@ class SettingsPage extends StatelessWidget {
                         if (appSettings.notificationsEnabled.value) ...[
                           _buildSwitchRow(
                             context,
+                            icon: Icons.lock_outline,
+                            title: 'إخفاء محتوى الإشعارات',
+                            subtitle: 'إخفاء تفاصيل التنبيهات على شاشة القفل',
+                            value: appSettings.hideNotificationContent.value,
+                            onChanged: (newValue) async {
+                              await appSettings
+                                  .setHideNotificationContent(newValue);
+                            },
+                          ),
+                          _buildSwitchRow(
+                            context,
                             icon: Icons.access_time,
                             title: 'تنبيهات أوقات الصلاة',
                             subtitle: 'إشعار تلقائي لكل صلاة',
@@ -334,6 +351,23 @@ class SettingsPage extends StatelessWidget {
                                   .setMorningAzkarReminderEnabled(newValue);
                             },
                           ),
+                          if (appSettings.morningAzkarReminderEnabled.value)
+                            _buildSwitchRow(
+                              context,
+                              icon: Icons.light_mode_outlined,
+                              title: 'تنبيه ذكي لأذكار الصباح',
+                              subtitle:
+                                  'تنبيه لطيف بعد الظهر إذا لم تقرأ أذكار الصباح',
+                              value: appSettings
+                                  .smartMorningAzkarReminderEnabled
+                                  .value,
+                              onChanged: (newValue) async {
+                                await appSettings
+                                    .setSmartMorningAzkarReminderEnabled(
+                                  newValue,
+                                );
+                              },
+                            ),
                           _buildSwitchRow(
                             context,
                             icon: Icons.nights_stay_outlined,
@@ -451,6 +485,13 @@ class SettingsPage extends StatelessWidget {
                           title: 'تقييم التطبيق',
                           subtitle: 'شارك رأيك لتطوير التطبيق',
                           onTap: () => Get.toNamed(AppRoute.appRating),
+                        ),
+                        _buildActionRow(
+                          context,
+                          icon: Icons.help_outline,
+                          title: 'مركز المساعدة',
+                          subtitle: 'أسئلة شائعة وحالة الدعم',
+                          onTap: () => Get.toNamed(AppRoute.helpCenter),
                         ),
                         _buildActionRow(
                           context,

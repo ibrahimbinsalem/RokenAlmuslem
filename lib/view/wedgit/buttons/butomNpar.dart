@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rokenalmuslem/controller/mainscreencontroller.dart';
+import 'package:rokenalmuslem/controller/notificationcontroller.dart';
 
 class CosmicNavBar extends StatelessWidget {
   const CosmicNavBar({super.key});
@@ -8,6 +9,7 @@ class CosmicNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MainScreenControllerImp>();
+    final notificationsController = Get.find<NotificationsController>();
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -69,14 +71,18 @@ class CosmicNavBar extends StatelessWidget {
                 controller,
                 theme,
               ),
-              _buildNavItem(
-                Icons.notifications_outlined,
-                Icons.notifications,
-                "الرسائل",
-                2,
-                controller,
-                theme,
-              ),
+              Obx(() {
+                return _buildNavItem(
+                  Icons.notifications_outlined,
+                  Icons.notifications,
+                  "الرسائل",
+                  2,
+                  controller,
+                  theme,
+                  badgeCount: notificationsController.unreadCount.value,
+                  pulse: notificationsController.pulseUnread.value,
+                );
+              }),
               _buildNavItem(
                 Icons.menu_book_outlined,
                 Icons.menu_book,
@@ -107,10 +113,16 @@ class CosmicNavBar extends StatelessWidget {
     int index,
     MainScreenControllerImp controller,
     ThemeData theme,
+    {
+      int badgeCount = 0,
+      bool pulse = false,
+    }
   ) {
     final isActive = controller.curentpage == index;
     final iconSize = 28.0;
     final scheme = theme.colorScheme;
+    final showBadge = badgeCount > 0;
+    final badgeText = badgeCount > 9 ? '9+' : badgeCount.toString();
 
     return Expanded(
       child: Material(
@@ -143,6 +155,35 @@ class CosmicNavBar extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
+                    if (showBadge && pulse)
+                      Positioned(
+                        top: 4,
+                        right: 10,
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.8, end: 1.6),
+                          duration: const Duration(milliseconds: 500),
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: Opacity(
+                                opacity: 1 - (value - 0.8) / 0.8,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: scheme.secondary.withOpacity(0.8),
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     if (isActive)
                       Positioned(
                         top: 5,
@@ -169,6 +210,36 @@ class CosmicNavBar extends StatelessWidget {
                           ? scheme.primary
                           : theme.colorScheme.onSurface.withOpacity(0.4),
                     ),
+                    if (showBadge)
+                      Positioned(
+                        top: 2,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.error,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: scheme.error.withOpacity(0.4),
+                                blurRadius: 6,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 9,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

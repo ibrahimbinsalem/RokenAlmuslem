@@ -1,5 +1,5 @@
 class AppLink {
-  static const String baseUrl = "http://197.167.67.165:8000";
+  static const String baseUrl = "http://197.167.67.177:8000";
   static const String apiBase = "$baseUrl/api";
 
   // ============== Auth ==================
@@ -33,6 +33,11 @@ class AppLink {
 
   // ============== Support ==================
   static const String supportMessages = "$apiBase/support/messages";
+  static const String supportThread = "$apiBase/support/thread";
+  static const String supportThreadClose = "$apiBase/support/thread/close";
+  static const String supportThreads = "$apiBase/support/threads";
+  static const String supportFaq = "$apiBase/support/faq";
+  static const String supportRating = "$apiBase/support/rating";
 
   // ============== Suggestions ==================
   static const String suggestions = "$apiBase/suggestions";

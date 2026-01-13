@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rokenalmuslem/controller/notificationcontroller.dart';
 import 'package:rokenalmuslem/controller/praytime/prayer_times_controller.dart';
 import 'package:rokenalmuslem/core/class/app_setting_mg.dart';
+import 'package:rokenalmuslem/core/services/home_widget_service.dart';
 import 'package:rokenalmuslem/core/services/localnotification.dart';
 
 // If you want to use Firebase in the future
@@ -39,6 +40,7 @@ initialServices() async {
 
   // تهيئة المتحكمات التي تعتمد على الخدمات السابقة
   // الترتيب مهم هنا
+  Get.put(HomeWidgetService(), permanent: true);
   Get.put(PrayerTimesController());
   Get.put(AppSettingsController());
 
